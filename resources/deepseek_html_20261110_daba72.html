@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>今日做点小事 · 原型 V2.2</title>
+<!--
+  ══════════════════════════════════════════════════════════
+  今日做点小事（暂名）· 用户端原型 V2.2（单文件，无依赖）
+  V2.1 → V2.2 · 第 3 步：卡册完整版 + 卡集全图 + 抽空纪念页
+  · 卡册：三件套统计 + 按卡集分组列表 + 今日待抽条幅
+  · 卡集全图：亮格显词、暗格留黑（零剧透），亮格点击看大卡
+  · 抽空纪念页：统计行 + 海报按钮 + 关注落点
+  · empty 态打通：抽空后详情主按钮 → 纪念页
+  ══════════════════════════════════════════════════════════
+-->
+<style>
+  :root{
+    --paper:#F5F5F7; --paper-deep:#EFEFF2; --card:#FFFFFF;
+    --ink:#111111; --ink-soft:#737373; --ink-faint:#B8B8BC;
+    --red:#A83F39; --red-soft:#F9EFED;
+    --line:rgba(17,17,17,.08);
+    --shadow:0 2px 12px rgba(17,17,17,.05);
+    --serif:"Songti SC","Noto Serif SC","STSong",serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{background:#E8E8EB;font-family:-apple-system,"PingFang SC","Helvetica Neue",sans-serif;
+    color:var(--ink);display:flex;justify-content:center;min-height:100vh;padding:24px 12px 96px}
+  .serif{font-family:var(--serif)}
+  .phone{width:390px;min-height:780px;background:var(--paper);border-radius:28px;
+    box-shadow:0 20px 60px rgba(0,0,0,.18);overflow:hidden;position:relative;display:flex;flex-direction:column}
+  .screen{flex:1;overflow-y:auto;position:relative}
+  @media (max-width:430px){
+    body{padding:0 0 64px}
+    .phone{width:100%;min-height:100vh;border-radius:0;box-shadow:none}
+  }
+  .page{display:none;padding:20px 18px 32px;animation:fadein .25s}
+  .page.active{display:block}
+  @keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .panel{background:var(--card);border-radius:14px;padding:20px 18px;box-shadow:var(--shadow)}
+  .panel-head{font-size:11px;color:var(--ink-soft);display:flex;justify-content:space-between;
+    align-items:baseline;margin-bottom:14px;letter-spacing:1px}
+  .panel-head b{font-size:15px;color:var(--ink);font-weight:normal;letter-spacing:1px}
+  .cta{width:100%;height:48px;border:none;border-radius:999px;background:var(--red);color:#FFFFFF;
+    font-size:14px;letter-spacing:3px;cursor:pointer;font-family:inherit}
+  .cta:active{opacity:.88}
+  .cta:disabled{opacity:.6;cursor:default}
+  .ghost{width:100%;height:40px;border:none;border-radius:999px;background:var(--paper-deep);
+    color:var(--ink);font-size:13px;letter-spacing:2px;cursor:pointer;font-family:inherit}
+  .ghost:active{opacity:.8}
+  .tiny{font-size:11px;color:var(--ink-soft);text-align:center;margin-top:12px;letter-spacing:1px;line-height:1.9}
+  .subhead{display:flex;align-items:center;gap:12px;padding:2px 0 18px}
+  .subhead .back{width:32px;height:32px;border-radius:50%;border:none;background:var(--card);
+    box-shadow:var(--shadow);font-size:17px;color:var(--ink);cursor:pointer;line-height:1}
+  .subhead span{font-size:15px;letter-spacing:2px}
+  .badge{display:inline-flex;align-items:center;font-size:9px;padding:2px 8px;border-radius:999px;
+    border:1px solid;font-style:normal;letter-spacing:1px}
+  .badge.SSR{color:var(--red);border-color:var(--red)}
+  .badge.SR{color:var(--ink);border-color:var(--ink)}
+  .badge.R{color:var(--ink-soft);border-color:var(--ink-soft)}
+  .badge.N{color:var(--ink-faint);border-color:var(--ink-faint)}
+  /* 广场 */
+  .brand-row{display:flex;justify-content:space-between;align-items:baseline;padding:2px 2px 22px}
+  .wordmark{font-size:16px;letter-spacing:6px}
+  .today{font-size:10px;color:var(--ink-soft);letter-spacing:1px}
+  .shelf-slogan{font-size:21px;letter-spacing:2px;line-height:1.8;padding:0 2px 6px}
+  .tagline{font-size:11px;color:var(--ink-soft);letter-spacing:2px;padding:0 2px 24px}
+  .chips{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 18px;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{flex:none;height:30px;padding:0 14px;border-radius:999px;border:1px solid var(--line);
+    background:var(--card);color:var(--ink-soft);font-size:12px;letter-spacing:1px;cursor:pointer;font-family:inherit}
+  .chip.on{background:var(--ink);border-color:var(--ink);color:#FFFFFF}
+  .list-head{display:flex;justify-content:space-between;align-items:center;padding:0 2px 14px}
+  .count{font-size:11px;color:var(--ink-faint);letter-spacing:1px}
+  .sortseg{display:flex;gap:16px}
+  .sortseg button{background:none;border:none;font-size:12px;color:var(--ink-faint);cursor:pointer;
+    letter-spacing:1px;font-family:inherit;padding:2px 0;border-bottom:2px solid transparent}
+  .sortseg button.on{color:var(--ink);border-bottom-color:var(--ink)}
+  .book-card{display:flex;gap:14px;background:var(--card);border-radius:14px;padding:16px;
+    box-shadow:var(--shadow);margin-bottom:12px;cursor:pointer}
+  .book-card:active{opacity:.92}
+  .cover{width:72px;height:100px;border-radius:6px;flex:none;display:flex;align-items:center;
+    justify-content:center;gap:7px;box-shadow:0 2px 8px rgba(17,17,17,.10);overflow:hidden}
+  .cover span{writing-mode:vertical-rl;font-size:11px;color:#FFFFFF;letter-spacing:1px}
+  .cover i{writing-mode:vertical-rl;font-size:8px;color:#FFFFFF;opacity:.75;font-style:normal;letter-spacing:2px}
+  .c1{background:#8F3A34}.c2{background:#3E4A52}.c3{background:#33363B}
+  .c4{background:#3E4A3E}.c5{background:#4A3B32}.c6{background:#8A6A3B}
+  .bc-info{flex:1;min-width:0}
+  .bc-info h3{font-size:17px;letter-spacing:1px;font-weight:normal}
+  .bc-meta{font-size:11px;color:var(--ink-soft);margin:6px 0 8px;letter-spacing:.5px}
+  .bc-status{font-size:12px;letter-spacing:.5px;display:flex;align-items:center;gap:6px}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--red);flex:none}
+  .dot.faint{background:var(--ink-faint)}
+  .bc-status.faint{color:var(--ink-soft)}
+  .bc-actions{margin-top:12px}
+  .mini-cta{height:34px;padding:0 20px;border:none;border-radius:999px;background:var(--red);
+    color:#FFFFFF;font-size:12px;letter-spacing:2px;cursor:pointer;font-family:inherit}
+  .mini-disable{height:34px;padding:0 20px;border:none;border-radius:999px;background:var(--paper-deep);
+    color:var(--ink-faint);font-size:12px;letter-spacing:2px;cursor:default}
+  .shelf-tail{text-align:center;font-size:11px;color:var(--ink-faint);letter-spacing:3px;margin-top:20px}
+  /* 详情 */
+  #setBody .panel{margin-bottom:12px}
+  .intro{font-size:13px;line-height:2.1;color:var(--ink-soft);letter-spacing:.5px;margin:0 0 4px}
+  .creator{display:flex;align-items:center;gap:12px;border-top:1px solid var(--line);
+    padding-top:16px;margin-top:16px;cursor:pointer}
+  .cavatar{width:40px;height:40px;border-radius:50%;background:var(--red-soft);color:var(--red);
+    display:flex;align-items:center;justify-content:center;font-size:16px;flex:none}
+  .cinfo{flex:1;min-width:0}
+  .cinfo b{font-size:13px;font-weight:normal;letter-spacing:.5px;display:block}
+  .cinfo span{font-size:10px;color:var(--ink-soft);letter-spacing:1px}
+  .follow{height:30px;padding:0 16px;border-radius:999px;border:1px solid var(--red);background:none;
+    color:var(--red);font-size:12px;letter-spacing:2px;cursor:pointer;font-family:inherit;flex:none}
+  .follow.on{background:var(--paper-deep);border-color:var(--line);color:var(--ink-soft)}
+  .dist-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .dist-row .badge{width:34px;justify-content:center;flex:none}
+  .dist-row>span{font-size:10px;color:var(--ink-soft);width:40px;text-align:right;letter-spacing:.5px;flex:none}
+  .dist-bar{flex:1;height:6px;background:var(--paper-deep);border-radius:999px;overflow:hidden}
+  .dist-bar i{display:block;height:100%;background:var(--ink);border-radius:999px;min-width:4px}
+  .dist-row.SSR .dist-bar i{background:var(--red)}
+  .progress{height:4px;background:var(--paper-deep);border-radius:999px;overflow:hidden}
+  .progress i{display:block;height:100%;background:var(--red);border-radius:999px}
+  .progress-note{font-size:12px;color:var(--ink-soft);margin:10px 0 4px;letter-spacing:1px}
+  .rules{font-size:12px;color:var(--ink-soft);line-height:2.2;list-style:none;letter-spacing:.5px}
+  .rules li::before{content:"·";color:var(--red);margin-right:9px;font-weight:bold}
+  /* 抽卡 */
+  .letter-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+  .letter-top b{font-size:13px;letter-spacing:3px;font-weight:normal}
+  .letter-top span{font-size:11px;color:var(--ink-soft);letter-spacing:1px}
+  .envwrap{display:flex;flex-direction:column;align-items:center;padding:46px 0 14px;transition:.5s}
+  .envwrap.gone{opacity:0;height:0;overflow:hidden;padding:0}
+  .envelope{position:relative;width:250px;height:170px;cursor:pointer}
+  .env-back{position:absolute;inset:0;background:#FFFFFF;border-radius:10px;
+    box-shadow:0 6px 20px rgba(17,17,17,.08)}
+  .env-peek{position:absolute;left:14px;right:14px;top:9px;bottom:9px;background:var(--card);
+    border-radius:5px;box-shadow:0 2px 5px rgba(17,17,17,.06)}
+  .env-front{position:absolute;left:0;right:0;bottom:0;height:118px}
+  .env-front::before{content:"";position:absolute;inset:0;background:#F2F2F4;
+    clip-path:polygon(0 0,50% 46%,100% 0,100% 100%,0 100%);border-radius:0 0 10px 10px}
+  .env-flap{position:absolute;top:0;left:0;width:100%;height:86px;transform-origin:top center;
+    transition:transform .55s ease,opacity .2s .4s;z-index:3}
+  .env-flap::before{content:"";position:absolute;inset:0;background:#E8E8ED;clip-path:polygon(0 0,100% 0,50% 100%)}
+  .envelope.opening .env-flap{transform:rotateX(178deg);opacity:0}
+  .env-seal{position:absolute;top:58px;left:50%;transform:translateX(-50%);width:54px;height:54px;
+    border-radius:50%;background:var(--red);color:#FFFFFF;display:flex;align-items:center;
+    justify-content:center;font-size:23px;z-index:4;box-shadow:0 3px 10px rgba(140,50,45,.3);transition:.3s}
+  .envelope.opening .env-seal{opacity:0;transform:translateX(-50%) scale(.6)}
+  .env-hint{margin-top:20px;font-size:12px;color:var(--ink-soft);letter-spacing:2px}
+  .letter-card{width:260px;height:392px;margin:18px auto 0;perspective:900px;opacity:0;
+    transform:translateY(26px) scale(.96);transition:.5s .1s;cursor:pointer;pointer-events:none}
+  .letter-card.show{opacity:1;transform:none;pointer-events:auto}
+  .card-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;
+    transition:transform .65s cubic-bezier(.2,.7,.2,1)}
+  .letter-card.flipped .card-inner{transform:rotateY(180deg)}
+  .card-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+    background:var(--card);border-radius:14px;box-shadow:0 8px 24px rgba(17,17,17,.10);
+    padding:22px 20px;display:flex;flex-direction:column}
+  .cf-top{display:flex;justify-content:space-between;align-items:center}
+  .cf-top .no{font-size:10px;color:var(--ink-soft);letter-spacing:1px}
+  .bigword{font-size:36px;letter-spacing:3px;margin:auto 0;text-align:center;font-weight:normal}
+  .cf-bottom{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-soft);letter-spacing:1px}
+  .back-label{font-size:10px;letter-spacing:8px;color:var(--red);border-top:1px solid var(--line);
+    padding-top:16px;text-indent:8px}
+  .explain{font-size:15px;line-height:2.2;margin:auto 0;text-align:center;letter-spacing:1px;font-weight:normal}
+  .cobrand{display:flex;gap:10px;align-items:center;border-top:1px solid var(--line);padding-top:14px}
+  .logo-box{width:34px;height:34px;border:1px dashed var(--ink-faint);border-radius:8px;flex:none;
+    display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--ink-faint)}
+  .cobrand b{font-size:12px;display:block;font-weight:normal;letter-spacing:1px}
+  .cobrand span{font-size:9px;color:var(--ink-soft)}
+  #letterActions{display:none;margin-top:16px}
+  #letterActions.show{display:block;animation:fadein .4s}
+  /* 卡册 */
+  .banner{background:var(--red-soft);border-radius:12px;padding:14px 16px;margin-bottom:14px;
+    display:flex;align-items:center;gap:10px;cursor:pointer}
+  .banner b{font-size:13px;letter-spacing:1px;font-weight:normal;flex:1}
+  .banner span{font-size:10px;color:var(--red);letter-spacing:1px}
+  .stats{display:flex;gap:10px;margin-bottom:14px}
+  .stat{flex:1;background:var(--card);border-radius:12px;padding:14px 10px;text-align:center;box-shadow:var(--shadow)}
+  .stat b{font-size:20px;display:block;font-weight:normal}
+  .stat span{font-size:10px;color:var(--ink-soft);letter-spacing:1px}
+  .card-row{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:12px;
+    padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow);cursor:pointer}
+  .card-row .cover-sm{width:34px;height:46px;border-radius:4px;flex:none;
+    display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .card-row .cover-sm span{writing-mode:vertical-rl;font-size:7px;color:#FFFFFF;letter-spacing:0}
+  .card-row .w{font-size:15px;letter-spacing:1px;flex:1;font-weight:normal;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .card-row .s{font-size:10px;color:var(--ink-soft);text-align:right;line-height:1.7;letter-spacing:.5px;flex:none}
+  .card-row .reddot{width:8px;height:8px;border-radius:50%;background:var(--red);flex:none}
+  /* 卡集全图 */
+  .map-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}
+  .map-cell{aspect-ratio:3/4;background:var(--card);border-radius:10px;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:6px;box-shadow:var(--shadow);cursor:pointer;padding:6px}
+  .map-cell b{font-size:12px;letter-spacing:.5px;font-weight:normal;text-align:center;line-height:1.4;word-break:break-all}
+  .map-cell i{font-size:8px;color:var(--ink-soft);font-style:normal;letter-spacing:1px}
+  .map-cell.dark{background:#26262A;cursor:default}
+  .map-cell.dark b{color:#26262A}
+  /* 抽空纪念 */
+  .done-hero{text-align:center;padding:22px 0 8px}
+  .done-hero .mark{font-size:11px;letter-spacing:10px;color:var(--red);margin-bottom:16px;text-indent:10px}
+  .done-hero h1{font-size:24px;letter-spacing:2px;font-weight:normal;margin-bottom:12px}
+  .done-hero p{font-size:13px;color:var(--ink-soft);line-height:2}
+  .final-quote{margin:6px 0 18px;padding:20px;background:var(--card);border-radius:12px;
+    text-align:center;font-size:14px;line-height:2.2;box-shadow:var(--shadow)}
+  .memorial-follow{background:var(--card);border-radius:12px;padding:16px;display:flex;align-items:center;
+    gap:12px;box-shadow:var(--shadow);margin-bottom:14px;cursor:pointer}
+  .memorial-follow .cavatar{width:36px;height:36px;font-size:14px}
+  /* 弹层 */
+  .modal{position:absolute;inset:0;background:rgba(17,17,17,.45);display:none;
+    align-items:center;justify-content:center;z-index:50;padding:26px}
+  .modal.show{display:flex}
+  .sheet{width:100%;background:var(--card);border-radius:16px;padding:26px 22px;text-align:center;
+    box-shadow:0 8px 30px rgba(17,17,17,.12)}
+  .pw-kind{font-size:10px;letter-spacing:8px;color:var(--red);margin-bottom:16px;text-indent:8px}
+  .pw-title{font-size:15px;letter-spacing:1px;margin-bottom:14px}
+  .pw-line{font-size:16px;letter-spacing:1px;line-height:1.8;margin-bottom:10px}
+  .pw-body{font-size:12px;color:var(--ink-soft);line-height:2;margin-bottom:14px;letter-spacing:.5px}
+  .pw-meta{font-size:10px;color:var(--ink-faint);margin-bottom:18px;letter-spacing:.5px}
+  .bigcard{width:240px;height:360px;margin:0 auto 20px;perspective:900px;cursor:pointer}
+  .bigcard .card-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;
+    transition:transform .65s cubic-bezier(.2,.7,.2,1)}
+  .bigcard.flipped .card-inner{transform:rotateY(180deg)}
+  .bigcard .card-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+    background:var(--card);border-radius:14px;box-shadow:0 8px 24px rgba(17,17,17,.10);
+    padding:22px 20px;display:flex;flex-direction:column}
+  /* 骨架页 */
+  .empty{background:var(--card);border-radius:14px;padding:38px 24px;box-shadow:var(--shadow);text-align:center}
+  .empty h3{font-size:16px;letter-spacing:1px;font-weight:normal;margin-bottom:12px}
+  .empty p{font-size:12px;color:var(--ink-soft);line-height:2;margin-bottom:20px;letter-spacing:.5px}
+  .me-head{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+  .avatar{width:56px;height:56px;border-radius:50%;background:var(--red-soft);color:var(--red);
+    display:flex;align-items:center;justify-content:center;font-size:22px}
+  .li{display:flex;justify-content:space-between;align-items:center;padding:16px 2px;
+    border-bottom:1px solid var(--line);font-size:14px;cursor:pointer;letter-spacing:1px}
+  .li span{color:var(--ink-faint);font-size:15px}
+  .me-foot{text-align:center;font-size:10px;color:var(--ink-soft);line-height:2.2;margin-top:22px;letter-spacing:1px}
+  /* 底部导航 */
+  .tabbar{display:flex;background:var(--card);box-shadow:0 -1px 0 var(--line)}
+  .tabbar.hidden{display:none}
+  .tabbar button{flex:1;padding:9px 0 12px;background:none;border:none;font-size:10px;
+    color:var(--ink-faint);letter-spacing:2px;cursor:pointer;font-family:inherit}
+  .tabbar button svg{display:block;width:22px;height:22px;margin:0 auto 3px;fill:none;
+    stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+  .tabbar button.on{color:var(--ink)}
+  /* 轻提示 */
+  .toast{position:absolute;left:50%;transform:translateX(-50%) translateY(8px);bottom:100px;
+    background:rgba(17,17,17,.92);color:#FFFFFF;font-size:12px;padding:10px 20px;border-radius:999px;
+    opacity:0;transition:.3s;z-index:60;pointer-events:none;white-space:nowrap;letter-spacing:1px}
+  .toast.show{opacity:1;transform:translateX(-50%)}
+  /* 原型控制台 */
+  .devbar{position:fixed;left:0;right:0;bottom:0;background:#241F19;color:#CFC6B4;font-size:11px;
+    display:flex;gap:8px;align-items:center;padding:8px 12px;z-index:99;overflow-x:auto}
+  .devbar button{background:#3A342A;color:#E8DFC9;border:1px solid #554C3C;border-radius:999px;
+    padding:4px 12px;font-size:11px;white-space:nowrap;cursor:pointer}
+  .devbar button.on{background:var(--red);border-color:var(--red);color:#fff}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="screen" id="screen">
+    <!-- 广场 -->
+    <section class="page active" id="page-home">
+      <div class="brand-row">
+        <span class="wordmark serif" id="wordmark">今日做点小事</span>
+        <span class="today">11月10日 · 周二</span>
+      </div>
+      <p class="shelf-slogan serif">今天，想抽点什么？</p>
+      <p class="tagline">万物皆可抽一签。</p>
+      <div class="chips" id="chips"></div>
+      <div class="list-head">
+        <span class="count" id="setCount">8 个卡集</span>
+        <div class="sortseg">
+          <button id="sort-hot" class="on" onclick="setSort('hot')">热门</button>
+          <button id="sort-new" onclick="setSort('new')">最新</button>
+        </div>
+      </div>
+      <div id="squareList"></div>
+      <p class="shelf-tail">更 多 卡 集 ，正 在 上 架</p>
+    </section>
+    <!-- 卡集详情 -->
+    <section class="page" id="page-set">
+      <header class="subhead"><button class="back" onclick="go(cameFrom)">‹</button><span>卡集</span></header>
+      <div id="setBody"></div>
+    </section>
+    <!-- 抽卡 -->
+    <section class="page" id="page-draw">
+      <header class="subhead"><button class="back" onclick="go('set')">‹</button><span id="drawHead">今天的卡</span></header>
+      <div class="letter-top">
+        <b id="drawTopL">第 1 张</b>
+        <span id="drawTopR"></span>
+      </div>
+      <div class="envwrap" id="envWrap">
+        <div class="envelope" id="envelope" onclick="openEnvelope()">
+          <div class="env-back"></div>
+          <div class="env-peek"></div>
+          <div class="env-front"></div>
+          <div class="env-flap"></div>
+          <div class="env-seal serif">抽</div>
+        </div>
+        <div class="env-hint">轻触，抽今天这一签</div>
+      </div>
+      <div class="letter-card" id="letterCard" onclick="flipCard()">
+        <div class="card-inner">
+          <div class="card-face front">
+            <div class="cf-top"><i class="badge N" id="d-rar">N</i><span class="no" id="d-no"></span></div>
+            <div class="bigword serif" id="d-word"></div>
+            <div class="cf-bottom"><span id="d-settitle"></span><span>轻触翻面 ›</span></div>
+          </div>
+          <div class="card-face back" style="transform:rotateY(180deg)">
+            <div class="back-label">解 签</div>
+            <p class="explain serif" id="d-back"></p>
+            <div class="cobrand">
+              <div class="logo-box">LOGO</div>
+              <div><b id="d-creator"></b><span>卡背定制位 · 按卡集替换 / 可联名</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="letterActions">
+        <button class="cta" onclick="toast('海报，正在路上。')">把这张卡，做成一张海报</button>
+        <p class="tiny" id="d-tail"></p>
+      </div>
+    </section>
+    <!-- 卡集全图 -->
+    <section class="page" id="page-map">
+      <header class="subhead"><button class="back" onclick="go('set')">‹</button><span>全图</span></header>
+      <div id="mapBody"></div>
+    </section>
+    <!-- 抽空纪念 -->
+    <section class="page" id="page-done">
+      <header class="subhead"><button class="back" onclick="go('set')">‹</button><span>抽空</span></header>
+      <div id="doneBody"></div>
+    </section>
+    <!-- 卡册 -->
+    <section class="page" id="page-cards">
+      <header class="subhead"><span class="serif" style="font-size:17px">卡册</span></header>
+      <div id="cardsBody"></div>
+    </section>
+    <!-- 创作 -->
+    <section class="page" id="page-create">
+      <header class="subhead"><span class="serif" style="font-size:17px">创作</span></header>
+      <div class="empty">
+        <h3 class="serif">把你喜欢的东西，做成一个卡集。</h3>
+        <p>书里的词、办案的案例、城市的好去处——<br>按规格做好，审核通过就能上架。<br>可以免费，也可以定价。</p>
+        <button class="cta" onclick="toast('创作中心和卡集编辑器，正在路上。')">新建卡集</button>
+        <p class="tiny">定价卡集，你拿 80%。</p>
+      </div>
+    </section>
+    <!-- 我的 -->
+    <section class="page" id="page-me">
+      <header class="subhead"><span class="serif" style="font-size:17px">我的</span></header>
+      <div class="me-head">
+        <div class="avatar serif">我</div>
+        <div><b style="font-size:15px;letter-spacing:1px">我</b>
+          <p id="meSub" style="font-size:11px;color:var(--ink-soft);margin-top:5px;letter-spacing:.5px"></p></div>
+      </div>
+      <div class="panel" style="padding:6px 18px">
+        <div class="li" onclick="go('cards')">我的卡册<span>›</span></div>
+        <div class="li" onclick="go('create')">创作中心<span>›</span></div>
+        <div class="li" onclick="toast('钱包与提现，正在路上。')">钱包<span>›</span></div>
+        <div class="li" style="border:none" onclick="toast('设置，正在路上。')">设置<span>›</span></div>
+      </div>
+      <p class="me-foot">每天 0 点，新的一签。<br>缺席不损失，卡不会过期。</p>
+    </section>
+    <!-- 付费墙 -->
+    <div class="modal" id="payModal">
+      <div class="sheet">
+        <div class="pw-kind">解 锁 这 个 卡 集</div>
+        <div class="pw-title serif" id="pw-title"></div>
+        <p class="pw-line serif" id="pw-line"></p>
+        <p class="pw-body" id="pw-body"></p>
+        <div class="pw-meta">一次解锁，永久有效 · 虚拟商品，解锁后不支持退款</div>
+        <button class="cta" id="pw-pay" onclick="doUnlock()"></button>
+        <button class="ghost" style="margin-top:10px" onclick="closePay()">再想想</button>
+      </div>
+    </div>
+    <!-- 大卡弹层 -->
+    <div class="modal" id="cardModal">
+      <div class="sheet">
+        <div class="bigcard" id="bigcard" onclick="document.getElementById('bigcard').classList.toggle('flipped')">
+          <div class="card-inner">
+            <div class="card-face front">
+              <div class="cf-top"><i class="badge N" id="b-rar">N</i><span class="no" id="b-no"></span></div>
+              <div class="bigword serif" id="b-word"></div>
+              <div class="cf-bottom"><span id="b-settitle"></span><span>轻触翻面 ›</span></div>
+            </div>
+            <div class="card-face back" style="transform:rotateY(180deg)">
+              <div class="back-label">解 签</div>
+              <p class="explain serif" id="b-back"></p>
+              <div class="cobrand">
+                <div class="logo-box">LOGO</div>
+                <div><b id="b-creator"></b><span>卡背定制位 · 按卡集替换 / 可联名</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="ghost" onclick="document.getElementById('cardModal').classList.remove('show')">关上</button>
+      </div>
+    </div>
+    <div class="toast" id="toast"></div>
+  </div>
+  <!-- 底部导航 -->
+  <nav class="tabbar" id="tabbar">
+    <button data-page="home" class="on" onclick="go('home')">
+      <svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.8"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.8"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.8"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.8"/></svg>广场</button>
+    <button data-page="cards" onclick="go('cards')">
+      <svg viewBox="0 0 24 24"><rect x="7.5" y="4" width="12.5" height="16.5" rx="2.5"/><path d="M4 8.5V18a2.5 2.5 0 0 0 2.5 2.5H14"/></svg>卡册</button>
+    <button data-page="create" onclick="go('create')">
+      <svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="4.5"/><path d="M12 8.5v7M8.5 12h7"/></svg>创作</button>
+    <button data-page="me" onclick="go('me')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.8"/><path d="M4.5 20.5c1.6-3.8 4.3-5.5 7.5-5.5s5.9 1.7 7.5 5.5"/></svg>我的</button>
+  </nav>
+</div>
+<!-- 原型控制台 -->
+<div class="devbar">
+  <span>原型控制台 V2.2：</span>
+  <button data-mode="new" onclick="setMode('new')">新用户 · 空态</button>
+  <button data-mode="rich" class="on" onclick="setMode('rich')">演示用户 · 有进度</button>
+</div>
+<script>
+const BRAND = "今日做点小事";
+const DEMO = {
+  mode:"rich", cat:"全部", sort:"hot",
+  sets:[
+    { id:1, title:"醒来觉得甚是爱你", covT:"醒来觉得甚是爱你", covS:"朱生豪情书选", cover:"c1",
+      cat:"文学", type:"collect", price:0, count:70, trial:0,
+      creator:"四月读书会", heat:1284, date:"10-18",
+      intro:"朱生豪致宋清如的书信选。一个翻译莎士比亚的人，把最笨拙也最认真的中文，写给了同一个人。",
+      rar:{N:38,R:22,SR:8,SSR:2},
+      pool:[
+        {w:"我",r:"N",b:"最普通的字，最不能没有。它出现 21 次，每一句都把自己交出去。"},
+        {w:"很可爱",r:"R",b:"结论先行。不解释，也不容反驳。"},
+        {w:"和",r:"N",b:"最安静的连接词。把你身边的位置，留给另一样东西。"},
+        {w:"你老了",r:"R",b:"假设句里藏着最长的耐心。"},
+        {w:"至上主义者",r:"SSR",b:"一个人成为另一个人的主义。这大概是「信仰」最朴素的用法。"},
+        {w:"来生",r:"SR",b:"把来不及的，寄放到下一世。"},
+        {w:"想念你",r:"SR",b:"距离唯一拉不远的东西。人在两地，想念在同一个地方。"}],
+      user:{drawn:35, todayDrawn:true, got:[0,1,2,3,4,5]} },
+    { id:2, title:"冬天的二十四个词", covT:"冬天的二十四个词", covS:"一天一词", cover:"c2",
+      cat:"节令", type:"collect", price:0, count:24, trial:0,
+      creator:"霜降以后", heat:743, date:"11-06",
+      intro:"霜降以后入的集。一天一个词，把冬天慢慢说完。",
+      rar:{N:14,R:7,SR:2,SSR:1},
+      pool:[
+        {w:"初雪",r:"SSR",b:"落下来之前，谁也不知道它挑中了哪条街。"},
+        {w:"围炉",r:"SR",b:"把冷关在门外，把话说得很慢。"},
+        {w:"呵气",r:"R",b:"冬天里，你能亲眼看见自己说的话。"},
+        {w:"长夜",r:"N",b:"天黑得早，是用来想人的。"},
+        {w:"炭火",r:"R",b:"安静地红着，比吵闹的热更暖。"},
+        {w:"冬眠",r:"N",b:"有些日子，就是用来错过的。"}],
+      user:{drawn:9, todayDrawn:false, got:[0,1,2,3,4]} },
+    { id:3, title:"圣诞倒数", covT:"圣诞倒数", covS:"倒数二十五天", cover:"c4",
+      cat:"节令", type:"collect", price:0, count:25, trial:0,
+      creator:"圣诞办事处", heat:852, date:"11-08",
+      intro:"十二月第一天开始抽，抽到第 25 张那天，正好是圣诞。",
+      rar:{N:15,R:7,SR:2,SSR:1},
+      pool:[
+        {w:"姜饼",r:"N",b:"甜得很有纪律，一年只准甜这一次。"},
+        {w:"礼物",r:"R",b:"包起来的，才叫心意。"},
+        {w:"平安夜",r:"SR",b:"安静，是热闹前的一次深呼吸。"},
+        {w:"圣诞快乐",r:"SSR",b:"第 25 张。抽到它的时候，正好是那天。"},
+        {w:"雪橇",r:"N",b:"铃铛一响，大人也会抬头看天。"}],
+      user:null },
+    { id:4, title:"律师朋友讲的三十个案例", covT:"三十个案例", covS:"李律讲给你", cover:"c5",
+      cat:"知识·职业", type:"collect", price:4.99, count:30, trial:3,
+      creator:"李律的案例本", heat:987, date:"10-29",
+      intro:"三十个真实案例，均已脱敏改写。正面是案件名，背面是法律怎么说。不构成法律意见。",
+      rar:{N:19,R:8,SR:2,SSR:1},
+      pool:[
+        {w:"借条背面",r:"N",b:"写了金额没写利息？没有约定，法律就不认利息。"},
+        {w:"离婚案里的猫",r:"R",b:"猫不算共同财产。但判决会考虑：谁更适合照顾它。"},
+        {w:"写错的遗嘱",r:"SR",b:"房号写错一位，法院看真实意思——前提是你能证明那是笔误。"},
+        {w:"天台上的承诺",r:"N",b:"口头答应送你一间房？赠与没过户，随时可以反悔。"},
+        {w:"一段录音",r:"N",b:"录音能当证据。前提：不是逼出来的，也没剪过。"}],
+      user:{drawn:1, trialUsed:1, unlocked:false, todayDrawn:false, got:[0]} },
+    { id:5, title:"今天吃什么", covT:"今天吃什么", covS:"午餐决策局", cover:"c6",
+      cat:"决策", type:"resident", price:0, count:30, trial:0,
+      creator:"干饭决策局", heat:3261, date:"10-26",
+      intro:"午餐决策局。三十个选项，抽到什么，就是什么。",
+      rar:{N:19,R:8,SR:2,SSR:1},
+      pool:[
+        {w:"楼下的麻辣烫",r:"N",b:"加宽粉。别问，问就是经验。"},
+        {w:"一碗热馄饨",r:"R",b:"汤要喝完，这是对冬天基本的尊重。"},
+        {w:"麻酱拌面",r:"N",b:"麻酱是信仰，面只是仪式。"},
+        {w:"隔壁的煲仔饭",r:"SR",b:"锅巴留到最后，一个人也吃出排场。"},
+        {w:"咖喱",r:"N",b:"辣度选中辣。这一件，就不必再决定了。"}],
+      user:{drawn:0, todayDrawn:true, got:[]} },
+    { id:6, title:"好外卖存档", covT:"好外卖存档", covS:"亲测不踩雷", cover:"c3",
+      cat:"决策", type:"resident", price:0, count:18, trial:0,
+      creator:"打工人午餐组", heat:205, date:"11-09",
+      intro:"亲测不踩雷的外卖档案，打工人午餐组长期维护。",
+      rar:{N:13,R:4,SR:1,SSR:0},
+      pool:[
+        {w:"张记黄焖鸡",r:"N",b:"米饭多打半份，汤汁刚好。"},
+        {w:"老王水饺",r:"R",b:"十二个起卖，醋自己倒。"},
+        {w:"隆江猪脚饭",r:"N",b:"肥瘦对半，跟老板说一声就行。"},
+        {w:"沙县老三样",r:"SR",b:"拌面、炖罐、蒸饺。永远不会错。"}],
+      user:null },
+    { id:7, title:"本周去哪 · 上海篇", covT:"本周去哪", covS:"上海篇", cover:"c2",
+      cat:"城市", type:"resident", price:0.99, count:20, trial:2,
+      creator:"周末在上海", heat:512, date:"11-04",
+      intro:"上海的好去处，抽一个，周末就去。长期更新。",
+      rar:{N:14,R:4,SR:1,SSR:1},
+      pool:[
+        {w:"武康路",r:"SR",b:"人多的时候，往湖南路拐，人就少了。"},
+        {w:"苏州河边",r:"N",b:"沿河一直走，走累了正好是邮政博物馆。"},
+        {w:"永嘉路",r:"R",b:"梧桐最密的那段，值得秋天再去一次。"},
+        {w:"多伦路",r:"N",b:"走之前，在小书店里待二十分钟。"},
+        {w:"外滩源",r:"SSR",b:"从圆明园路进去，比正面好看。"}],
+      user:{drawn:2, trialUsed:2, unlocked:false, todayDrawn:false, got:[0,1]} },
+    { id:8, title:"拉面图鉴", covT:"拉面图鉴", covS:"一碗一店", cover:"c5",
+      cat:"兴趣", type:"collect", price:2.99, count:40, trial:3,
+      creator:"一碗研究所", heat:318, date:"11-01",
+      intro:"一碗一店，四十家面馆。一天认识一家。",
+      rar:{N:27,R:9,SR:3,SSR:1},
+      pool:[
+        {w:"豚骨",r:"N",b:"汤白得像熬了一夜——它确实是。"},
+        {w:"味噌",r:"N",b:"北海道的冬天，浓缩成了一碗。"},
+        {w:"沾面",r:"SR",b:"面和汤分开，是为了热得更久。"},
+        {w:"叉烧",r:"R",b:"好叉烧的边缘，应该有一点焦。"},
+        {w:"地狱辣",r:"N",b:"辣是痛觉。痛完，人就清醒了。"}],
+      user:{drawn:12, unlocked:true, todayDrawn:true, got:[0,1,2,3,4]} }
+  ]
+};
+const CATS = ["全部","文学","知识·职业","节令","决策","城市","兴趣"];
+const AUTHORED = JSON.parse(JSON.stringify(DEMO.sets));
+let WORK = {sets:[]};
+function setMode(m){
+  DEMO.mode = m;
+  WORK = {sets: JSON.parse(JSON.stringify(AUTHORED))};
+  if(m==="new") WORK.sets.forEach(s=>{ s.user=null; s.followed=false; });
+  document.querySelectorAll(".devbar button").forEach(b=>b.classList.toggle("on", b.dataset.mode===m));
+  renderSquare(); renderCardsTab(); renderMe(); if(CUR) renderSet();
+}
+/* 卡集状态机 */
+function setVM(s){
+  const u = s.user, paid = s.price>0;
+  if(u && s.type==="collect" && u.drawn>=s.count)
+    return {key:"empty", dot:"red", text:`已抽空 · ${s.count} 张全收集`,
+            btnS:"看抽空纪念", btnL:"看抽空纪念", act:"memorial", off:false};
+  if(u && paid && !u.unlocked && u.trialUsed>=s.trial)
+    return {key:"locked", dot:"red", text:`试抽 ${s.trial} 张已用完 · 待解锁`,
+            btnS:`解锁 ¥${s.price}`, btnL:`解锁 ¥${s.price}`, act:"paywall", off:false};
+  if(!u)
+    return paid
+      ? {key:"new_paid", dot:"red", text:`¥${s.price} · 前 ${s.trial} 张免费试抽`,
+         btnS:`试抽 ${s.trial} 张`, btnL:`免费试抽 · 第 1 张`, act:"draw", off:false}
+      : {key:"new_free", dot:"red", text:`免费 · ${s.heat.toLocaleString("en-US")} 人抽过`,
+         btnS:"去抽", btnL:"今天的卡 · 去抽", act:"draw", off:false};
+  if(u.todayDrawn){
+    if(s.type==="resident")
+      return {key:"done", dot:"faint", text:"今日已抽 · 明天再来",
+              btnS:"今日已抽", btnL:"今日已抽", act:"none", off:true};
+    if(paid && !u.unlocked)
+      return {key:"done", dot:"faint", text:`试抽 ${u.trialUsed}/${s.trial} · 今日已抽`,
+              btnS:"今日已抽", btnL:"今日已抽", act:"none", off:true};
+    return {key:"done", dot:"faint", text:`已抽 ${u.drawn}/${s.count} · 今日已抽`,
+            btnS:"今日已抽", btnL:"今日已抽", act:"none", off:true};
+  }
+  if(paid && !u.unlocked)
+    return {key:"trial_go", dot:"red", text:`试抽 ${u.trialUsed}/${s.trial} · 今日可抽`,
+            btnS:"去抽今天的", btnL:`继续试抽 · 剩 ${s.trial-u.trialUsed} 张`, act:"draw", off:false};
+  if(s.type==="resident")
+    return {key:"go", dot:"red", text:"今日可抽 · 抽到就是答案",
+            btnS:"去抽今天的", btnL:"今天的签 · 去抽", act:"draw", off:false};
+  return {key:"go", dot:"red", text:`已抽 ${u.drawn}/${s.count} · 今日可抽`,
+          btnS:"去抽今天的", btnL:"今天的卡 · 去抽", act:"draw", off:false};
+}
+function renderChips(){
+  document.getElementById("chips").innerHTML = CATS.map(c=>
+    `<button class="chip ${DEMO.cat===c?"on":""}" onclick="setCat('${c}')">${c}</button>`).join("");
+}
+function setCat(c){ DEMO.cat=c; renderChips(); renderSquare(); }
+function setSort(k){
+  DEMO.sort=k;
+  document.getElementById("sort-hot").classList.toggle("on",k==="hot");
+  document.getElementById("sort-new").classList.toggle("on",k==="new");
+  renderSquare();
+}
+function renderSquare(){
+  const list = WORK.sets
+    .filter(s=> DEMO.cat==="全部" || s.cat===DEMO.cat)
+    .sort((a,b)=> DEMO.sort==="hot" ? b.heat-a.heat : b.date.localeCompare(a.date));
+  document.getElementById("setCount").textContent = `${list.length} 个卡集`;
+  document.getElementById("squareList").innerHTML = list.map(s=>{
+    const v = setVM(s);
+    return `
+    <div class="book-card" onclick="openSet(${s.id},'home')">
+      <div class="cover ${s.cover}"><span>${s.covT}</span><i>${s.covS}</i></div>
+      <div class="bc-info">
+        <h3 class="serif">${s.title}</h3>
+        <p class="bc-meta">@${s.creator} · ${s.count} 张 · ${s.type==="collect"?"收藏集":"常驻集"}</p>
+        <p class="bc-status ${v.dot==="faint"?"faint":""}"><i class="dot ${v.dot==="faint"?"faint":""}"></i>${v.text}</p>
+        <div class="bc-actions"><button class="${v.off?"mini-disable":"mini-cta"}">${v.btnS}</button></div>
+      </div>
+    </div>`;
+  }).join("");
+}
+/* 卡集详情 */
+let CUR = null, cameFrom = "home";
+function openSet(id, from){ cameFrom = from||"home"; CUR = id; renderSet(); go("set"); }
+function buildRules(s){
+  const r = ["每天可抽 1 张，0 点重置（北京时间）"];
+  r.push(s.type==="collect"
+    ? "收藏集：抽过的不再出现，抽完即空，留一张纪念"
+    : "常驻集：天天可抽，抽到就是答案");
+  if(s.price>0){
+    r.push(`前 ${s.trial} 张免费试抽，试抽也算在每天 1 张里`);
+    r.push("解锁是一次性的，之后每天照抽");
+  }
+  r.push("缺席不损失，卡不会过期");
+  return r;
+}
+function finishDate(s){
+  const u = s.user, r = s.count - u.drawn;
+  const d = new Date(2026,10,10);
+  d.setDate(d.getDate() + (u.todayDrawn ? r : r-1));
+  return `${d.getMonth()+1} 月 ${d.getDate()} 日`;
+}
+function renderSet(){
+  const s = WORK.sets.find(x=>x.id===CUR); if(!s) return;
+  const v = setVM(s), u = s.user;
+  const progressPanel = (s.type==="collect" && u) ? `
+    <div class="panel">
+      <div class="panel-head"><b class="serif">进度</b><span>${u.drawn} / ${s.count}</span></div>
+      <div class="progress"><i style="width:${(u.drawn/s.count*100).toFixed(1)}%"></i></div>
+      <p class="progress-note">已抽 ${u.drawn} 张，剩 ${s.count-u.drawn} 张</p>
+      <p class="tiny" style="text-align:left;padding:0 2px;margin-top:2px">照每天一张，${finishDate(s)} 抽空它。</p>
+      <button class="ghost" style="margin-top:12px" onclick="openMap(${s.id})">看全图 · 暗格不剧透</button>
+    </div>` : "";
+  document.getElementById("setBody").innerHTML = `
+    <div class="panel">
+      <div class="book-card" style="box-shadow:none;padding:0;margin-bottom:16px">
+        <div class="cover ${s.cover}"><span>${s.covT}</span><i>${s.covS}</i></div>
+        <div class="bc-info" style="padding-top:4px">
+          <h3 class="serif">${s.title}</h3>
+          <p class="bc-meta">@${s.creator} · ${s.count} 张 · ${s.type==="collect"?"收藏集":"常驻集"}${s.price>0?` · ¥${s.price}`:""}</p>
+          <p class="bc-status ${v.dot==="faint"?"faint":""}"><i class="dot ${v.dot==="faint"?"faint":""}"></i>${v.text}</p>
+        </div>
+      </div>
+      <p class="intro serif">${s.intro}</p>
+      <div class="creator" onclick="toast('创作者主页，正在路上。')">
+        <div class="cavatar serif">${s.creator[0]}</div>
+        <div class="cinfo"><b>@${s.creator}</b><span>做卡人</span></div>
+        <button class="follow ${s.followed?"on":""}" onclick="event.stopPropagation();toggleFollow()">${s.followed?"已关注":"关注"}</button>
+      </div>
+    </div>
+    ${progressPanel}
+    <div class="panel">
+      <div class="panel-head"><b class="serif">稀有度</b><span>只是标签</span></div>
+      ${["N","R","SR","SSR"].map(k=>`
+        <div class="dist-row ${k}">
+          <i class="badge ${k}">${k}</i>
+          <div class="dist-bar"><i style="width:${(s.rar[k]/s.count*100).toFixed(1)}%"></i></div>
+          <span>${s.rar[k]} 张</span>
+        </div>`).join("")}
+      <p class="tiny" style="margin-top:14px">每张卡被抽中的机会，均等。<br>最坏的运气，只是晚几天见到它。</p>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><b class="serif">规则</b><span>${s.type==="collect"?"收藏集":"常驻集"}</span></div>
+      <ul class="rules">${buildRules(s).map(r=>`<li>${r}</li>`).join("")}</ul>
+      <button class="cta" style="margin-top:18px" onclick="mainAct()">${v.btnL}</button>
+      ${v.key==="done"?'<p class="tiny">0 点后，新的一张。</p>':""}
+    </div>`;
+}
+function toggleFollow(){
+  const s = WORK.sets.find(x=>x.id===CUR);
+  s.followed = !s.followed;
+  toast(s.followed ? `已订阅 @${s.creator} 的新卡集通知。` : "已取消关注。");
+  renderSet();
+}
+function mainAct(){
+  const s = WORK.sets.find(x=>x.id===CUR);
+  const v = setVM(s);
+  if(v.act==="draw") startDraw(s.id);
+  else if(v.act==="paywall") openPay(s);
+  else if(v.act==="memorial") openDone(s.id);
+}
+/* 抽卡 */
+let DRAW = null;
+function startDraw(sid){
+  const s = WORK.sets.find(x=>x.id===sid);
+  if(setVM(s).act!=="draw") return;
+  const u = s.user;
+  const next = (s.type==="collect") ? (u?u.drawn:0)+1 : 0;
+  let idx = 0;
+  if(s.type==="collect"){
+    idx = (next-1) % s.pool.length;
+  } else {
+    idx = Math.floor(Math.random()*s.pool.length);
+  }
+  DRAW = {sid:s.id, card:s.pool[idx], idx:idx, next};
+  setupDrawPage(s);
+  go("draw");
+}
+function setupDrawPage(s){
+  document.getElementById("envelope").classList.remove("opening");
+  document.getElementById("envWrap").classList.remove("gone");
+  document.getElementById("letterCard").classList.remove("show","flipped");
+  document.getElementById("letterActions").classList.remove("show");
+  const collect = s.type==="collect";
+  document.getElementById("drawHead").textContent = collect ? "今天的卡" : "今天的签";
+  document.getElementById("drawTopL").textContent = collect ? `第 ${DRAW.next} 张` : "今天的签";
+  document.getElementById("drawTopR").textContent = collect
+    ? `共 ${s.count} 张 · 剩 ${s.count - DRAW.next}` : `${s.count} 张 · 天天可抽`;
+  const r = document.getElementById("d-rar");
+  r.textContent = DRAW.card.r; r.className = "badge "+DRAW.card.r;
+  document.getElementById("d-no").textContent = collect ? `第 ${DRAW.next} / ${s.count} 张` : "今天的签";
+  document.getElementById("d-word").textContent = DRAW.card.w;
+  document.getElementById("d-settitle").textContent = `《${s.title}》`;
+  document.getElementById("d-back").textContent = DRAW.card.b;
+  document.getElementById("d-creator").textContent = `做卡人 @${s.creator}`;
+  document.getElementById("d-tail").innerHTML = collect
+    ? "明天的卡，0 点到。" : "抽到什么，就是什么。<br>今天的纠结，到此为止。";
+}
+function openEnvelope(){
+  const env = document.getElementById("envelope");
+  if(env.classList.contains("opening")) return;
+  const s = WORK.sets.find(x=>x.id===DRAW.sid);
+  if(!s.user) s.user = {drawn:0, trialUsed:0, unlocked:s.price===0, todayDrawn:false, got:[]};
+  const u = s.user;
+  if(s.price>0 && !u.unlocked) u.trialUsed++;
+  if(s.type==="collect"){
+    u.drawn++;
+    if(!u.got) u.got=[];
+    if(!u.got.includes(DRAW.idx)) u.got.push(DRAW.idx);
+  }
+  u.todayDrawn = true;
+  env.classList.add("opening");
+  setTimeout(()=>{
+    document.getElementById("envWrap").classList.add("gone");
+    document.getElementById("letterCard").classList.add("show");
+    document.getElementById("letterActions").classList.add("show");
+  },650);
+  renderSquare(); renderCardsTab(); renderMe(); renderSet();
+}
+function flipCard(){ document.getElementById("letterCard").classList.toggle("flipped"); }
+/* 付费墙 */
+let PW = null;
+function openPay(s){
+  PW = s.id;
+  document.getElementById("pw-title").textContent = `《${s.title}》`;
+  document.getElementById("pw-line").textContent = `试抽的 ${s.trial} 张用完了。`;
+  document.getElementById("pw-body").textContent = s.type==="collect"
+    ? `剩下的 ${s.count - s.user.drawn} 张，每天一张，都是你的。`
+    : `${s.count} 张，天天可抽，抽到就是答案。`;
+  const pay = document.getElementById("pw-pay");
+  pay.disabled = false; pay.textContent = `¥${s.price} · 解锁这个卡集`;
+  document.getElementById("payModal").classList.add("show");
+}
+function closePay(){ document.getElementById("payModal").classList.remove("show"); }
+function doUnlock(){
+  const pay = document.getElementById("pw-pay");
+  if(pay.disabled) return;
+  pay.disabled = true; pay.textContent = "支付中…";
+  setTimeout(()=>{
+    const s = WORK.sets.find(x=>x.id===PW);
+    s.user.unlocked = true;
+    closePay();
+    toast("已解锁。今天的卡，可以抽了。");
+    renderSquare(); renderCardsTab(); renderMe(); renderSet();
+  }, 900);
+}
+/* 卡集全图：暗格零剧透 */
+function openMap(id){ CUR=id; renderMap(); go("map"); }
+function renderMap(){
+  const s = WORK.sets.find(x=>x.id===CUR); if(!s) return;
+  const u = s.user;
+  const got = (u && u.got) ? u.got : [];
+  document.getElementById("mapBody").innerHTML = `
+    <div class="panel">
+      <div class="panel-head"><b class="serif">全图</b><span>${u?u.drawn:0} / ${s.count} 已抽到</span></div>
+      <div class="progress"><i style="width:${u?(u.drawn/s.count*100).toFixed(1):0}%"></i></div>
+      <p class="tiny" style="text-align:left;padding:0 2px;margin-top:8px">暗格不显示任何字——没抽到之前，它只是空的。</p>
+      <div class="map-grid">
+        ${s.pool.map((c,i)=>{
+          if(got.includes(i)){
+            return `<div class="map-cell" onclick="openBigCard(${s.id},${i})">
+              <b class="serif">${c.w}</b><i>${c.r}</i>
+            </div>`;
+          }
+          return `<div class="map-cell dark"><b>·</b></div>`;
+        }).join("")}
+      </div>
+    </div>`;
+}
+/* 大卡弹层 */
+function openBigCard(sid, idx){
+  const s = WORK.sets.find(x=>x.id===sid);
+  const c = s.pool[idx];
+  document.getElementById("b-rar").textContent = c.r;
+  document.getElementById("b-rar").className = "badge "+c.r;
+  document.getElementById("b-no").textContent = `第 ${idx+1} / ${s.count} 张`;
+  document.getElementById("b-word").textContent = c.w;
+  document.getElementById("b-settitle").textContent = `《${s.title}》`;
+  document.getElementById("b-back").textContent = c.b;
+  document.getElementById("b-creator").textContent = `做卡人 @${s.creator}`;
+  const bc = document.getElementById("bigcard");
+  bc.classList.remove("flipped");
+  document.getElementById("cardModal").classList.add("show");
+}
+/* 抽空纪念 */
+function openDone(id){ CUR=id; renderDone(); go("done"); }
+function renderDone(){
+  const s = WORK.sets.find(x=>x.id===CUR); if(!s) return;
+  const ssrCount = s.pool.filter(c=>c.r==="SSR").length;
+  document.getElementById("doneBody").innerHTML = `
+    <div class="done-hero">
+      <div class="mark">· 抽 空 ·</div>
+      <h1 class="serif">${s.title}</h1>
+      <p>${s.count} 张，一张不少，都见过了。<br>做卡人 @${s.creator}。</p>
+    </div>
+    <div class="final-quote serif">${s.count} 张全收齐 · 抽到 SSR ${ssrCount} 张<br>
+      <span style="font-size:11px;color:var(--ink-soft)">—— 从第一张到最后一张</span></div>
+    <button class="cta" onclick="toast('纪念海报，正在路上。')">生成抽空纪念海报</button>
+    <div class="memorial-follow" onclick="toast('已订阅 @'+'${s.creator}'+' 的新卡集通知。')">
+      <div class="cavatar serif">${s.creator[0]}</div>
+      <div class="cinfo" style="flex:1"><b>关注 TA，新卡集上架时通知你</b><span>@${s.creator} · 做卡人</span></div>
+      <span style="font-size:16px;color:var(--ink-faint)">›</span>
+    </div>
+    <p class="tiny">下一个卡集，在等你。</p>`;
+}
+/* 卡册 */
+function renderCardsTab(){
+  const box = document.getElementById("cardsBody");
+  if(DEMO.mode==="new"){
+    box.innerHTML = `
+      <div class="empty">
+        <h3 class="serif">你抽过的卡，都会住在这里。</h3>
+        <p>现在还空着。<br>去广场，抽今天的第一签。</p>
+        <button class="cta" onclick="go('home')">去广场，抽一签</button>
+      </div>`;
+    return;
+  }
+  const mine = WORK.sets.filter(s=>s.user);
+  const collectMine = mine.filter(s=>s.type==="collect");
+  const drawn = collectMine.reduce((a,s)=>a+(s.user.drawn||0),0);
+  const todayCan = WORK.sets.filter(s=>setVM(s).act==="draw").length;
+  const emptied = collectMine.filter(s=>s.user.drawn>=s.count).length;
+  const pending = mine.filter(s=>!s.user.todayDrawn && setVM(s).act==="draw").length;
+  const banner = pending>0 ? `
+    <div class="banner" onclick="go('home')">
+      <b class="serif">今天的卡到了，还没抽。</b>
+      <span>去广场 ›</span>
+    </div>` : "";
+  box.innerHTML = `
+    ${banner}
+    <div class="stats">
+      <div class="stat"><b>${drawn}</b><span>已抽的卡</span></div>
+      <div class="stat"><b>${todayCan}</b><span>今日可抽</span></div>
+      <div class="stat"><b>${emptied}</b><span>已抽空</span></div>
+    </div>
+    ${mine.map(s=>{
+      const v = setVM(s);
+      const isDone = s.type==="collect" && s.user.drawn>=s.count;
+      const hasNew = !s.user.todayDrawn && v.act==="draw";
+      return `<div class="card-row" onclick="openSet(${s.id},'cards')">
+        <div class="cover-sm ${s.cover}"><span>${s.covT.slice(0,2)}</span></div>
+        <span class="w serif">${s.title}</span>
+        <span class="s">${isDone?"已抽空 · 纪念":v.text}<br>${s.type==="collect"?"收藏集":"常驻集"}</span>
+        ${hasNew?'<i class="reddot"></i>':""}
+      </div>`;}).join("")}
+    <p class="tiny">常驻集抽到的卡，不占「已抽的卡」。</p>`;
+}
+function renderMe(){
+  const el = document.getElementById("meSub");
+  if(DEMO.mode==="new"){
+    el.textContent = `今天还没抽 · ${WORK.sets.length} 个卡集在等你`;
+    return;
+  }
+  const drew = WORK.sets.filter(s=>s.user && s.user.todayDrawn).length;
+  const todayCan = WORK.sets.filter(s=>setVM(s).act==="draw").length;
+  el.textContent = `今天抽了 ${drew} 张 · 还有 ${todayCan} 个卡集可抽`;
+}
+/* 路由 */
+const TABS = ["home","cards","create","me"];
+function go(id){
+  document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active", p.id==="page-"+id));
+  document.getElementById("tabbar").classList.toggle("hidden", !TABS.includes(id));
+  document.querySelectorAll("#tabbar button").forEach(b=>b.classList.toggle("on", b.dataset.page===id));
+  document.getElementById("screen").scrollTop = 0;
+}
+let toastTimer = null;
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove("show"), 2400);
+}
+document.title = BRAND + " · 原型 V2.2";
+document.getElementById("wordmark").textContent = BRAND;
+setMode("rich");
+renderChips(); go("home");
+</script>
+</body>
+</html>

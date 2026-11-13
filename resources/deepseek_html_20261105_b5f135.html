@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拆信 · 小程序原型 V1.2</title>
+<!--
+  ══════════════════════════════════════════════════════════
+  拆信 · 用户端原型 V1.2（单文件，无依赖）
+  V1.2 变更：纸墨复古 → 白墨极简（小红书友好）
+  · 页面底 #F5F5F7 / 嵌套底 #EFEFF2 / 卡面 #FFFFFF
+  · 文字三级：墨 #111111 / 灰 #737373 / 淡灰 #B8B8BC
+  · 强调色不变：印章红 #A83F39（全站唯一彩色，封面除外）
+  · 信封改白：三层灰阶折叠 + 红火漆 + 投影浮起
+  · 海报写死纯白 #FFFFFF，脱离变量——外发画面永远白纸黑字红印
+  · 封面为全站唯一彩色承载：深红 / 蓝灰 / 石墨
+  结构与文案与 V1.1 一致，文案规范 V1.0 全文执行：
+  · 状态词系：等信 → 出发 → 在途 → 合上；未寄出（逾期）
+  · 身份词：收信人 / 本期邮差；计数：第 N 期
+  · 进度动词：已寄到；完成态：合上
+  · Tab：信箱 / 我的词 / 这本书 / 我的
+  页面对应：home(信箱)/book(书目)/letter(拆信)/cards(我的词)/board(这本书)/done(合上)/me(我的)
+  ══════════════════════════════════════════════════════════
+-->
+<style>
+  :root{
+    --paper:#F5F5F7; --paper-deep:#EFEFF2; --card:#FFFFFF;
+    --ink:#111111; --ink-soft:#737373; --ink-faint:#B8B8BC;
+    --red:#A83F39; --red-soft:#F9EFED;
+    --line:rgba(17,17,17,.08);
+    --shadow:0 2px 12px rgba(17,17,17,.05);
+    --serif:"Songti SC","Noto Serif SC","STSong",serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{background:#E8E8EB;font-family:-apple-system,"PingFang SC","Helvetica Neue",sans-serif;
+    color:var(--ink);display:flex;justify-content:center;min-height:100vh;padding:24px 12px 96px}
+  .serif{font-family:var(--serif)}
+  /* ── 手机壳 ── */
+  .phone{width:390px;min-height:780px;background:var(--paper);border-radius:28px;
+    box-shadow:0 20px 60px rgba(0,0,0,.18);overflow:hidden;position:relative;display:flex;flex-direction:column}
+  .screen{flex:1;overflow-y:auto;position:relative}
+  @media (max-width:430px){
+    body{padding:0 0 64px}
+    .phone{width:100%;min-height:100vh;border-radius:0;box-shadow:none}
+  }
+  .page{display:none;padding:20px 18px 32px;animation:fadein .25s}
+  .page.active{display:block}
+  @keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  /* ── 通用：面板靠底色浮起，无描边 ── */
+  .panel{background:var(--card);border-radius:14px;padding:20px 18px;box-shadow:var(--shadow)}
+  .panel-head{font-size:11px;color:var(--ink-soft);display:flex;justify-content:space-between;
+    align-items:baseline;margin-bottom:14px;letter-spacing:1px}
+  .panel-head b{font-size:15px;color:var(--ink);font-weight:normal;letter-spacing:1px}
+  .panel-sub{font-size:12px;color:var(--ink-soft);line-height:1.9;margin:10px 0 16px}
+  .cta{width:100%;height:48px;border:none;border-radius:999px;background:var(--red);color:#FFFFFF;
+    font-size:14px;letter-spacing:3px;cursor:pointer;font-family:inherit}
+  .cta:active{opacity:.88}
+  .ghost{flex:1;height:40px;border:none;border-radius:999px;background:var(--paper-deep);
+    color:var(--ink);font-size:13px;letter-spacing:2px;cursor:pointer;font-family:inherit}
+  .ghost:active{opacity:.8}
+  .row2{display:flex;gap:10px;margin-top:10px}
+  .tiny{font-size:11px;color:var(--ink-soft);text-align:center;margin-top:12px;letter-spacing:1px}
+  /* ── 稀有度角标：全站唯一游戏词，无彩化 ── */
+  .badge{display:inline-flex;align-items:center;font-size:9px;padding:2px 8px;border-radius:999px;
+    border:1px solid;font-style:normal;letter-spacing:1px}
+  .badge.SSR{color:var(--red);border-color:var(--red)}
+  .badge.SR{color:var(--ink);border-color:var(--ink)}
+  .badge.R{color:var(--ink-soft);border-color:var(--ink-soft)}
+  .badge.N{color:var(--ink-faint);border-color:var(--ink-faint)}
+  .subhead{display:flex;align-items:center;gap:12px;padding:2px 0 18px}
+  .subhead .back{width:32px;height:32px;border-radius:50%;border:none;background:var(--card);
+    box-shadow:var(--shadow);font-size:17px;color:var(--ink);cursor:pointer;line-height:1}
+  .subhead span{font-size:15px;letter-spacing:2px}
+  /* ── 信箱 · 品牌行与书架 ── */
+  .brand-row{display:flex;justify-content:space-between;align-items:baseline;padding:2px 2px 22px}
+  .wordmark{font-size:16px;letter-spacing:8px}
+  .postman{font-size:10px;color:var(--ink-soft);letter-spacing:1px}
+  .shelf-slogan{font-size:21px;letter-spacing:2px;line-height:1.8;padding:0 2px 6px}
+  .tagline{font-size:11px;color:var(--ink-soft);letter-spacing:2px;padding:0 2px 24px}
+  .book-card{display:flex;gap:14px;background:var(--card);border-radius:14px;padding:16px;
+    box-shadow:var(--shadow);margin-bottom:12px;cursor:pointer}
+  .cover{width:72px;height:100px;border-radius:6px;flex:none;display:flex;align-items:center;
+    justify-content:center;gap:6px;box-shadow:0 2px 8px rgba(17,17,17,.10)}
+  .cover span{writing-mode:vertical-rl;font-size:12px;color:#FFFFFF;letter-spacing:2px}
+  .cover i{writing-mode:vertical-rl;font-size:8px;color:#FFFFFF;opacity:.75;font-style:normal;letter-spacing:2px}
+  .c1{background:#8F3A34}.c2{background:#3E4A52}.c3{background:#33363B}
+  .bc-info{flex:1;min-width:0}
+  .bc-info h3{font-size:17px;letter-spacing:1px;font-weight:normal}
+  .bc-meta{font-size:11px;color:var(--ink-soft);margin:6px 0 8px;letter-spacing:.5px}
+  .bc-status{font-size:12px;letter-spacing:.5px;display:flex;align-items:center;gap:6px}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--red);flex:none}
+  .dot.faint{background:var(--ink-faint)}
+  .bc-status.faint{color:var(--ink-soft)}
+  .bc-actions{margin-top:12px}
+  .mini-cta{height:34px;padding:0 20px;border:none;border-radius:999px;background:var(--red);
+    color:#FFFFFF;font-size:12px;letter-spacing:2px;cursor:pointer;font-family:inherit}
+  .mini-disable{height:34px;padding:0 20px;border:none;border-radius:999px;background:var(--paper-deep);
+    color:var(--ink-faint);font-size:12px;letter-spacing:2px;cursor:default}
+  .shelf-tail{text-align:center;font-size:11px;color:var(--ink-faint);letter-spacing:3px;margin-top:20px}
+  .home-block{display:none}
+  .home-block.show{display:block;animation:fadein .25s}
+  .browse{margin-top:28px}
+  .browse-title{font-size:11px;color:var(--ink-soft);letter-spacing:3px;margin:0 2px 12px}
+  .dayquote{margin-top:20px;font-size:12px;color:var(--ink-soft);line-height:2.1;text-align:center;letter-spacing:.5px}
+  /* ── 席位 ── */
+  .seat-row{display:flex;gap:10px;margin:4px 0 14px}
+  .seat{width:44px;height:44px;border-radius:50%;background:var(--paper-deep);display:flex;
+    align-items:center;justify-content:center;font-size:11px;color:var(--ink)}
+  .seat.empty svg{width:18px;height:18px;fill:none;stroke:var(--ink-faint);stroke-width:1.5;
+    stroke-linecap:round;stroke-linejoin:round}
+  .progress{height:4px;background:var(--paper-deep);border-radius:999px;overflow:hidden}
+  .progress i{display:block;height:100%;background:var(--red);border-radius:999px}
+  .progress-note{font-size:12px;color:var(--ink-soft);margin:10px 0 16px;letter-spacing:1px}
+  /* ── 拆信页：留白即仪式；白信封三层灰阶折叠 ── */
+  .letter-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+  .letter-top b{font-size:13px;letter-spacing:3px;font-weight:normal}
+  .letter-top span{font-size:11px;color:var(--ink-soft);letter-spacing:1px}
+  .envwrap{display:flex;flex-direction:column;align-items:center;padding:46px 0 14px;transition:.5s}
+  .envwrap.gone{opacity:0;height:0;overflow:hidden;padding:0}
+  .envelope{position:relative;width:250px;height:170px;cursor:pointer}
+  .env-back{position:absolute;inset:0;background:#FFFFFF;border-radius:10px;
+    box-shadow:0 6px 20px rgba(17,17,17,.08)}
+  .env-peek{position:absolute;left:14px;right:14px;top:9px;bottom:9px;background:var(--card);
+    border-radius:5px;box-shadow:0 2px 5px rgba(17,17,17,.06)}
+  .env-front{position:absolute;left:0;right:0;bottom:0;height:118px}
+  .env-front::before{content:"";position:absolute;inset:0;background:#F2F2F4;
+    clip-path:polygon(0 0,50% 46%,100% 0,100% 100%,0 100%);border-radius:0 0 10px 10px}
+  .env-flap{position:absolute;top:0;left:0;width:100%;height:86px;transform-origin:top center;
+    transition:transform .55s ease,opacity .2s .4s;z-index:3}
+  .env-flap::before{content:"";position:absolute;inset:0;background:#E8E8ED;clip-path:polygon(0 0,100% 0,50% 100%)}
+  .envelope.opening .env-flap{transform:rotateX(178deg);opacity:0}
+  .env-seal{position:absolute;top:58px;left:50%;transform:translateX(-50%);width:54px;height:54px;
+    border-radius:50%;background:var(--red);color:#FFFFFF;display:flex;align-items:center;
+    justify-content:center;font-size:23px;z-index:4;box-shadow:0 3px 10px rgba(140,50,45,.3);transition:.3s}
+  .envelope.opening .env-seal{opacity:0;transform:translateX(-50%) scale(.6)}
+  .env-hint{margin-top:20px;font-size:12px;color:var(--ink-soft);letter-spacing:2px}
+  .letter-card{width:260px;height:392px;margin:18px auto 0;perspective:900px;opacity:0;
+    transform:translateY(26px) scale(.96);transition:.5s .1s;cursor:pointer;pointer-events:none}
+  .letter-card.show{opacity:1;transform:none;pointer-events:auto}
+  .card-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;
+    transition:transform .65s cubic-bezier(.2,.7,.2,1)}
+  .letter-card.flipped .card-inner{transform:rotateY(180deg)}
+  .card-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+    background:var(--card);border-radius:14px;box-shadow:0 8px 24px rgba(17,17,17,.10);
+    padding:22px 20px;display:flex;flex-direction:column}
+  .cf-top{display:flex;justify-content:space-between;align-items:center}
+  .cf-top .no{font-size:10px;color:var(--ink-soft);letter-spacing:1px}
+  .bigword{font-size:36px;letter-spacing:3px;margin:auto 0;text-align:center;font-weight:normal}
+  .cf-source{text-align:center;font-size:11px;color:var(--ink-soft);margin-bottom:20px;letter-spacing:1px}
+  .cf-bottom{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-soft);letter-spacing:1px}
+  .back-label{font-size:10px;letter-spacing:8px;color:var(--red);border-top:1px solid var(--line);
+    padding-top:16px;text-indent:8px}
+  .metaphor{font-size:15px;line-height:2.2;margin:auto 0;text-align:center;letter-spacing:1px;font-weight:normal}
+  .cobrand{display:flex;gap:10px;align-items:center;border-top:1px solid var(--line);padding-top:14px}
+  .logo-box{width:34px;height:34px;border:1px dashed var(--ink-faint);border-radius:8px;flex:none;
+    display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--ink-faint)}
+  .cobrand b{font-size:12px;display:block;font-weight:normal;letter-spacing:1px}
+  .cobrand span{font-size:9px;color:var(--ink-soft)}
+  #letterActions{display:none;margin-top:16px}
+  #letterActions.show{display:block;animation:fadein .4s}
+  /* ── 我的词 ── */
+  .stats{display:flex;gap:10px;margin-bottom:14px}
+  .stat{flex:1;background:var(--card);border-radius:12px;padding:14px 10px;text-align:center;box-shadow:var(--shadow)}
+  .stat b{font-size:20px;display:block;font-weight:normal}
+  .stat span{font-size:10px;color:var(--ink-soft);letter-spacing:1px}
+  .card-row{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:12px;
+    padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow);cursor:pointer}
+  .card-row .w{font-size:17px;letter-spacing:1px;flex:1;font-weight:normal}
+  .card-row .s{font-size:10px;color:var(--ink-soft);text-align:right;line-height:1.7;letter-spacing:.5px}
+  /* ── 这本书 ── */
+  .feed{background:var(--paper-deep);border-radius:12px;padding:14px 16px;margin-bottom:14px;
+    font-size:11px;color:var(--ink-soft);line-height:2;letter-spacing:.5px}
+  .feed b{color:var(--red);font-weight:normal}
+  .sentence{background:var(--card);border-radius:12px;padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow)}
+  .sentence.done{background:var(--red-soft)}
+  .s-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;
+    font-size:11px;color:var(--ink-soft)}
+  .s-mark{color:var(--red);font-size:10px;border:1px solid var(--red);border-radius:999px;padding:1px 9px;letter-spacing:1px}
+  .slots{display:flex;flex-wrap:wrap;gap:6px}
+  .slot{display:inline-flex;flex-direction:column;align-items:center;padding:6px 10px;border-radius:8px;background:var(--paper)}
+  .slot b{font-size:14px;letter-spacing:1px;font-weight:normal}
+  .slot i{font-size:9px;color:var(--ink-soft);font-style:normal;margin-top:3px}
+  .slot.dark{background:#26262A;min-width:46px;min-height:44px}
+  .more-sentences{text-align:center;font-size:11px;color:var(--ink-faint);padding:12px 0 2px;letter-spacing:2px}
+  /* ── 合上页 ── */
+  .done-hero{text-align:center;padding:22px 0 8px}
+  .done-hero .mark{font-size:11px;letter-spacing:10px;color:var(--red);margin-bottom:16px;text-indent:10px}
+  .done-hero h1{font-size:24px;letter-spacing:2px;font-weight:normal;margin-bottom:12px}
+  .done-hero p{font-size:13px;color:var(--ink-soft);line-height:2}
+  .crew{display:flex;justify-content:center;gap:14px;margin:24px 0}
+  .crew div{text-align:center;font-size:10px;color:var(--ink-soft)}
+  .crew .seat{margin:0 auto 6px}
+  .final-quote{margin:6px 0 18px;padding:20px;background:var(--card);border-radius:12px;
+    text-align:center;font-size:14px;line-height:2.2;box-shadow:var(--shadow)}
+  /* ── 我的 ── */
+  .me-head{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+  .avatar{width:56px;height:56px;border-radius:50%;background:var(--red-soft);color:var(--red);
+    display:flex;align-items:center;justify-content:center;font-size:22px}
+  .li{display:flex;justify-content:space-between;align-items:center;padding:16px 2px;
+    border-bottom:1px solid var(--line);font-size:14px;cursor:pointer;letter-spacing:1px}
+  .li span{color:var(--ink-faint);font-size:15px}
+  .me-history{text-align:center;font-size:11px;color:var(--ink-soft);margin-top:16px;letter-spacing:1px}
+  .me-foot{text-align:center;font-size:10px;color:var(--ink-soft);line-height:2.2;margin-top:22px;letter-spacing:1px}
+  /* ── 底部导航：线性图标，激活填墨 ── */
+  .tabbar{display:flex;background:var(--card);box-shadow:0 -1px 0 var(--line)}
+  .tabbar.hidden{display:none}
+  .tabbar button{flex:1;padding:9px 0 12px;background:none;border:none;font-size:10px;
+    color:var(--ink-faint);letter-spacing:2px;cursor:pointer;font-family:inherit}
+  .tabbar button svg{display:block;width:22px;height:22px;margin:0 auto 3px;fill:none;
+    stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+  .tabbar button.on{color:var(--ink)}
+  /* ── 海报弹层：纯白海报，脱离变量，外发画面永远白纸黑字红印 ── */
+  .modal{position:absolute;inset:0;background:rgba(17,17,17,.45);display:none;
+    align-items:center;justify-content:center;z-index:50;padding:26px}
+  .modal.show{display:flex}
+  .poster{width:100%;background:#FFFFFF;border-radius:16px;padding:28px 22px;text-align:center;
+    box-shadow:0 8px 30px rgba(17,17,17,.12)}
+  .p-kind{font-size:10px;letter-spacing:8px;color:var(--red);margin-bottom:18px;text-indent:8px}
+  .p-word{font-size:32px;letter-spacing:3px;margin-bottom:10px;font-weight:normal}
+  .p-source{font-size:11px;color:var(--ink-soft);margin-bottom:16px;letter-spacing:1px}
+  .p-metaphor{font-size:13px;line-height:2.2;padding:14px 4px;border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);margin-bottom:14px;letter-spacing:1px}
+  .p-meta{font-size:10px;color:var(--ink-soft);margin-bottom:16px;letter-spacing:1px}
+  .p-qr{width:76px;height:76px;margin:0 auto 10px;border:1px solid var(--line);border-radius:8px;
+    display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--ink-faint);line-height:1.6}
+  .p-foot{font-size:10px;color:var(--ink-soft);margin-bottom:18px;letter-spacing:1px}
+  .p-close{width:100%;height:44px;border:none;border-radius:999px;background:var(--red);
+    color:#FFFFFF;font-size:13px;letter-spacing:3px;cursor:pointer;font-family:inherit}
+  /* ── 轻提示 ── */
+  .toast{position:absolute;left:50%;transform:translateX(-50%) translateY(8px);bottom:100px;
+    background:rgba(17,17,17,.92);color:#FFFFFF;font-size:12px;padding:10px 20px;border-radius:999px;
+    opacity:0;transition:.3s;z-index:60;pointer-events:none;white-space:nowrap;letter-spacing:1px}
+  .toast.show{opacity:1;transform:translateX(-50%)}
+  /* ── 原型控制台（上线不含） ── */
+  .devbar{position:fixed;left:0;right:0;bottom:0;background:#241F19;color:#CFC6B4;font-size:11px;
+    display:flex;gap:8px;align-items:center;padding:8px 12px;z-index:99;overflow-x:auto}
+  .devbar button{background:#3A342A;color:#E8DFC9;border:1px solid #554C3C;border-radius:999px;
+    padding:4px 12px;font-size:11px;white-space:nowrap;cursor:pointer}
+  .devbar button.on{background:var(--red);border-color:var(--red);color:#fff}
+  .rules{margin:16px 0 0;font-size:12px;color:var(--ink-soft);line-height:2.2;list-style:none;letter-spacing:.5px}
+  .rules li::before{content:"·";color:var(--red);margin-right:9px;font-weight:bold}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="screen" id="screen">
+    <!-- ════════ 信箱 pages/home ════════ -->
+    <section class="page active" id="page-home">
+      <div class="brand-row">
+        <span class="wordmark serif">拆 信</span>
+        <span class="postman">本期邮差 @四月读书会</span>
+      </div>
+      <!-- 状态：书架（无团，默认落地） -->
+      <section class="home-block" data-state="empty">
+        <p class="shelf-slogan serif">这些书，都在等它们的收信人。</p>
+        <p class="tagline">把一本书，拆成十四天的信。</p>
+        <div class="book-card" onclick="go('book')">
+          <div class="cover c1"><span>醒来觉得甚是爱你</span><i>朱生豪情书选</i></div>
+          <div class="bc-info">
+            <h3 class="serif">醒来觉得甚是爱你</h3>
+            <p class="bc-meta">朱生豪 · 70 个词 · 5 位收信人 · 14 天</p>
+            <p class="bc-status"><i class="dot"></i>等信中 · 已有 3 / 5 位收信人</p>
+            <div class="bc-actions"><button class="mini-cta">成为收信人</button></div>
+          </div>
+        </div>
+        <div class="book-card" onclick="toast('《两地书》的详情页，正在路上。')">
+          <div class="cover c2"><span>两地书</span><i>鲁迅 许广平</i></div>
+          <div class="bc-info">
+            <h3 class="serif">两地书</h3>
+            <p class="bc-meta">鲁迅 / 许广平 · 60 个词 · 5 位收信人 · 12 天</p>
+            <p class="bc-status"><i class="dot"></i>等信中 · 已有 1 / 5 位收信人</p>
+            <div class="bc-actions"><button class="mini-cta">成为收信人</button></div>
+          </div>
+        </div>
+        <div class="book-card" onclick="toast('这一期，信没有寄出去。下一期开始时，你还在名单里。')">
+          <div class="cover c3"><span>浮生六记</span><i>沈复</i></div>
+          <div class="bc-info">
+            <h3 class="serif">浮生六记</h3>
+            <p class="bc-meta">沈复 · 55 个词 · 5 位收信人 · 11 天</p>
+            <p class="bc-status faint"><i class="dot faint"></i>本期未寄出 · 名单带入下一期</p>
+            <div class="bc-actions"><button class="mini-disable">本期未寄出</button></div>
+          </div>
+        </div>
+        <p class="shelf-tail">更 多 书 ，正 在 拆</p>
+      </section>
+      <!-- 状态：等信中（已加入，未出发） -->
+      <section class="home-block" data-state="booking">
+        <div class="panel">
+          <div class="panel-head"><b class="serif">《醒来觉得甚是爱你》</b><span>第 3 期 · 等信中</span></div>
+          <div class="seat-row">
+            <div class="seat">阿默</div><div class="seat">林深</div><div class="seat">苏苏</div>
+            <div class="seat empty"><svg viewBox="0 0 24 24"><rect x="3.5" y="6" width="17" height="12" rx="2"/><path d="M4.5 8l7.5 5 7.5-5"/></svg></div>
+            <div class="seat empty"><svg viewBox="0 0 24 24"><rect x="3.5" y="6" width="17" height="12" rx="2"/><path d="M4.5 8l7.5 5 7.5-5"/></svg></div>
+          </div>
+          <p class="panel-sub" style="margin-top:0">已有 3 / 5 位收信人。还剩 4 天，等剩下的 2 位收信人。</p>
+          <button class="cta" onclick="openPoster('invite')">把这本书寄给朋友</button>
+          <div class="row2">
+            <button class="ghost" onclick="putDown()">放下这本书</button>
+            <button class="ghost" onclick="go('book')">书目详情</button>
+          </div>
+          <p class="tiny">凑齐 5 位，明晚第一封信出发。</p>
+        </div>
+        <div class="browse">
+          <p class="browse-title">别 的 书 ，也 在 等</p>
+          <div class="book-card" onclick="toast('先放下手中的这本，再来接它。')">
+            <div class="cover c2"><span>两地书</span><i>鲁迅 许广平</i></div>
+            <div class="bc-info">
+              <h3 class="serif">两地书</h3>
+              <p class="bc-meta">鲁迅 / 许广平 · 60 个词 · 5 位收信人 · 12 天</p>
+              <p class="bc-status"><i class="dot"></i>等信中 · 已有 1 / 5 位收信人</p>
+              <div class="bc-actions"><button class="mini-cta">成为收信人</button></div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- 状态：在途（第 7 天） -->
+      <section class="home-block" data-state="running">
+        <div class="panel">
+          <div class="panel-head"><b class="serif">《醒来觉得甚是爱你》</b><span>第 3 期 · 第 7 天</span></div>
+          <div class="progress"><i style="width:50%"></i></div>
+          <p class="progress-note">70 个词，已寄到 35 个</p>
+          <button class="cta" id="homeLetterCta" onclick="go('letter')">今天的信到了 · 去拆</button>
+          <div class="row2">
+            <button class="ghost" onclick="go('board')">这本书</button>
+            <button class="ghost" onclick="go('cards')">我的词</button>
+          </div>
+        </div>
+        <div class="dayquote serif">第 2 天，有一句话完整了——「醒来觉得甚是爱你」。<br>它散在四个人手里，一个字不少。</div>
+        <div class="browse">
+          <p class="browse-title">别 的 书 ，也 在 等</p>
+          <div class="book-card" onclick="toast('一个人的信箱，一次只放得下一本书。')">
+            <div class="cover c2"><span>两地书</span><i>鲁迅 许广平</i></div>
+            <div class="bc-info">
+              <h3 class="serif">两地书</h3>
+              <p class="bc-meta">鲁迅 / 许广平 · 60 个词 · 5 位收信人 · 12 天</p>
+              <p class="bc-status"><i class="dot"></i>等信中 · 已有 1 / 5 位收信人</p>
+              <div class="bc-actions"><button class="mini-disable">信箱已满</button></div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- 状态：已合上 -->
+      <section class="home-block" data-state="done">
+        <div class="panel">
+          <div class="panel-head"><b class="serif">《醒来觉得甚是爱你》</b><span>已合上</span></div>
+          <p class="panel-sub" style="margin-top:0">我们 5 个人，用 14 天，合上了这本书。<br>70 个词，每个词后面，都写着一个名字。</p>
+          <button class="cta" onclick="go('done')">查看合上页</button>
+          <div class="row2">
+            <button class="ghost" onclick="setState('empty');go('home')">去信箱，看看下一本</button>
+          </div>
+          <p class="tiny">下期 ·《两地书》· 已开放等信</p>
+        </div>
+      </section>
+    </section>
+    <!-- ════════ 书目详情 pages/book ════════ -->
+    <section class="page" id="page-book">
+      <header class="subhead"><button class="back" onclick="go('home')">‹</button><span>书目详情</span></header>
+      <div class="panel">
+        <div class="book-card" style="box-shadow:none;padding:0;margin-bottom:16px" onclick="void 0">
+          <div class="cover c1"><span>醒来觉得甚是爱你</span><i>朱生豪情书选</i></div>
+          <div class="bc-info" style="padding-top:4px">
+            <h3 class="serif">醒来觉得甚是爱你</h3>
+            <p class="bc-meta">朱生豪 · 70 个词 · 5 位收信人 · 14 天</p>
+            <p class="bc-status"><i class="dot"></i>等信中 · 已有 3 / 5 位收信人</p>
+          </div>
+        </div>
+        <p class="panel-sub serif" style="margin-top:0">朱生豪致宋清如的书信选。1933 到 1944 年间，一个翻译莎士比亚的人，把最笨拙也最认真的中文，写给了同一个人。</p>
+        <div class="seat-row">
+          <div class="seat">阿默</div><div class="seat">林深</div><div class="seat">苏苏</div>
+          <div class="seat empty"><svg viewBox="0 0 24 24"><rect x="3.5" y="6" width="17" height="12" rx="2"/><path d="M4.5 8l7.5 5 7.5-5"/></svg></div>
+          <div class="seat empty"><svg viewBox="0 0 24 24"><rect x="3.5" y="6" width="17" height="12" rx="2"/><path d="M4.5 8l7.5 5 7.5-5"/></svg></div>
+        </div>
+        <p class="panel-sub" style="margin-top:0">还剩 4 天，等剩下的 2 位收信人。</p>
+        <div class="feed" style="margin-bottom:18px"><b>本期邮差说</b><br>
+          我们把这本书拆成 70 个词。5 位收信人，14 天，每天一封信，谁收到哪个词，交给命运。—— @四月读书会</div>
+        <ul class="rules">
+          <li>凑齐 5 位收信人，次日寄出第一封信。</li>
+          <li>信每天照寄，拆不拆由你——缺席不会耽误任何人手里的词。</li>
+          <li>第一封信出发后，这 14 天就属于你们 5 个。</li>
+          <li>7 天内凑不齐，信收回信封，下一期原样再寄。</li>
+          <li>一个人的信箱，一次只放得下一本书。</li>
+        </ul>
+        <button class="cta" style="margin-top:18px" onclick="joinBook()">成为收信人</button>
+        <div class="row2">
+          <button class="ghost" onclick="openPoster('invite')">把这本书寄给朋友</button>
+        </div>
+        <p class="tiny">出发之前，随时可以放下这本书。</p>
+      </div>
+    </section>
+    <!-- ════════ 拆信 pages/letter ════════ -->
+    <section class="page" id="page-letter">
+      <header class="subhead"><button class="back" onclick="go('home')">‹</button><span>今天的信</span></header>
+      <div class="letter-top">
+        <b>第 7 天</b>
+        <span>70 个词，已寄到 35 个</span>
+      </div>
+      <div class="envwrap" id="envWrap">
+        <div class="envelope" id="envelope" onclick="openLetter()">
+          <div class="env-back"></div>
+          <div class="env-peek"></div>
+          <div class="env-front"></div>
+          <div class="env-flap"></div>
+          <div class="env-seal serif">拆</div>
+        </div>
+        <div class="env-hint" id="letterHint">轻触拆开今天的信</div>
+      </div>
+      <div class="letter-card" id="letterCard" onclick="flipCard()">
+        <div class="card-inner">
+          <div class="card-face front">
+            <div class="cf-top">
+              <i class="badge" id="cf-rarity">SR</i>
+              <span class="no" id="cf-no">第 35 / 70 个词</span>
+            </div>
+            <div class="bigword serif" id="cf-word">想念你</div>
+            <div class="cf-source" id="cf-source">朱生豪致宋清如 · 1935 年冬</div>
+            <div class="cf-bottom"><span>《醒来觉得甚是爱你》</span><span>轻触翻面 ›</span></div>
+          </div>
+          <div class="card-face back" style="transform:rotateY(180deg)">
+            <div class="back-label">隐 喻</div>
+            <p class="metaphor serif" id="cb-metaphor">距离唯一拉不远的东西。人在两地，想念在同一个地方。</p>
+            <div class="cobrand">
+              <div class="logo-box">LOGO</div>
+              <div><b>本期邮差 @四月读书会</b><span>卡背定制位 · 按书替换 / 可联名</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="letterActions">
+        <button class="cta" onclick="openPoster('daily')">把这个词，做成一张卡片</button>
+        <p class="tiny">明天的信，还在路上。</p>
+      </div>
+    </section>
+    <!-- ════════ 我的词 pages/cards ════════ -->
+    <section class="page" id="page-cards">
+      <header class="subhead"><span class="serif" style="font-size:17px">我的词</span></header>
+      <div class="stats">
+        <div class="stat"><b>6</b><span>已拆开的词</span></div>
+        <div class="stat"><b>1</b><span>今日待拆</span></div>
+        <div class="stat"><b>21</b><span>点亮了句子</span></div>
+      </div>
+      <div id="cardList"></div>
+      <p class="tiny">轻触词卡，把它做成一张卡片</p>
+    </section>
+    <!-- ════════ 这本书 pages/board ════════ -->
+    <section class="page" id="page-board">
+      <header class="subhead">
+        <span class="serif" style="font-size:16px">《醒来觉得甚是爱你》</span>
+        <span style="font-size:11px;color:var(--ink-soft);letter-spacing:1px">第 7 天</span>
+      </header>
+      <div class="progress"><i style="width:50%"></i></div>
+      <div class="progress-note" style="margin-bottom:6px">已寄到 35 / 70</div>
+      <p class="tiny" style="margin:0 0 16px;text-align:left;padding:0 2px">亮着的，是已寄到的词；暗着的，还在路上。</p>
+      <div class="feed">
+        <b>第 2 天，「醒来觉得甚是爱你」完整了：</b><br>
+        醒来在阿默手里，觉得在苏苏手里，甚是在林深手里，爱人在清欢手里。<br><br>
+        全团的 21 句话，都在等你手里的这个「我」。最普通的字，最不能没有。
+      </div>
+      <div id="boardList"></div>
+      <div class="more-sentences">—— 其余 32 句，随信慢慢到 ——</div>
+    </section>
+    <!-- ════════ 合上页 pages/done ════════ -->
+    <section class="page" id="page-done">
+      <header class="subhead"><button class="back" onclick="go('home')">‹</button><span>合上</span></header>
+      <div class="done-hero">
+        <div class="mark">· 合 上 ·</div>
+        <h1 class="serif">醒来觉得甚是爱你</h1>
+        <p>我们 5 个人，用 14 天，合上了这本书。<br>70 个词，每个词后面，都写着一个名字。</p>
+      </div>
+      <div class="crew">
+        <div><div class="seat">我</div>14 个词</div>
+        <div><div class="seat">阿默</div>14 个词</div>
+        <div><div class="seat">林深</div>14 个词</div>
+        <div><div class="seat">苏苏</div>14 个词</div>
+        <div><div class="seat">清欢</div>14 个词</div>
+      </div>
+      <div class="final-quote serif">最后寄到的，是第 40 句：<br>「纸短情长，还欠你千言万语。」<br>
+        <span style="font-size:11px;color:var(--ink-soft)">—— 朱生豪，1944 年</span></div>
+      <button class="cta" onclick="openPoster('complete')">生成合上纪念海报</button>
+      <div class="row2">
+        <button class="ghost" onclick="setState('empty');go('home')">去信箱，看看下一本</button>
+      </div>
+      <p class="tiny">下期 ·《两地书》· 已开放等信</p>
+    </section>
+    <!-- ════════ 我的 pages/me ════════ -->
+    <section class="page" id="page-me">
+      <header class="subhead"><span class="serif" style="font-size:17px">我的</span></header>
+      <div class="me-head">
+        <div class="avatar serif">我</div>
+        <div><b style="font-size:15px;letter-spacing:1px">我</b>
+          <p style="font-size:11px;color:var(--ink-soft);margin-top:5px;letter-spacing:.5px">收信人 ·《醒来觉得甚是爱你》第 3 期 · 在途</p></div>
+      </div>
+      <div class="panel" style="padding:6px 18px">
+        <div class="li" onclick="go('cards')">我的词<span>›</span></div>
+        <div class="li" onclick="go('board')">这本书<span>›</span></div>
+        <div class="li" onclick="setState('empty');go('home')">去信箱挑书<span>›</span></div>
+        <div class="li" style="border:none">隐私设置<span>›</span></div>
+      </div>
+      <p class="me-history">第 1 期 ·《浮生六记》· 已合上</p>
+      <p class="me-foot">信已出发，中途放不下——这 14 天属于你们 5 个。<br>本期邮差 @四月读书会</p>
+    </section>
+    <!-- ════════ 海报弹层 ════════ -->
+    <div class="modal" id="posterModal">
+      <div class="poster">
+        <div class="p-kind" id="p-kind">今 日 寄 到</div>
+        <div class="p-word serif" id="p-word">想念你</div>
+        <div class="p-source" id="p-source">朱生豪致宋清如 · 1935 年冬</div>
+        <p class="p-metaphor serif" id="p-metaphor">距离唯一拉不远的东西。人在两地，想念在同一个地方。</p>
+        <div class="p-meta" id="p-meta">第 7 天 · 第 35 / 70 个词 · SR</div>
+        <div class="p-qr">小程序码占位<br>getUnlimited</div>
+        <div class="p-foot" id="p-foot">长按识别 · 拆一封来自 1935 年的信</div>
+        <button class="p-close" onclick="savePoster()">保存到相册</button>
+      </div>
+    </div>
+    <div class="toast" id="toast"></div>
+  </div>
+  <!-- 底部导航 -->
+  <nav class="tabbar" id="tabbar">
+    <button data-page="home" class="on" onclick="go('home')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="M4 8l8 5.5L20 8"/></svg>信箱</button>
+    <button data-page="cards" onclick="go('cards')">
+      <svg viewBox="0 0 24 24"><rect x="7.5" y="4" width="12.5" height="16.5" rx="2.5"/><path d="M4 8.5V18a2.5 2.5 0 0 0 2.5 2.5H14"/></svg>我的词</button>
+    <button data-page="board" onclick="go('board')">
+      <svg viewBox="0 0 24 24"><rect x="5" y="3.5" width="14" height="17" rx="2.5"/><path d="M9 3.5v17"/></svg>这本书</button>
+    <button data-page="me" onclick="go('me')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.8"/><path d="M4.5 20.5c1.6-3.8 4.3-5.5 7.5-5.5s5.9 1.7 7.5 5.5"/></svg>我的</button>
+  </nav>
+</div>
+<!-- 原型控制台（上线不含） -->
+<div class="devbar">
+  <span>原型控制台：</span>
+  <button onclick="devSet('empty')">无团 · 书架</button>
+  <button onclick="devSet('booking')">等信中</button>
+  <button onclick="devSet('running')" class="on">在途 · 第 7 天</button>
+  <button onclick="devSet('done')">已合上</button>
+</div>
+<script>
+/* ═══ 演示数据（正式开发时来自后端 API） ═══ */
+const DEMO = {
+  book:{ title:"醒来觉得甚是爱你", total:70 },
+  /* GET /letters/today */
+  today:{ word:"想念你", rarity:"SR", source:"朱生豪致宋清如 · 1935 年冬", no:35,
+          metaphor:"距离唯一拉不远的东西。人在两地，想念在同一个地方。" },
+  /* GET /my/cards */
+  cards:[
+    {word:"我",     rarity:"N",  source:"朱生豪致宋清如 · 1933 年", day:1, metaphor:"最普通的字，最不能没有。它出现 21 次，每一句都把自己交出去。"},
+    {word:"很可爱", rarity:"R",  source:"朱生豪致宋清如 · 1940 年", day:2, metaphor:"结论先行。不解释，也不容反驳。"},
+    {word:"和",     rarity:"N",  source:"朱生豪致宋清如 · 1936 年", day:3, metaphor:"最安静的连接词。把你身边的位置，留给另一样东西。"},
+    {word:"你老了", rarity:"R",  source:"朱生豪致宋清如 · 1940 年", day:4, metaphor:"假设句里藏着最长的耐心。"},
+    {word:"至上主义者", rarity:"SSR", source:"朱生豪致宋清如 · 1937 年", day:5, metaphor:"一个人成为另一个人的主义。这大概是「信仰」最朴素的用法。"},
+    {word:"来生",   rarity:"SR", source:"朱生豪致宋清如 · 1943 年", day:6, metaphor:"把来不及的，寄放到下一世。"}
+  ],
+  /* GET /groups/:id 进度板；owner 为空 = 词尚未寄出（暗格） */
+  board:[
+    {no:"S01", done:true, doneDay:2, slots:[
+      {w:"醒来",o:"阿默"},{w:"觉得",o:"苏苏"},{w:"甚是",o:"林深"},{w:"爱你",o:"清欢"}]},
+    {no:"S02", slots:[
+      {w:"不要愁",o:"清欢"},{w:"老之将至"},{w:"你老了",o:"我"},{w:"一定",o:"苏苏"},{w:"很可爱",o:"我"}]},
+    {no:"S03", slots:[
+      {w:"我",o:"我"},{w:"愿意"},{w:"舍弃一切",o:"苏苏"},{w:"以",o:"阿默"},{w:"想念你",o:"我"},{w:"终此一生"}]},
+    {no:"S04", slots:[
+      {w:"我是"},{w:"宋清如",o:"阿默"},{w:"至上主义者",o:"我"}]},
+    {no:"S05", slots:[
+      {w:"寄给你"},{w:"全宇宙的爱",o:"清欢"},{w:"和",o:"我"},{w:"自太古至永劫"},{w:"的思念",o:"苏苏"}]},
+    {no:"S06", slots:[
+      {w:"我想作诗"},{w:"写雨",o:"苏苏"},{w:"写夜的相思"},{w:"写你",o:"林深"},{w:"写不出"}]},
+    {no:"S07", slots:[
+      {w:"但愿"},{w:"来生",o:"我"},{w:"我们"},{w:"终日在一起",o:"阿默"},{w:"每天每天"},{w:"口角到夜深"}]},
+    {no:"S08", slots:[
+      {w:"我们都是"},{w:"世上多余的人"},{w:"但至少",o:"苏苏"},{w:"对于彼此"},{w:"世界最重要的人",o:"清欢"}]}
+  ]
+};
+/* ═══ 路由 ═══ */
+const TABS = ["home","cards","board","me"];
+function go(id){
+  document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active", p.id==="page-"+id));
+  document.getElementById("tabbar").classList.toggle("hidden", !TABS.includes(id));
+  document.querySelectorAll("#tabbar button").forEach(b=>b.classList.toggle("on", b.dataset.page===id));
+  document.getElementById("screen").scrollTop = 0;
+  closePoster();
+}
+/* ═══ 状态 ═══ */
+let state = "running";
+function setState(s){
+  state = s;
+  document.querySelectorAll(".home-block").forEach(b=>b.classList.toggle("show", b.dataset.state===s));
+}
+function devSet(s){
+  setState(s); go("home");
+  document.querySelectorAll(".devbar button").forEach((b,i)=>{
+    b.classList.toggle("on", ["empty","booking","running","done"][i]===s);
+  });
+}
+/* ═══ 动作 ═══ */
+function joinBook(){
+  setState("booking"); go("home");
+  toast("你已是《醒来觉得甚是爱你》的收信人。还差 2 位，它就能出发。");
+}
+function putDown(){
+  toast("出发之前，随时可以放下这本书。席位留给下一位收信人。");
+  setTimeout(()=>setState("empty"), 1400);
+}
+function openLetter(){
+  const env = document.getElementById("envelope");
+  if(env.classList.contains("opening")) return;
+  env.classList.add("opening");
+  setTimeout(()=>{
+    document.getElementById("envWrap").classList.add("gone");
+    document.getElementById("letterCard").classList.add("show");
+    document.getElementById("letterActions").classList.add("show");
+    const cta = document.getElementById("homeLetterCta");
+    if(cta) cta.textContent = "明天的信，还在路上。";
+  }, 650);
+}
+function flipCard(){ document.getElementById("letterCard").classList.toggle("flipped"); }
+/* ═══ 渲染 ═══ */
+function renderCards(){
+  const list = document.getElementById("cardList");
+  DEMO.cards.forEach((c,i)=>{
+    list.insertAdjacentHTML("beforeend", `
+      <div class="card-row" onclick='openPoster("card", DEMO.cards[${i}])'>
+        <i class="badge ${c.rarity}">${c.rarity}</i>
+        <span class="w serif">${c.word}</span>
+        <span class="s">${c.source}<br>第 ${c.day} 天寄到</span>
+      </div>`);
+  });
+}
+function renderBoard(){
+  const list = document.getElementById("boardList");
+  DEMO.board.forEach(s=>{
+    const slots = s.slots.map(t=> t.o
+      ? `<span class="slot"><b class="serif">${t.w}</b><i>@${t.o}</i></span>`
+      : `<span class="slot dark"></span>`).join("");
+    list.insertAdjacentHTML("beforeend", `
+      <div class="sentence ${s.done?"done":""}">
+        <div class="s-head"><span>${s.no}</span>
+          ${s.done?`<span class="s-mark">成句 · 第 ${s.doneDay} 天</span>`
+                  :`<span>${s.slots.filter(t=>t.o).length} / ${s.slots.length} 个词已寄到</span>`}
+        </div>
+        <div class="slots">${slots}</div>
+      </div>`);
+  });
+}
+function fillToday(){
+  const t = DEMO.today;
+  const r = document.getElementById("cf-rarity");
+  r.textContent = t.rarity; r.className = "badge "+t.rarity;
+  document.getElementById("cf-no").textContent = `第 ${t.no} / ${DEMO.book.total} 个词`;
+  document.getElementById("cf-word").textContent = t.word;
+  document.getElementById("cf-source").textContent = t.source;
+  document.getElementById("cb-metaphor").textContent = t.metaphor;
+}
+/* ═══ 海报（正式开发：服务端渲染 → COS → 存相册） ═══ */
+function openPoster(type, data){
+  const d = data || DEMO.today;
+  const P = id => document.getElementById(id);
+  if(type==="invite"){
+    P("p-kind").textContent = "寄 一 本 书";
+    P("p-word").textContent = "还差 2 位收信人";
+    P("p-source").textContent = "《醒来觉得甚是爱你》· 5 位收信人 · 14 天";
+    P("p-metaphor").innerHTML = "你来，明晚就能出发。<br>70 个词，每天一封信，寄给 5 个人。";
+    P("p-meta").textContent = "已有 3 / 5 位 · 还剩 4 天";
+    P("p-foot").textContent = "长按识别 · 成为第 4 位收信人";
+  } else if(type==="complete"){
+    P("p-kind").textContent = "合 上 纪 念";
+    P("p-word").textContent = "合上了";
+    P("p-source").textContent = "《醒来觉得甚是爱你》· 第 3 期";
+    P("p-metaphor").innerHTML = "我们 5 个人，用 14 天，<br>合上了这本书。";
+    P("p-meta").textContent = "70 个词 · 40 句话 · 每个词后面，都有一个名字";
+    P("p-foot").textContent = "长按识别 · 下一本书，在等它的收信人";
+  } else if(type==="card"){
+    P("p-kind").textContent = "我 的 词";
+    P("p-word").textContent = d.word;
+    P("p-source").textContent = d.source;
+    P("p-metaphor").textContent = d.metaphor;
+    P("p-meta").textContent = `第 ${d.day} 天寄到 · ${d.rarity}`;
+    P("p-foot").textContent = "长按识别 · 来拆一封信";
+  } else {
+    P("p-kind").textContent = "今 日 寄 到";
+    P("p-word").textContent = d.word;
+    P("p-source").textContent = d.source;
+    P("p-metaphor").textContent = d.metaphor;
+    P("p-meta").textContent = `第 7 天 · 第 ${d.no} / ${DEMO.book.total} 个词 · ${d.rarity}`;
+    P("p-foot").textContent = "长按识别 · 拆一封来自 1935 年的信";
+  }
+  document.getElementById("posterModal").classList.add("show");
+}
+function closePoster(){ document.getElementById("posterModal").classList.remove("show"); }
+function savePoster(){
+  closePoster();
+  toast("已存入相册。去朋友圈，把它寄出去。");
+}
+/* ═══ 轻提示 ═══ */
+let toastTimer = null;
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove("show"), 2400);
+}
+/* ═══ 初始化 ═══ */
+renderCards(); renderBoard(); fillToday(); setState("running"); go("home");
+</script>
+</body>
+</html>
