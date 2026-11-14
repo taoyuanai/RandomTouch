@@ -1,0 +1,995 @@
+<!-- 今日做点小事 · 微信小程序版（移植自 V2.3c 原型） -->
+
+<template name="cardBack">
+  <view class="card-back-inner">
+    <view class="pc-empty" wx:if="{{!back.rec}}">
+      <view class="back-label">解 签</view>
+      <view class="t-p explain">{{back.explain}}</view>
+      <view class="rec-slot empty" bindtap="openRecord" data-sid="{{back.sid}}" data-idx="{{back.idx}}" data-from="{{back.from}}">
+        <image class="t-svg" src="/assets/icons/camera-orange.png" mode="aspectFit" />
+        <text class="t-span rec-hint">拍下今天 · 盖个邮戳</text>
+      </view>
+      <view class="cobrand">
+        <view class="logo-box">签</view>
+        <view>
+          <text class="t-b">@{{back.creator}}</text>
+          <view class="set-name">{{back.title}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="pc-back {{back.rec.img ? '' : 'note-only'}}" wx:else>
+      <view class="pc-photo {{back.rec.img ? '' : 'note-only'}}">
+        <image wx:if="{{back.rec.img}}" class="t-img" src="{{back.rec.img}}" mode="aspectFill" />
+        <view wx:else class="t-p pc-note-strip">「{{back.rec.note || '这一天，做过了'}}」</view>
+        <view class="stamp {{back.stampAnim ? 'animate' : ''}}"><text class="stamp-text">{{back.rec.stampDate}}</text></view>
+      </view>
+      <view class="pc-letter {{back.rec.img && !back.rec.note ? 'no-note' : ''}}">
+        <view class="t-p pc-explain">{{back.explain}}</view>
+        <view wx:if="{{back.rec.img && back.rec.note}}" class="t-p pc-note"><text class="t-span">「{{back.rec.note}}」</text></view>
+        <view class="pc-meta">
+          <text class="t-b">@{{back.creator}} · {{back.title}}</text>
+          <text class="t-span">{{back.rec.date}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</template>
+
+<view class="phone" style="--statusbar:{{statusBarHeight}}px;--navtop:{{navTop}}px">
+  <view class="status-spacer"></view>
+
+  <view class="screen">
+    <!-- ═══════════════════ 发现 ═══════════════════ -->
+    <view class="page" id="page-home" wx:if="{{page === 'home'}}">
+      <view class="page-head">
+        <view class="brand-row">
+          <text class="wordmark" bindlongpress="openDemo"></text>
+          <text class="today" bindlongpress="openDemo">{{home.date}}</text>
+        </view>
+        <view class="search-bar" bindtap="toastSearch">
+          <image class="t-svg" src="/assets/icons/search.png" mode="aspectFit" />
+          <text class="t-span">搜索卡集、做卡人…</text>
+          <image class="t-svg scan-icon" src="/assets/icons/scan.png" mode="aspectFit" />
+        </view>
+        <view class="quick-row">
+          <view class="quick-card {{item.cls}}" wx:for="{{home.quicks}}" wx:key="label" bindtap="quickAction" data-index="{{index}}">
+            <view class="qc-icon">{{item.icon}}</view>
+            <view>
+              <view class="qc-label">{{item.label}}</view>
+              <view class="qc-sub">{{item.sub}}</view>
+            </view>
+          </view>
+        </view>
+        <view class="shelf-slogan">今天对这个世界做出<text class="accent">一点点</text>探索</view>
+        <view class="tagline">万物皆可抽一签。</view>
+        <view class="chips">
+          <view class="chip {{item.color}} {{item.on ? 'on' : ''}}" wx:for="{{home.chips}}" wx:key="label" bindtap="setCat" data-cat="{{item.label}}">{{item.label}}</view>
+        </view>
+        <view class="list-head">
+          <text class="count">{{home.setCount}} 个卡集</text>
+          <view class="sortseg">
+            <button id="sort-hot" size="mini" class="{{home.sort === 'hot' ? 'on' : ''}}" bindtap="setSort" data-sort="hot">热门</button>
+            <button id="sort-new" size="mini" class="{{home.sort === 'new' ? 'on' : ''}}" bindtap="setSort" data-sort="new">最新</button>
+          </view>
+        </view>
+      </view>
+
+      <view id="squareList">
+        <view class="book-card" wx:for="{{home.sets}}" wx:key="id" bindtap="openSet" data-id="{{item.id}}" data-from="home">
+          <view class="cover {{item.cover}}" style="position:relative">
+            <view class="cover-price" wx:if="{{item.price > 0}}">¥{{item.price}}</view>
+            <view class="cover-trial" wx:if="{{item.trial > 0}}">试{{item.trial}}张</view>
+            <text class="t-span">{{item.covT4}}</text><text class="t-i">{{item.covS8}}</text>
+          </view>
+          <view class="bc-info">
+            <view class="t-h3">{{item.title}}</view>
+            <view class="t-p bc-meta">{{item.meta}}</view>
+            <view class="t-p bc-status {{item.faint ? 'faint' : ''}}"><view class="t-i dot {{item.faint ? 'faint' : ''}}"></view>{{item.vmText}}</view>
+            <view class="bc-status-tag {{item.tagCls}}">{{item.tagText}}</view>
+          </view>
+          <view class="bc-sticker">{{item.sticker}}</view>
+        </view>
+      </view>
+
+      <view class="t-p shelf-tail"><text class="t-span">更多卡集，正在上架</text></view>
+    </view>
+
+    <!-- ═══════════════════ 卡集详情 ═══════════════════ -->
+    <view class="page" id="page-set" wx:if="{{page === 'set'}}">
+      <view class="page-head">
+        <view class="subhead">
+          <button class="back" style="margin:0" bindtap="goBackSet">‹</button>
+          <text class="t-span">卡集</text>
+        </view>
+      </view>
+
+      <view id="setBody" wx:if="{{setPage.exists}}">
+        <view class="set-hero">
+          <view class="cover-lg {{setPage.cover}}">
+            <view class="cover-price-lg" wx:if="{{setPage.price > 0}}">¥{{setPage.price}}</view>
+            <view class="cover-trial-lg" wx:if="{{setPage.price > 0 && setPage.trial > 0}}">试{{setPage.trial}}张</view>
+            <text class="t-span">{{setPage.covT}}</text><text class="t-i">{{setPage.covS}}</text>
+          </view>
+          <view class="t-h1">{{setPage.title}}</view>
+          <view class="set-meta">
+            <text class="t-span">{{setPage.typeText}}</text>
+            <text class="t-span dot-sep"></text>
+            <text class="t-span">{{setPage.count}} 张</text>
+            <text class="t-span dot-sep"></text>
+            <text class="t-span">{{setPage.cat}}</text>
+          </view>
+          <view class="set-heat">
+            <image class="t-svg" src="/assets/icons/flame.png" mode="aspectFit" />
+            {{setPage.heatText}} 人抽过
+          </view>
+          <view class="set-status-tag {{setPage.statusCls}}">{{setPage.statusText}}</view>
+        </view>
+
+        <view class="panel">
+          <view class="t-p set-intro">{{setPage.intro}}</view>
+          <view class="creator-bar" bindtap="openAuthorPage" data-name="{{setPage.creator}}" data-from="set">
+            <view class="cavatar">{{setPage.avatar}}</view>
+            <view class="cinfo">
+              <text class="t-b">@{{setPage.creator}}</text>
+              <text class="t-span">{{setPage.fansText}}</text>
+            </view>
+            <view wx:if="{{setPage.mine}}" class="follow on" style="cursor:default">你的卡集</view>
+            <button wx:else size="mini" class="follow {{setPage.followed ? 'on' : ''}}" catchtap="toggleFollow" data-creator="{{setPage.creator}}">{{setPage.followed ? '已关注' : '关注'}}</button>
+          </view>
+        </view>
+
+        <view class="panel" wx:if="{{setPage.showProgress}}">
+          <view class="panel-head"><text class="t-b">收集进度</text><text class="t-span">{{setPage.typeText}}</text></view>
+          <view class="progress-hero">
+            <text class="t-span ph-left">已抽到</text>
+            <text class="t-span ph-right">{{setPage.drawn}}<text class="t-span"> / {{setPage.count}} 张</text></text>
+          </view>
+          <view class="progress-big"><view class="t-i" style="width:{{setPage.pct}}%"></view></view>
+          <view class="t-p progress-est">已抽 <text class="t-b">{{setPage.drawn}}</text> 张，剩 <text class="t-b">{{setPage.count - setPage.drawn}}</text> 张<text wx:if="{{setPage.drawn > 0}}">，照每天一张，<text class="t-b">{{setPage.finishText}}</text> 抽空它</text>。</view>
+          <view class="stamp-progress" wx:if="{{setPage.showStampRow}}">
+            <view class="stamp-track"><view class="t-i" style="width:{{setPage.stampPct}}%"></view></view>
+            <text class="t-span stamp-num">已盖邮戳 {{setPage.stampN}}/{{setPage.gotN}}</text>
+          </view>
+          <button class="ghost" bindtap="openMap">看全图 · 暗格不剧透 ›</button>
+        </view>
+
+        <view class="panel rarity-panel">
+          <view class="panel-head"><text class="t-b">稀有度分布</text><text class="t-span">每张机会均等</text></view>
+          <view class="rarity-row {{item.key}}" wx:for="{{setPage.rarityRows}}" wx:key="key">
+            <view class="rarity-label"><view class="t-i badge {{item.key}}">{{item.key}}</view></view>
+            <view class="rarity-track"><view class="t-i" style="width:{{item.pct}}%"></view></view>
+            <view class="rarity-count"><text class="t-b">{{item.count}}</text> 张 ({{item.pct}}%)</view>
+          </view>
+          <view class="t-p rarity-note">最坏的运气，只是晚几天见到它。</view>
+        </view>
+
+        <view class="panel">
+          <view class="panel-head"><text class="t-b">怎么玩</text><text class="t-span">{{setPage.typeText}}</text></view>
+          <view class="rules-list">
+            <view class="t-li" wx:for="{{setPage.rules}}" wx:key="n">
+              <text class="rule-num">{{item.n}}</text>
+              <text class="rule-text">{{item.text}}</text>
+            </view>
+          </view>
+          <view wx:if="{{setPage.showTrial}}" style="margin:var(--space-3) 0 var(--space-2)">
+            <view style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2)">
+              <text style="font-size:var(--text-sm);color:var(--text-tertiary);letter-spacing:0.5px">试抽进度</text>
+              <text style="font-size:var(--text-sm);color:var(--orange-500);font-weight:var(--weight-semibold);letter-spacing:0.5px">{{setPage.trialUsed}} / {{setPage.trialDots.length}} 张</text>
+            </view>
+            <view class="trial-bar">
+              <view class="trial-dot {{item.used ? 'used' : 'free'}}" wx:for="{{setPage.trialDots}}" wx:key="i"></view>
+            </view>
+            <view class="t-p trial-label">{{setPage.trialLabel}}</view>
+          </view>
+        </view>
+
+        <view class="cta-fixed-wrap" wx:if="{{setPage.ctaShow}}">
+          <button class="cta {{setPage.ctaSolid ? 'solid' : ''}}" disabled="{{setPage.ctaDisabled}}" bindtap="mainAct">{{setPage.ctaText}}</button>
+          <view class="t-p cta-note">{{setPage.ctaNote}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- ═══════════════════ 抽卡 ═══════════════════ -->
+    <view class="page" id="page-draw" wx:if="{{page === 'draw' && draw}}">
+      <view class="page-head">
+        <view class="subhead">
+          <button class="back" style="margin:0" bindtap="backToSet">‹</button>
+          <text class="t-span">{{draw.head}}</text>
+        </view>
+        <view class="letter-top">
+          <view class="t-b">{{draw.topL}}</view>
+          <text class="t-span">{{draw.topR}}</text>
+        </view>
+      </view>
+
+      <view class="mail-stage {{draw.stageClass}}" id="mailStage">
+        <view class="card-cradle">
+          <view class="letter-card {{draw.flipped ? 'flipped' : ''}} {{draw.lit ? 'lit' : ''}}" id="letterCard" bindtap="flipCard" style="--rar-color:{{draw.rarColor}}">
+            <view class="card-inner">
+              <view class="card-face front">
+                <view class="cf-top">
+                  <view class="t-i badge {{draw.rar}}">{{draw.rar}}</view>
+                  <text class="t-span no">{{draw.no}}</text>
+                </view>
+                <view class="rar-watermark {{draw.rar}}">{{draw.rar}}</view>
+                <view class="bigword serif {{draw.wordCls}}">{{draw.word}}</view>
+                <view class="cf-bottom">
+                  <text class="t-span">{{draw.settle}}</text>
+                  <view class="t-span flip-hint">
+                    <image class="t-svg" src="/assets/icons/rotate.png" mode="aspectFit" />
+                    <text>轻触翻面</text>
+                  </view>
+                </view>
+              </view>
+              <view class="card-face back" style="padding:0">
+                <template is="cardBack" data="{{back: draw.back}}" />
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <view class="env-wrap">
+          <view class="env" bindtap="openEnvelope">
+            <view class="env-flap"></view>
+            <view class="env-seal {{draw.sealBroken ? 'broken' : ''}}">签</view>
+            <view class="env-stamp">签</view>
+            <view class="t-p env-addr">收 · 今天的你</view>
+            <view class="t-p env-from">{{draw.envFrom}}</view>
+            <view class="env-fold"></view>
+          </view>
+        </view>
+
+        <view class="t-p mail-hint" id="mailHint">{{draw.hint}}</view>
+      </view>
+
+      <view id="letterActions" class="{{draw.actionsShow ? 'show' : ''}}">
+        <view class="action-grid">
+          <button class="cta solid" bindtap="drawActionCollect">收入卡包</button>
+          <button class="cta secondary" bindtap="openPoster" data-type="draw">分享海报</button>
+        </view>
+        <button class="cta ghost-btn" style="margin-bottom:var(--space-3)" bindtap="drawAgain">再来一张</button>
+        <view class="t-p draw-tail">{{draw.tail}}</view>
+      </view>
+    </view>
+
+    <!-- ═══════════════════ 全图 ═══════════════════ -->
+    <view class="page" id="page-map" wx:if="{{page === 'map'}}">
+      <view class="page-head">
+        <view class="subhead">
+          <button class="back" style="margin:0" bindtap="backToSet">‹</button>
+          <text class="t-span">全图</text>
+        </view>
+      </view>
+      <view id="mapBody">
+        <view class="panel">
+          <view class="panel-head"><text class="t-b">全图</text><text class="t-span">{{mapV.drawn}} / {{mapV.count}} 已抽到</text></view>
+          <view class="progress"><view class="t-i" style="width:{{mapV.pct}}%"></view></view>
+          <view class="t-p tiny" style="text-align:left;padding:0 2px;margin-top:8px">暗格不显示任何字——没抽到之前，它只是空的。</view>
+          <view class="map-grid">
+            <view class="map-cell {{item.dark ? 'dark' : ''}}" wx:for="{{mapV.cells}}" wx:key="idx" bindtap="mapCellTap" data-dark="{{item.dark}}" data-sid="{{item.sid}}" data-idx="{{item.idx}}">
+              <block wx:if="{{!item.dark}}">
+                <view class="t-b">{{item.word}}</view>
+                <view class="t-i rdot {{item.rar}}"></view>
+                <view class="mc-badge {{item.badge}}" wx:if="{{item.badge === 'cam'}}">
+                  <image class="t-svg" src="/assets/icons/camera-gray.png" mode="aspectFit" />
+                </view>
+                <view class="mc-badge rec" wx:elif="{{item.badge === 'rec'}}"></view>
+              </block>
+              <view class="t-b" wx:else>?</view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- ═══════════════════ 抽空纪念 ═══════════════════ -->
+    <view class="page" id="page-done" wx:if="{{page === 'done' && done.exists}}">
+      <view class="page-head">
+        <view class="subhead">
+          <button class="back" style="margin:0" bindtap="backToSet">‹</button>
+          <text class="t-span">抽空</text>
+        </view>
+      </view>
+      <view id="doneBody">
+        <view class="done-hero">
+          <view class="mark">· 抽 空 ·</view>
+          <view class="t-h1">{{done.title}}</view>
+          <view class="t-p">{{done.count}} 张，一张不少，都见过了。</view>
+          <view class="t-p">做卡人 @{{done.creator}}。</view>
+        </view>
+        <view class="final-quote">{{done.count}} 张全收齐 · 盖了 <text class="t-b" style="color:var(--orange-500)">{{done.stN}}</text> 枚邮戳 · 抽到 SSR {{done.ssrCount}} 张
+          <view class="t-span" style="font-size:11px;color:var(--ink-soft)">—— 从第一张到最后一张</view>
+        </view>
+
+        <button class="cta solid gold" wx:if="{{done.full}}" bindtap="browseBooklet" data-variant="full">下载我的纪念册 · 满页纪念版</button>
+        <view class="t-p booklet-note gold" wx:if="{{done.full}}">✓ {{done.stN}} 枚邮戳全部盖满 · 专属结语已解锁</view>
+        <block wx:else>
+          <button class="cta solid" bindtap="browseBooklet" data-variant="basic">下载我的纪念册</button>
+          <block wx:if="{{done.gotCount > 0}}">
+            <button class="cta gold" disabled style="margin-top:var(--space-2)">满页纪念版 · 还差 {{done.miss}} 枚邮戳</button>
+            <view class="t-p booklet-note link" bindtap="openMap">从「看全图」进去，为缺邮戳的卡补上记录 ›</view>
+          </block>
+        </block>
+
+        <button class="cta" style="margin-top:var(--space-3)" bindtap="openPoster" data-type="memorial">生成抽空纪念海报</button>
+
+        <view class="memorial-follow" bindtap="openAuthorPage" data-name="{{done.creator}}" data-from="done">
+          <view class="cavatar">{{done.avatar}}</view>
+          <view class="cinfo" style="flex:1">
+            <text class="t-b">关注 TA，新卡集上架时通知你</text>
+            <text class="t-span">@{{done.creator}} · 做卡人</text>
+          </view>
+          <text style="font-size:16px;color:var(--ink-faint)">›</text>
+        </view>
+        <view class="t-p tiny">下一个卡集，在等你。</view>
+      </view>
+    </view>
+
+    <!-- ═══════════════════ 订阅 ═══════════════════ -->
+    <view class="page" id="page-cards" wx:if="{{page === 'cards'}}">
+      <view class="page-head">
+        <view class="brand-row">
+          <text class="wordmark">订阅</text>
+          <text class="today">{{cards.date}}</text>
+        </view>
+        <block wx:if="{{!cards.isNew}}">
+          <view class="pending-banner" wx:if="{{cards.pending > 0}}" bindtap="openPendingDraw">
+            <view class="pb-icon">🔔</view>
+            <view class="pb-text">
+              <view class="t-b">{{cards.pending}} 个卡集，今天的卡到了</view>
+              <text class="t-span">点这里去抽 ›</text>
+            </view>
+            <view class="pb-arrow">›</view>
+          </view>
+          <view class="pending-banner rec" wx:if="{{cards.recFirst}}" bindtap="openPendingRecord">
+            <view class="pb-icon">✉</view>
+            <view class="pb-text">
+              <view class="t-b">{{cards.recPend.length}} 张卡在等你回信</view>
+              <text class="t-span">拍下今天 · 点这里去盖邮戳 ›</text>
+            </view>
+            <view class="pb-arrow">›</view>
+          </view>
+          <view class="stats">
+            <view class="stat"><view class="t-b orange">{{cards.todayCan}}</view><text class="t-span">今日可抽</text></view>
+            <view class="stat"><view class="t-b">{{cards.drawn}}</view><text class="t-span">已抽的卡</text></view>
+            <view class="stat"><view class="t-b">{{cards.emptied}}</view><text class="t-span">已抽空</text></view>
+          </view>
+        </block>
+      </view>
+
+      <view wx:if="{{cards.isNew}}" class="empty">
+        <view class="empty-icon">📭</view>
+        <view class="t-h3">你订阅的卡集，都会住在这里</view>
+        <view class="t-p">现在还空着。</view>
+        <view class="t-p">去发现，抽今天的第一签。</view>
+        <button class="cta solid" bindtap="goHome">去发现，抽一签</button>
+      </view>
+
+      <block wx:else>
+        <view class="sub-group" wx:for="{{cards.groups}}" wx:for-item="group" wx:key="name">
+          <view class="sub-group-head">
+            <view class="t-b"><view class="sg-dot" wx:if="{{group.showDot}}"></view>{{group.name}}</view>
+            <text class="t-span sg-count">{{group.count}}</text>
+          </view>
+          <view class="sub-card {{item.isDone ? 'done' : ''}}" wx:for="{{group.cards}}" wx:key="id" bindtap="openSet" data-id="{{item.id}}" data-from="cards">
+            <view class="cover-sm {{item.cover}}"><text class="t-span">{{item.covT2}}</text></view>
+            <view class="sc-info">
+              <view class="t-b">{{item.title}}</view>
+              <view class="sc-meta"><view class="status-dot {{item.statusDot}}"></view>{{item.statusText}} · {{item.progress}}</view>
+            </view>
+            <view class="sc-action">
+              <view class="reddot" wx:if="{{item.isReady}}"></view>
+              <view class="done-badge" wx:if="{{item.isDone}}">✓ 完成</view>
+              <view class="sc-go" wx:elif="{{item.isReady}}">›</view>
+              <view class="sc-go" wx:else style="background:transparent;color:var(--text-tertiary)">›</view>
+            </view>
+          </view>
+        </view>
+        <view class="t-p sub-tail">常驻集抽到的卡，不占「已抽的卡」</view>
+      </block>
+    </view>
+
+    <!-- ═══════════════════ 创作中心 ═══════════════════ -->
+    <view class="page" id="page-create" wx:if="{{page === 'create'}}">
+      <view id="craftBody">
+        <view class="empty" wx:if="{{craft.empty}}">
+          <view class="empty-icon">✨</view>
+          <view class="t-h3">把你喜欢的东西，做成一个卡集</view>
+          <view class="t-p empty-examples">书里触动你的点滴、城市里用脚丈量的好去处、打工人必备的摸鱼小技巧、冬日暖心的美食合集，所有你想分享的，都可以整合成集。</view>
+          <view class="t-p empty-emphasis">有人打开，有人看见，有人为此欢喜</view>
+          <view class="t-p">八张起步，审核通过就能上架。可以免费，也可以定价。</view>
+          <button class="cta solid" bindtap="newCraft">新建卡集</button>
+        </view>
+
+        <block wx:else>
+          <view class="stats">
+            <view class="stat"><view class="t-b orange">{{craft.pubN}}</view><text class="t-span">上架中</text></view>
+            <view class="stat"><view class="t-b">{{craft.reviewN}}</view><text class="t-span">审核中</text></view>
+            <view class="stat"><view class="t-b">{{craft.draftN}}</view><text class="t-span">草稿</text></view>
+          </view>
+
+          <view class="income-entry" wx:if="{{craft.earn > 0}}" bindtap="goIncome">
+            <view class="ie-icon">💰</view>
+            <view class="ie-text">
+              <view class="t-b">收益看板</view>
+              <text class="t-span">明细与提现</text>
+            </view>
+            <view class="ie-val">{{craft.incomeText}}</view>
+            <view class="ie-arrow">›</view>
+          </view>
+
+          <button class="newcraft-btn" bindtap="newCraft"><text class="t-span">＋ 新建卡集</text></button>
+
+          <view class="craft-group" wx:for="{{craft.groups}}" wx:for-item="group" wx:key="name">
+            <view class="craft-group-head">
+              <view class="t-b"><view class="cg-status {{group.status}}"></view>{{group.name}}</view>
+              <text class="t-span cg-count">{{group.count}}</text>
+            </view>
+            <view class="work-row" wx:for="{{group.rows}}" wx:key="id" bindtap="craftRowTap" data-kind="{{group.kind}}" data-id="{{item.id}}">
+              <view class="wr-info">
+                <view class="t-b">{{item.title}}<text class="wr-badge {{item.badge}}">{{item.badgeText}}</text></view>
+                <text class="t-span">{{item.meta}}</text>
+              </view>
+              <text class="go">›</text>
+            </view>
+          </view>
+
+          <view class="t-p sub-tail">收益来自定价卡集解锁分成与免费卡集平台激励，明细见收益看板</view>
+        </block>
+      </view>
+    </view>
+
+    <!-- ═══════════════════ 编辑器 / 审核 ═══════════════════ -->
+    <view class="page" id="page-edit" wx:if="{{page === 'edit'}}">
+      <view class="page-head">
+        <view class="subhead">
+          <button class="back" style="margin:0" bindtap="backToCreate">‹</button>
+          <text class="t-span">{{edit.headTitle}}</text>
+        </view>
+      </view>
+
+      <view id="editBody">
+        <block wx:if="{{edit.mode === 'edit'}}">
+          <view class="panel">
+            <view class="form-row">
+              <view class="t-label">标题</view>
+              <input class="fi" value="{{edit.title}}" bindinput="onEditTitle" placeholder="给卡集起个名字（至少 2 个字）" />
+            </view>
+            <view class="form-row">
+              <view class="t-label">简介</view>
+              <textarea class="fi" value="{{edit.intro}}" bindinput="onEditIntro" maxlength="-1" placeholder="抽卡人最先读到的一段话（至少 10 个字）"></textarea>
+            </view>
+            <view class="form-row">
+              <view class="t-label">类型</view>
+              <view class="seg">
+                <button class="{{edit.type === 'collect' ? 'on' : ''}}" bindtap="edType" data-type="collect">收藏集 · 抽完即空</button>
+                <button class="{{edit.type === 'resident' ? 'on' : ''}}" bindtap="edType" data-type="resident">常驻集 · 天天可抽</button>
+              </view>
+            </view>
+            <view class="form-row">
+              <view class="t-label">分类</view>
+              <view class="chips" style="padding:2px 0 0">
+                <view class="chip {{edit.cat === item ? 'on' : ''}}" wx:for="{{edit.cats}}" wx:key="*this" bindtap="edCat" data-cat="{{item}}">{{item}}</view>
+              </view>
+            </view>
+            <view class="form-row" style="margin-bottom:0">
+              <view class="t-label">定价</view>
+              <view class="seg price-grid">
+                <button wx:for="{{edit.prices}}" wx:key="*this" class="{{edit.price === item ? 'on' : ''}}" bindtap="edPrice" data-price="{{item}}">{{item === 0 ? '免费' : '¥' + item}}</button>
+              </view>
+              <view class="t-p trial-label" wx:if="{{edit.price > 0}}" style="margin-top:10px">付费卡集自动含 1 张免费试抽，试抽不占每日额度。</view>
+            </view>
+          </view>
+
+          <view class="panel" style="margin-top:12px">
+            <view class="panel-head"><text class="t-b">{{edit.countText}}</text><text class="t-span">{{edit.rarStat}}</text></view>
+            <view class="ed-card {{item.open ? 'open' : ''}}" wx:for="{{edit.cards}}" wx:key="index">
+              <view class="ed-head" bindtap="edToggle" data-index="{{index}}">
+                <view class="t-i badge {{item.badge}}">{{item.badge}}</view>
+                <view class="t-b {{item.blank ? 'blank' : ''}}">{{item.label}}</view>
+                <text class="t-span cnt">{{item.cnt}}/2</text>
+                <text class="t-span arr">›</text>
+              </view>
+              <view class="ed-body">
+                <view class="form-row">
+                  <view class="t-label">词 · 印在卡面（不超过 8 个字）</view>
+                  <input class="fi" value="{{item.w}}" data-index="{{index}}" data-key="w" bindinput="onEditCardInput" placeholder="一个词，或一句短话" />
+                </view>
+                <view class="form-row">
+                  <view class="t-label">稀有度 · 只是标签</view>
+                  <view class="seg">
+                    <button wx:for="{{edit.rarKeys}}" wx:for-item="rar" wx:for-index="ri" wx:key="*this" class="{{item.rar === rar ? 'on' : ''}}" bindtap="edCardRar" data-index="{{index}}" data-rar="{{rar}}">{{rar}}</button>
+                  </view>
+                </view>
+                <view class="form-row">
+                  <view class="t-label">解释 · 印在卡背</view>
+                  <textarea class="fi" value="{{item.b}}" data-index="{{index}}" data-key="b" bindinput="onEditCardInput" maxlength="-1" placeholder="翻过卡面看到的话"></textarea>
+                </view>
+                <button size="mini" class="ed-del" bindtap="edDelCard" data-index="{{index}}">删除这张</button>
+              </view>
+            </view>
+            <button class="ed-add" bindtap="edAddCard">＋ 添加一张卡</button>
+            <view class="t-p tiny">上架前至少 8 张完整。上架后，卡池与定价一起锁死。</view>
+          </view>
+
+          <view style="margin-top:16px">
+            <button class="cta solid" bindtap="tryPublish">提交上架</button>
+            <view class="t-p tiny">改动即时存入草稿 · {{edit.footerTitle}}</view>
+          </view>
+        </block>
+
+        <block wx:else>
+          <view class="panel">
+            <view class="panel-head"><text class="t-b">{{edit.title}}</text><text class="t-span">审核中 · {{edit.submitted}}</text></view>
+            <view class="t-p intro">{{edit.intro}}</view>
+            <view class="t-p bc-meta" style="margin:10px 0 0">{{edit.meta}}</view>
+            <view class="t-p tiny" style="text-align:left;margin:12px 0 0">{{edit.rarStat}}</view>
+            <view class="t-p tiny" style="text-align:left">提交后内容已锁定，审核通过即上架。</view>
+          </view>
+          <view class="panel" style="margin-top:12px">
+            <view class="panel-head"><text class="t-b">卡池 · 只读</text><text class="t-span">{{edit.count}} 张</text></view>
+            <view class="ed-card open" wx:for="{{edit.cards}}" wx:key="index">
+              <view class="ed-head" style="cursor:default">
+                <view class="badge {{item.badge}}">{{item.badge}}</view>
+                <view class="t-b">{{item.w}}</view>
+              </view>
+              <view class="ed-body"><view class="t-p intro" style="margin:0">{{item.b}}</view></view>
+            </view>
+          </view>
+          <view style="margin-top:16px">
+            <button class="ghost" bindtap="passReview">（演示）通过审核，立即上架</button>
+            <view class="t-p tiny">真实环境里，这一步由平台审核完成。</view>
+          </view>
+        </block>
+      </view>
+    </view>
+
+    <!-- ═══════════════════ 收益看板 ═══════════════════ -->
+    <view class="page" id="page-income" wx:if="{{page === 'income'}}">
+      <view class="page-head">
+        <view class="subhead">
+          <button class="back" style="margin:0" bindtap="backToCreate">‹</button>
+          <text class="t-span">收益看板</text>
+        </view>
+      </view>
+      <view id="incomeBody">
+        <view class="panel" style="text-align:center">
+          <view class="modal-kind" style="margin-bottom:var(--space-2)">累 计 收 益</view>
+          <view class="hero-num">{{income.totalText}}<text class="t-small">税前</text></view>
+          <view class="t-p modal-body" style="margin-top:var(--space-2)">定价卡集 · 创作者份额 80% · 平台激励另计</view>
+          <view class="stats">
+            <view class="stat"><view class="t-b orange">{{income.availText}}</view><text class="t-span">可提现</text></view>
+            <view class="stat"><view class="t-b">{{income.pendingText}}</view><text class="t-span">处理中</text></view>
+            <view class="stat"><view class="t-b">{{income.withdrawnText}}</view><text class="t-span">已提现</text></view>
+          </view>
+          <view class="withdraw-bar"><view class="t-i" style="width:{{income.withdrawPct}}%"></view></view>
+          <view class="withdraw-label">
+            <view class="t-span">{{income.withdrawLabel}}</view>
+            <view class="t-span">目标 ¥{{income.threshold}}</view>
+          </view>
+          <view style="margin-top:var(--space-3)">
+            <button wx:if="{{income.canWithdraw}}" class="cta solid" bindtap="doWithdraw">{{income.withdrawBtn}}</button>
+            <button wx:else class="cta" disabled style="opacity:0.5">{{income.withdrawBtn}}</button>
+            <button class="ghost" wx:if="{{income.hasPending}}" style="margin-top:var(--space-2)" bindtap="doArrive">（演示）提现已到账</button>
+          </view>
+          <view class="t-p draw-tail" style="margin-top:var(--space-3)">提现 1–3 个工作日到账</view>
+        </view>
+
+        <view class="panel" wx:if="{{income.showComposition}}" style="margin-top:var(--space-3)">
+          <view class="panel-head"><view class="t-b">收益构成</view><view class="t-span">{{income.paidSetN}} 个定价集</view></view>
+          <view class="income-card" wx:for="{{income.bySet}}" wx:key="title">
+            <view class="ic-icon">📦</view>
+            <view class="ic-info">
+              <view class="t-b">{{item.title}}</view>
+              <view class="t-span">{{item.meta}}</view>
+            </view>
+            <view class="ic-val">{{item.val}}</view>
+          </view>
+          <view class="income-card">
+            <view class="ic-icon">✦</view>
+            <view class="ic-info">
+              <view class="t-b">平台激励</view>
+              <view class="t-span">免费卡集按抽签量结算 · 本周</view>
+            </view>
+            <view class="ic-val">{{income.platformText}}</view>
+          </view>
+        </view>
+
+        <view class="panel" wx:if="{{income.showDetail}}" style="margin-top:var(--space-3)">
+          <view class="panel-head"><view class="t-b">明细</view><view class="t-span">近 7 天</view></view>
+          <view class="txnwrap">
+            <view class="txn" wx:for="{{income.txns}}" wx:key="d">
+              <text class="t-span td">{{item.d}}</text>
+              <text class="t-span tl">{{item.title}}<text class="t-em">{{item.meta}}</text></text>
+              <text class="t-span ta">{{item.amt}}</text>
+            </view>
+            <view class="txn sum" wx:if="{{income.buyersTotal > 0}}">
+              <text class="t-span td"></text>
+              <text class="t-span tl">定价解锁 · {{income.buyersTotal}} 笔</text>
+              <text class="t-span ta">{{income.paidTotalText}}</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="t-p sub-tail">免费卡集按抽签量获得平台激励 · 付费卡集按解锁分成（80%）。免费试抽与退款不计入。</view>
+      </view>
+    </view>
+
+    <!-- ═══════════════════ 创作者主页 ═══════════════════ -->
+    <view class="page" id="page-author" wx:if="{{page === 'author' && author.exists}}">
+      <view class="page-head">
+        <view class="subhead">
+          <button class="back" style="margin:0" bindtap="goBackAuthor">‹</button>
+          <text class="t-span">创作者</text>
+        </view>
+      </view>
+      <view id="authorBody">
+        <view class="panel" style="text-align:center;padding:26px 18px 22px">
+          <view class="avatar" style="margin:0 auto 12px">{{author.avatar}}</view>
+          <view class="t-b" style="font-size:17px;font-weight:600;letter-spacing:.5px">@{{author.name}}</view>
+          <view class="t-p" style="font-size:12px;color:var(--ink-soft);margin-top:6px;letter-spacing:1px">做卡人</view>
+          <view class="stats" style="margin:18px 0 0">
+            <view class="stat"><view class="t-b">{{author.worksN}}</view><text class="t-span">作品</text></view>
+            <view class="stat"><view class="t-b">{{author.drawnText}}</view><text class="t-span">被抽</text></view>
+            <view class="stat"><view class="t-b">{{author.fansText}}</view><text class="t-span">关注者</text></view>
+          </view>
+        </view>
+
+        <view class="au-followbar">
+          <button wx:if="{{author.own}}" class="cta solid" bindtap="backToCreate">去创作中心</button>
+          <button wx:else size="mini" class="follow {{author.followed ? 'on' : ''}}" bindtap="toggleFollowPage">{{author.followed ? '已关注 · 每日更新' : '+ 关注'}}</button>
+        </view>
+
+        <view class="group-head"><view class="t-b">{{author.own ? '我的卡集' : 'TA 的卡集'}}</view><text class="t-span">{{author.worksN}} 个</text></view>
+        <view class="card-row" wx:for="{{author.works}}" wx:key="id" bindtap="openSet" data-id="{{item.id}}" data-from="author">
+          <view class="cover-sm {{item.cover}}"><text class="t-span">{{item.covT2}}</text></view>
+          <view class="w">{{item.title}}</view>
+          <view class="s"><view class="t-span">{{item.meta1}}</view><view class="t-span">{{item.meta2}}</view></view>
+        </view>
+        <view class="t-p tiny" wx:if="{{!author.own}}">关注后，TA 的新卡集会出现在你的订阅流。</view>
+      </view>
+    </view>
+
+    <!-- ═══════════════════ 我的 ═══════════════════ -->
+    <view class="page" id="page-me" wx:if="{{page === 'me'}}">
+      <view id="meBody">
+        <view class="page-head">
+          <view class="brand-row">
+            <text class="wordmark">我的</text>
+            <text class="today">{{me.date}}</text>
+          </view>
+        </view>
+
+        <view class="panel me-profile" bindtap="meToAuthor">
+          <view class="avatar">我</view>
+          <view class="mp-info">
+            <view class="t-b">@{{me.name}}</view>
+            <text class="t-span">做卡人</text>
+          </view>
+          <text class="mp-go">主页 ›</text>
+        </view>
+
+        <view class="stats">
+          <view class="stat"><view class="t-b">{{me.cardN}}</view><text class="t-span">已集的卡</text></view>
+          <view class="stat"><view class="t-b orange">{{me.stampN}}</view><text class="t-span">已盖邮戳</text></view>
+          <view class="stat"><view class="t-b">{{me.emptied}}</view><text class="t-span">已抽空</text></view>
+        </view>
+        <view class="t-p me-today">{{me.todayLine}}</view>
+
+        <view class="panel" style="padding:6px 18px;margin-bottom:12px">
+          <view class="li" bindtap="backToCreate">创作中心<text class="t-span li-val">{{me.craftN}} 个作品</text><text class="t-span">›</text></view>
+          <view class="li" style="border:none" bindtap="goIncome">收益看板<text class="t-span li-val">{{me.availText}}</text><text class="t-span">›</text></view>
+        </view>
+        <view class="panel" style="padding:6px 18px">
+          <view class="li" bindtap="meWallet">钱包<text class="t-span">›</text></view>
+          <view class="li" style="border:none" bindtap="meSettings">设置<text class="t-span">›</text></view>
+        </view>
+
+        <view class="t-p me-foot">每天 0 点，新的一签。</view>
+        <view class="t-p me-foot">缺席不损失，卡不会过期。</view>
+      </view>
+    </view>
+
+    <!-- ═══════════════════ 组件总览（开发） ═══════════════════ -->
+    <view class="page" id="page-demo" wx:if="{{page === 'demo'}}">
+      <view class="page-head">
+        <view class="subhead">
+          <button class="back" style="margin:0" bindtap="backToHome">‹</button>
+          <text class="t-span">组件总览 · V2.3c</text>
+        </view>
+      </view>
+
+      <view class="panel">
+        <view class="panel-head"><view class="t-b">稀有度</view><view class="t-span">金色 SSR</view></view>
+        <view class="dist-row N"><view class="badge N">N</view><view class="dist-bar"><view class="t-i N" style="width:38%"></view></view><text class="t-span">38%</text></view>
+        <view class="dist-row R"><view class="badge R">R</view><view class="dist-bar"><view class="t-i R" style="width:22%"></view></view><text class="t-span">22%</text></view>
+        <view class="dist-row SR"><view class="badge SR">SR</view><view class="dist-bar"><view class="t-i SR" style="width:8%"></view></view><text class="t-span">8%</text></view>
+        <view class="dist-row SSR"><view class="badge SSR">SSR</view><view class="dist-bar"><view class="t-i SSR" style="width:2%"></view></view><text class="t-span">2%</text></view>
+      </view>
+
+      <view class="panel" style="margin-top:12px">
+        <view class="panel-head"><view class="t-b">动画海报</view><view class="t-span">点击预览</view></view>
+        <button class="cta solid" bindtap="openPosterDemo" data-rarity="SSR">SSR · 鎏金晚霞</button>
+        <view style="display:flex;gap:8px;margin-top:10px">
+          <button size="mini" class="mini-cta" style="flex:1" bindtap="openPosterDemo" data-rarity="N">N</button>
+          <button size="mini" class="mini-cta" style="flex:1" bindtap="openPosterDemo" data-rarity="R">R</button>
+          <button size="mini" class="mini-cta" style="flex:1" bindtap="openPosterDemo" data-rarity="SR">SR</button>
+        </view>
+      </view>
+
+      <view class="panel" style="margin-top:12px">
+        <view class="panel-head"><view class="t-b">原型控制台</view><view class="t-span">仅开发演示</view></view>
+        <view class="demo-actions">
+          <button size="mini" class="mini-cta demo-action" bindtap="setMode" data-mode="new">新用户 · 空态</button>
+          <button size="mini" class="mini-cta demo-action" bindtap="setMode" data-mode="rich">演示用户 · 有进度</button>
+          <button size="mini" class="mini-cta demo-action" bindtap="toggleCraftEmpty">创作者 · 零作品</button>
+          <button size="mini" class="mini-cta demo-action" bindtap="demoEmptySet">抽空「云的图鉴」</button>
+        </view>
+      </view>
+
+      <view class="empty" style="margin-top:12px">
+        <view class="empty-icon">✨</view>
+        <view class="t-h3">设计系统总览</view>
+        <view class="t-p">金色 SSR、稀有度配色、按钮、分布条与动画海报集中在这里预览；不影响主流程。</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ═══════════════════ 底部导航 ═══════════════════ -->
+  <view class="tabbar {{showTabbar ? '' : 'hidden'}}">
+    <button wx:for="{{tabs}}" wx:key="id" class="{{tabActive === item.id ? 'on' : ''}}" bindtap="goTab" data-page="{{item.id}}">
+      <image class="t-svg" src="{{tabActive === item.id ? item.iconOn : item.icon}}" mode="aspectFit" />
+      {{item.label}}
+    </button>
+  </view>
+
+  <!-- ═══════════════════ 付费墙 ═══════════════════ -->
+  <view class="modal {{pay.show ? 'show' : ''}}" id="payModal">
+    <view class="sheet bottom-sheet">
+      <view class="modal-kind">解 锁 卡 集</view>
+      <view class="modal-title">{{pay.title}}</view>
+      <view class="t-p modal-line">{{pay.line}}</view>
+      <view class="t-p modal-body">{{pay.body}}</view>
+      <view class="modal-meta">一次解锁，永久有效 · 虚拟商品，解锁后不支持退款</view>
+      <view class="modal-actions">
+        <button class="cta solid" disabled="{{pay.paying}}" bindtap="doUnlock">{{pay.payText}}</button>
+        <button class="ghost" bindtap="closePay">再想想</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- ═══════════════════ 大卡弹层 ═══════════════════ -->
+  <view class="modal centered {{bigCard.show ? 'show' : ''}}" id="cardModal">
+    <view class="sheet" style="padding-top:var(--space-8)">
+      <button class="close-btn" bindtap="closeBigCard" style="position:absolute;top:12px;right:12px;z-index:10">✕</button>
+      <view class="bigcard {{bigCard.flipped ? 'flipped' : ''}} {{bigCard.lit ? 'lit' : ''}}" id="bigcard" bindtap="toggleBigCardFlip" style="--rar-color:{{bigCard.rarColor}}">
+        <view class="card-inner">
+          <view class="card-face front">
+            <view class="cf-top">
+              <view class="t-i badge {{bigCard.rar}}">{{bigCard.rar}}</view>
+              <text class="t-span no">{{bigCard.no}}</text>
+            </view>
+            <view class="bigword serif {{bigCard.wordCls}}">{{bigCard.word}}</view>
+            <view class="cf-bottom">
+              <text class="t-span">{{bigCard.settitle}}</text>
+              <view class="t-span flip-hint">
+                <image class="t-svg" src="/assets/icons/rotate.png" mode="aspectFit" />
+                <text>轻触翻面</text>
+              </view>
+            </view>
+          </view>
+          <view class="card-face back" style="padding:0">
+            <template is="cardBack" data="{{back: bigCard.back}}" />
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ═══════════════════ 上架校验 ═══════════════════ -->
+  <view class="modal {{check.show ? 'show' : ''}}" id="checkModal">
+    <view class="sheet bottom-sheet">
+      <view class="modal-kind">还 差 一 点</view>
+      <view class="modal-title">上架前，先补齐这些</view>
+      <view class="check-list">
+        <view class="t-li" wx:for="{{check.list}}" wx:key="*this">{{item}}</view>
+      </view>
+      <view class="modal-actions">
+        <button class="cta solid" bindtap="closeCheck">回去改</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- ═══════════════════ 提交上架 ═══════════════════ -->
+  <view class="modal {{pub.show ? 'show' : ''}}" id="pubModal">
+    <view class="sheet bottom-sheet">
+      <view class="modal-kind">提 交 上 架</view>
+      <view class="modal-title">{{pub.title}}</view>
+      <view class="t-p modal-line">{{pub.meta}}</view>
+      <view class="t-p modal-body">上架后，卡池与定价同时锁定，不能再改。</view>
+      <view class="t-p modal-body">审核通过后，它会出现在「发现」，被所有人抽到。</view>
+      <view class="modal-actions">
+        <button class="cta solid" bindtap="doPublish">确认，提交审核</button>
+        <button class="ghost" bindtap="closePub">再想想</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- ═══════════════════ 盖邮戳 / 回信 ═══════════════════ -->
+  <view class="modal {{record.show ? 'show' : ''}}" id="recordModal">
+    <view class="sheet bottom-sheet">
+      <view class="modal-kind">盖 上 今 天 的 邮 戳</view>
+      <view class="modal-title">{{record.title}}</view>
+      <view class="t-p modal-body">{{record.sub}}</view>
+      <view class="rc-photo {{record.hasImg ? 'has' : ''}}" bindtap="choosePhoto">
+        <image wx:if="{{record.hasImg}}" class="t-img" src="{{record.img}}" mode="aspectFill" />
+        <view class="rc-photo-del" wx:if="{{record.hasImg}}" catchtap="clearPhoto">×</view>
+        <view class="rc-photo-empty" wx:else>
+          <image class="t-svg" src="/assets/icons/camera-soft.png" mode="aspectFit" />
+          <text class="t-span">拍下今天 · 或从相册选</text>
+        </view>
+      </view>
+      <view class="form-row" style="margin-top:var(--space-4)">
+        <textarea class="fi" maxlength="50" value="{{record.note}}" bindinput="onRecordNote" placeholder="也可以只写一句话，不传图"></textarea>
+        <view class="t-p rc-count"><text class="t-b">{{record.count}}</text>/50</view>
+      </view>
+      <view class="modal-actions">
+        <button class="cta solid" bindtap="saveStamp">{{record.saveText}}</button>
+        <button class="ghost" bindtap="closeRecord">暂时不记</button>
+      </view>
+      <view class="modal-meta">只给自己看 · 不记录也不影响任何功能</view>
+    </view>
+  </view>
+
+  <!-- ═══════════════════ 分享海报 / 纪念册 ═══════════════════ -->
+  <view class="modal centered {{poster.show ? 'show' : ''}}" id="posterModal">
+    <view class="sheet poster-sheet {{poster.booklet ? 'booklet' : ''}}">
+      <button class="close-btn" bindtap="hidePoster" style="position:absolute;top:12px;right:12px;z-index:10">×</button>
+      <view id="posterContent">
+        <!-- Type A · 单卡高亮 -->
+        <view wx:if="{{poster.kind === 'highlight'}}" class="poster-card {{poster.rar}}">
+          <view class="shine" wx:if="{{poster.isSSR}}"></view>
+          <view class="poster-head">
+            <view class="poster-brand">今日做点小事</view>
+            <view class="poster-date">{{poster.date}}</view>
+          </view>
+          <view class="poster-highlight">
+            <view class="ph-rarity">
+              <text class="rarity-big {{poster.rar}}">{{poster.rar}}</text>
+              <text class="rarity-label">{{poster.rarName}}</text>
+            </view>
+            <view class="ph-content">
+              <view class="ph-no">{{poster.no}}</view>
+              <view class="ph-title">{{poster.word}}</view>
+              <view class="ph-text">{{poster.text}}</view>
+            </view>
+            <view class="ph-set">来自 <text class="t-b">《{{poster.setTitle}}》</text></view>
+          </view>
+          <view class="poster-setinfo">
+            <view class="set-cover"><text>{{poster.setCover}}</text></view>
+            <text class="t-span">{{poster.setInfo}}</text>
+          </view>
+
+          <view class="poster-rec" wx:if="{{poster.rec}}">
+            <view class="poster-rec-label">· 回 信 ·</view>
+            <block wx:if="{{poster.rec.img}}">
+              <view class="pc-photo">
+                <image class="t-img" src="{{poster.rec.img}}" mode="aspectFill" />
+                <view class="stamp"><text class="stamp-text">{{poster.rec.stampDate}}</text></view>
+              </view>
+              <view class="t-p poster-rec-note" wx:if="{{poster.rec.note}}">「{{poster.rec.note}}」</view>
+            </block>
+            <view class="poster-rec-strip" wx:else>
+              <view class="t-p">「{{poster.rec.note}}」</view>
+              <view class="stamp"><text class="stamp-text">{{poster.rec.stampDate}}</text></view>
+            </view>
+          </view>
+
+          <view class="poster-footer">
+            <view class="poster-slogan">{{poster.slogan}}</view>
+            <view class="poster-qr">QR</view>
+          </view>
+        </view>
+
+        <!-- Type B · 抽空纪念 -->
+        <view wx:elif="{{poster.kind === 'memorial'}}" class="poster-card poster-memorial">
+          <view class="poster-head">
+            <view class="poster-brand">今日做点小事</view>
+            <view class="poster-date">{{poster.date}}</view>
+          </view>
+          <view class="memorial-title">集齐啦</view>
+          <view class="memorial-sub">《{{poster.title}}》</view>
+          <view class="memorial-stats">
+            <view class="ms-item"><view class="t-b">{{poster.count}}</view><text class="t-span">张</text></view>
+            <view class="ms-item"><view class="t-b">{{poster.gotCount}}</view><text class="t-span">天</text></view>
+            <view class="ms-item"><view class="t-b">{{poster.gotSSR}}</view><text class="t-span">张 SSR</text></view>
+          </view>
+          <view class="memorial-timeline" wx:if="{{poster.timeline.length > 0}}">
+            <view class="timeline-item" wx:for="{{poster.timeline}}" wx:key="label">
+              <view class="t-b">{{item.title}}</view>
+              <text class="t-span">{{item.label}} · {{item.date}}</text>
+            </view>
+          </view>
+          <view class="final-quote" style="margin:12px 0 0">「{{poster.quote}}」</view>
+          <view class="poster-footer">
+            <view class="poster-slogan">万物皆可抽一签</view>
+            <view class="poster-qr">QR</view>
+          </view>
+        </view>
+
+        <!-- Type C · 纪念册 -->
+        <view wx:elif="{{poster.kind === 'booklet'}}" class="poster-booklet">
+          <view class="bk-cover {{poster.full ? 'gold' : ''}}">
+            <view class="bk-cover-stamp" wx:if="{{poster.full}}">满页纪念</view>
+            <view class="poster-brand" style="justify-content:center">今日做点小事</view>
+            <view class="bk-cover-title">· 纪 念 册 ·</view>
+            <view class="bk-cover-set">《{{poster.title}}》</view>
+            <view class="bk-cover-meta">做卡人 @{{poster.creator}} · 共 {{poster.count}} 张</view>
+            <view class="bk-cover-stats">
+              <view><text class="t-b">{{poster.stN}}</text><text class="t-span">枚邮戳</text></view>
+              <view><text class="t-b">{{poster.gotCount}}</text><text class="t-span">张卡</text></view>
+              <view><text class="t-b">{{poster.ssrGot}}</text><text class="t-span">SSR</text></view>
+            </view>
+            <view class="bk-cover-range">{{poster.firstD ? poster.firstD + ' — ' + poster.lastD : poster.date}}</view>
+          </view>
+
+          <view class="bk-section {{item.tilt}}" wx:for="{{poster.sections}}" wx:key="idx">
+            <view class="bk-cardface">
+              <view class="bk-face-top">
+                <view class="badge {{item.rar}}">{{item.rar}}</view>
+                <text class="t-span bk-no">第 {{item.n + 1}} / {{poster.gotCount}} 张</text>
+              </view>
+              <view class="t-b bk-word">{{item.word}}</view>
+              <text class="t-span bk-explain">{{item.explain}}</text>
+              <view class="bk-stamp" wx:if="{{item.rec}}"><text class="stamp-text">{{item.rec.stampDate}}</text></view>
+            </view>
+            <view class="bk-postcard">
+              <block wx:if="{{item.rec}}">
+                <view class="pc-photo {{item.rec.img ? '' : 'note-only'}}">
+                  <image wx:if="{{item.rec.img}}" class="t-img" src="{{item.rec.img}}" mode="aspectFill" />
+                  <view wx:else class="t-p pc-note-strip">「{{item.rec.note || '这一天，做过了'}}」</view>
+                  <view class="stamp"><text class="stamp-text">{{item.rec.stampDate}}</text></view>
+                </view>
+                <view class="pc-letter {{item.rec.img && !item.rec.note ? 'no-note' : ''}}">
+                  <view class="t-p pc-explain">{{item.explain}}</view>
+                  <view wx:if="{{item.rec.img && item.rec.note}}" class="t-p pc-note"><text class="t-span">「{{item.rec.note}}」</text></view>
+                  <view class="pc-meta">
+                    <text class="t-b">@{{poster.creator}} · {{poster.title}}</text>
+                    <text class="t-span">{{item.rec.date}}</text>
+                  </view>
+                </view>
+              </block>
+              <view wx:else class="bk-blank-page"><text class="bk-blank-text">这一天，没有留下照片</text></view>
+            </view>
+          </view>
+
+          <view class="bk-backcover {{poster.full ? 'gold' : ''}}">
+            <view class="t-p bk-final gold" wx:if="{{poster.full}}">{{poster.gotCount}} 张卡，{{poster.stN}} 个邮戳——</view>
+            <view class="t-p bk-final gold" wx:if="{{poster.full}}">这就是你做过的那些小事。</view>
+            <block wx:else>
+              <view class="t-p bk-final">{{poster.gotCount}} 张卡，{{poster.stN}} 个邮戳。</view>
+              <view class="t-p bk-back-hint">盖满剩余 {{poster.miss}} 枚邮戳，解锁满页纪念版</view>
+            </block>
+            <view class="poster-footer">
+              <view class="poster-slogan">缺席不损失，卡不会过期</view>
+              <view class="poster-qr">QR</view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="poster-actions">
+        <button class="cta solid" bindtap="savePoster">保存到相册</button>
+        <button class="ghost" bindtap="hidePoster">关闭</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- ═══════════════════ 轻提示 ═══════════════════ -->
+  <view class="toast {{toastShow ? 'show' : (toastHide ? 'hide' : '')}}" wx:if="{{toastMsg}}">
+    <text>{{toastMsg}}</text>
+    <view class="toast-progress" wx:if="{{toastShow}}"><view class="t-i"></view></view>
+  </view>
+</view>
