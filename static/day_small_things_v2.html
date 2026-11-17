@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>今日做点小事 · 原型 V2.3c</title>
+<title>今日做点小事 · 原型 V2.4</title>
 <!--
   ══════════════════════════════════════════════════════════
-  今日做点小事（暂名）· 用户端原型 V2.3b（单文件，无依赖）
+  今日做点小事（暂名）· 用户端原型 V2.4（单文件，无依赖）
   V2.3 · 第一步（已验收）：创作中心 + 卡集编辑器 + 上架闭环
   V2.3b · 第二步（已验收）：
   · 收益看板：总览 + 收益构成 + 逐笔明细（付费 80% 分成 + 免费集平台激励，满 ¥100 提现）
@@ -15,6 +15,15 @@
   · 关注状态从「挂在卡集上」升级为「挂在创作者上」（FOLLOW 表）
   · V2.3c 增量合并：金色 SSR / 动画高亮海报 / 组件总览（保留完整产品功能）
   · V2.3c 规则同步：单次试抽 / 8 张起上架 / 阶梯定价 0·6·12·19 / 满 ¥100 提现 / 剩余池随机 / 解锁送一张
+  V2.4 · 第三阶段：回信与邮戳
+  · V2.4a 回信与邮戳：卡背记录位，拍照/写字，收藏集一卡一记、常驻集按次累计
+  · V2.4b 回信分发网络：详情页邮戳进度、全图回信角标、订阅页回信 banner、「我的」待办
+  · V2.4c 纪念册双档制：抽空解锁基础版，全部盖满解锁金色满页纪念版
+  · V2.4d 「我的」页改版：身份头整卡可点、旅程统计（已集的卡/已盖邮戳/已抽空）、今日一行
+  · V2.4e 明信片式卡背：信（无记录）→ 手写的信（只有字）→ 明信片（有照片）
+  · V2.4f 信封道具化：竖版信封 + 火漆 + 拆封出信编排
+  · V2.4g 钢制日期印戳：方正双线钢框 + 打字机数字 + 手盖重影
+  · V2.4h 分享海报携带回信：回信随卡出境（用户主动分享），无字回信不留占位
   ══════════════════════════════════════════════════════════
 -->
 <style>
@@ -5531,7 +5540,7 @@
     </section>
     <section class="page" id="page-demo">
       <div class="page-head">
-        <header class="subhead"><button class="back" onclick="go('home')">‹</button><span>组件总览 · V2.3c</span></header>
+        <header class="subhead"><button class="back" onclick="go('home')">‹</button><span>组件总览 · V2.4</span></header>
       </div>
       <div class="panel">
         <div class="panel-head"><b>稀有度</b><span>金色 SSR</span></div>
@@ -5659,7 +5668,7 @@
     </div>
 </div>
 <div class="devbar">
-  <span>原型控制台 V2.3c：</span>
+  <span>原型控制台 V2.4：</span>
   <button data-mode="new" onclick="setMode('new')">新用户 · 空态</button>
   <button data-mode="rich" class="on" onclick="setMode('rich')">演示用户 · 有进度</button>
   <button data-page="demo" onclick="go('demo')">组件总览</button>
@@ -7253,7 +7262,7 @@ function toast(msg){
   }, 2800);
 }document.querySelector(".devbar").insertAdjacentHTML("beforeend",
   '<button data-craft="1" onclick="toggleCraftEmpty()">创作者 · 零作品</button>');
-document.title = BRAND + " · 原型 V2.3c";
+document.title = BRAND + " · 原型 V2.4";
 setMode("rich");
 renderChips(); go("home");
 
