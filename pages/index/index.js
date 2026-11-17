@@ -290,6 +290,7 @@ Page({
     check: { show: false, list: [] },
     pub: { show: false },
     record: { show: false, note: '', img: '', hasImg: false, count: 0 },
+    commentsSheet: { show: false, sid: null, title: '', items: [], count: 0, canComment: false, draft: '', draftLen: 0 },
     poster: { show: false, kind: 'highlight', ratio: '34' },
     floatCta: { show: false },
     donePage: { show: false, ctaShow: false },
@@ -328,6 +329,9 @@ Page({
       income: { withdrawn: 0, pending: 0, threshold: 100 },
       platformIncome: seed.PLATFORM_INCOME,
       txnSeed: seed.TXN_SEED,
+      social: clone(seed.SOCIAL_SEED || {}),
+      comments: clone(seed.COMMENTS_SEED || {}),
+      commentDrafts: {},
       cur: null,
       cameFrom: 'home',
       draw: null,
@@ -541,6 +545,7 @@ Page({
     return {
       num: d.getFullYear() + '.' + p2(d.getMonth() + 1) + '.' + p2(d.getDate()),
       wk: '星期' + wd,
+      label: (d.getMonth() + 1) + '月' + d.getDate() + '日 · 周' + wd,
     };
   },
 
@@ -631,12 +636,22 @@ Page({
     loveCards.splice(8);
 
     const dt = this._hmDate();
+    const chipColors = {
+      reading: 'mint', life: 'sky', emotion: 'blossom', work: 'honey',
+      sport: 'mint', food: '', city: 'blossom', relation: 'sky',
+      nature: 'mint', create: 'honey',
+    };
+    const chips = [{ key: 'all', chip: '全部', color: '', on: cat === 'all' }]
+      .concat(HM_SHOW_CATS ? HM_CATS.map(c => ({
+        key: c.key, chip: c.chip, color: chipColors[c.key] || '', on: cat === c.key,
+      })) : []);
     this.setData({
       home: {
+        date: dt.label,
         dateNum: dt.num, dateWk: dt.wk,
         quickCatSub: cat === 'all' ? '按主题找卡集' : '分类 · ' + catLabel,
         dims: HM_DIMS, dim,
-        cat, catLabel, cats,
+        cat, catLabel, cats, chips,
         catSheet: !!(this.data.home && this.data.home.catSheet),
         loveCards,
         rows, emptyText: (!dim && cat !== 'all' && !rows.length) ? catEmpty : '',
@@ -645,9 +660,20 @@ Page({
     });
   },
 
-  /* 三宫格：分类面板 */
+  toastSearch() {
+    this.toast('搜索功能开发中');
+  },
+
+  setCat(e) {
+    this._hmCat = e.currentTarget.dataset.key || 'all';
+    this._hmDim = '';
+    this.renderHome();
+    wx.pageScrollTo({ scrollTop: 0, duration: 200 });
+  },
+
+  /* 三宫格：分类 → 滚动到 chips */
   tapQuickCat() {
-    this.setData({ 'home.catSheet': true });
+    wx.pageScrollTo({ selector: '.chips', duration: 200 });
   },
 
   pickCat(e) {
@@ -861,6 +887,10 @@ Page({
       trialRow = { used, trial: s.trial, pct: Math.round(used / s.trial * 100) };
     }
 
+    /* ── 公开互动：心动 + 留言 ── */
+    const soc = this._socialOf(s);
+    const commentN = this._commentsOf(s).length;
+
     this.setData({
       setPage: {
         exists: true,
@@ -897,6 +927,15 @@ Page({
         prog,
         stampRow,
         trialRow,
+        social: {
+          liked: !!soc.liked,
+          likes: soc.likes || 0,
+          likesText: fmt(soc.likes || 0),
+          commentCount: commentN,
+          commentText: commentN ? commentN + ' 条留言' : '写第一条留言',
+        },
+        canComment: this._canComment(s),
+        likePop: false,
         rules: buildRules(s),
         rarity: ['N', 'R', 'SR', 'SSR'].map(k => {
           const n = (s.rar && s.rar[k]) || 0;
@@ -910,6 +949,130 @@ Page({
       if (this._spObsId !== s.id) { this._spObsId = s.id; this.initSetObservers(); }
       this.updateFloatCta();
     });
+  },
+
+  /* ──────────────────────────────────────────────────────────
+     卡集公开互动：心动 + 留言
+     ────────────────────────────────────────────────────────── */
+  _socialOf(s) {
+    if (!s) return { likes: 0, liked: false };
+    let soc = this.S.social[s.id];
+    if (!soc) {
+      soc = { likes: Math.max(6, Math.round((s.heat || 0) / 28)), liked: false };
+      this.S.social[s.id] = soc;
+    }
+    return soc;
+  },
+
+  _commentsOf(s) {
+    if (!s) return [];
+    let list = this.S.comments[s.id];
+    if (!list) {
+      list = [];
+      this.S.comments[s.id] = list;
+    }
+    return list;
+  },
+
+  _commentItems(s) {
+    return this._commentsOf(s).map(c => Object.assign({}, c, {
+      avatar: c.avatar || (c.name || '签').slice(0, 1),
+    }));
+  },
+
+  /* 订阅且有抽卡记录（含试抽）才可留言 */
+  _canComment(s) {
+    if (!s) return false;
+    if (s.creator === ME) return true;
+    const u = s.user;
+    if (!u) return false;
+    return (u.drawn || 0) > 0 || (u.got || []).length > 0 ||
+      (u.trialUsed || 0) > 0 || !!u.todayDrawn;
+  },
+
+  toggleSetLike() {
+    const s = this.S.sets.find(x => x.id === this.S.cur);
+    if (!s) return;
+    const soc = this._socialOf(s);
+    soc.liked = !soc.liked;
+    soc.likes = Math.max(0, (soc.likes || 0) + (soc.liked ? 1 : -1));
+    this.setData({
+      'setPage.social.liked': soc.liked,
+      'setPage.social.likes': soc.likes,
+      'setPage.social.likesText': fmt(soc.likes),
+      'setPage.likePop': true,
+    });
+    setTimeout(() => this.setData({ 'setPage.likePop': false }), 320);
+    if (wx.vibrateShort) wx.vibrateShort({ type: 'light' });
+  },
+
+  openComments() {
+    const s = this.S.sets.find(x => x.id === this.S.cur);
+    if (!s) return;
+    const items = this._commentItems(s);
+    const draft = this.S.commentDrafts[s.id] || '';
+    this.setData({
+      'home.catSheet': false,
+      commentsSheet: {
+        show: true,
+        sid: s.id,
+        title: s.title || '',
+        items,
+        count: items.length,
+        canComment: this._canComment(s),
+        draft,
+        draftLen: draft.length,
+      },
+    });
+  },
+
+  closeComments() {
+    this.setData({ 'commentsSheet.show': false });
+    if (wx.hideKeyboard) wx.hideKeyboard();
+  },
+
+  onCommentInput(e) {
+    const draft = (e.detail.value || '').slice(0, 200);
+    const sid = this.data.commentsSheet.sid;
+    if (sid != null) this.S.commentDrafts[sid] = draft;
+    this.setData({ 'commentsSheet.draft': draft, 'commentsSheet.draftLen': draft.length });
+  },
+
+  submitComment() {
+    const sheet = this.data.commentsSheet;
+    const text = (sheet.draft || '').trim();
+    if (!text) {
+      this.toast('写一句话再发送');
+      return;
+    }
+    const s = this.S.sets.find(x => x.id === sheet.sid);
+    if (!s) return;
+    const list = this._commentsOf(s);
+    list.unshift({
+      id: 'c' + Date.now(),
+      name: ME,
+      avatar: ME.slice(0, 1),
+      text,
+      time: '刚刚',
+      creator: s.creator === ME,
+    });
+    this.S.commentDrafts[s.id] = '';
+    const items = this._commentItems(s);
+    this.setData({
+      commentsSheet: Object.assign({}, sheet, {
+        items, count: items.length, draft: '', draftLen: 0,
+      }),
+      'setPage.social.commentCount': items.length,
+      'setPage.social.commentText': items.length + ' 条留言',
+    });
+    if (wx.hideKeyboard) wx.hideKeyboard();
+    if (wx.vibrateShort) wx.vibrateShort({ type: 'light' });
+    this.toast('已留下这句话');
+  },
+
+  goDrawFromComments() {
+    this.closeComments();
+    setTimeout(() => this.tapSetCta(), 120);
   },
 
   /* 全图 / 精选回信 点击 → 大卡 */

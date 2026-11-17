@@ -40,106 +40,58 @@
   <view class="status-spacer"></view>
 
   <view class="screen">
-    <!-- ═══════════════════ 发现 v3 ═══════════════════ -->
-    <view class="page hm" id="page-home" wx:if="{{page === 'home'}}">
-      <view class="hm-head">
-        <view class="hm-brand">今日做点小事</view>
-        <view class="hm-date" bindlongpress="openDemo">
-          <text class="hm-date-num">{{home.dateNum}}</text>
-          <text class="hm-date-wk">{{home.dateWk}}</text>
+    <!-- ═══════════════════ 发现 ═══════════════════ -->
+    <view class="page" id="page-home" wx:if="{{page === 'home'}}">
+      <view class="page-head">
+        <view class="brand-row">
+          <text class="wordmark" bindlongpress="openDemo"></text>
+          <text class="today" bindlongpress="openDemo">{{home.date}}</text>
         </view>
-      </view>
-
-      <!-- 三宫格：分类 / 热门活动 / 新建卡片 -->
-      <view class="hm-quick">
-        <view class="quick-card" hover-class="hm-press" bindtap="tapQuickCat">
-          <view class="hm-qico-grid"></view>
-          <view class="hm-qtxt">
-            <view class="qc-label">分类</view>
-            <view class="qc-sub">{{home.quickCatSub}}</view>
-          </view>
+        <view class="search-bar" bindtap="toastSearch">
+          <image class="t-svg" src="/assets/icons/search.png" mode="aspectFit" />
+          <text class="t-span">搜索卡集、做卡人…</text>
+          <image class="t-svg scan-icon" src="/assets/icons/scan.png" mode="aspectFit" />
         </view>
-        <view class="quick-card highlight" hover-class="hm-press" bindtap="tapQuickHot">
-          <view class="hm-qico-star"></view>
-          <view class="hm-qtxt">
-            <view class="qc-label">热门活动</view>
-            <view class="qc-sub">本周精选</view>
-          </view>
-        </view>
-        <view class="quick-card cream" hover-class="hm-press" bindtap="tapQuickNew">
-          <view class="hm-box">
-            <view class="hm-box-card a"></view>
-            <view class="hm-box-card b"></view>
-            <view class="hm-box-body"></view>
-          </view>
-          <view class="hm-qtxt">
-            <view class="qc-label">新建卡片</view>
-            <view class="qc-sub">做一套自己的</view>
-          </view>
-        </view>
-      </view>
-
-      <!-- 维度宫格（2×3） -->
-      <view class="hm-dims">
-        <view class="hm-dim {{home.dim && home.dim.key === item.key ? 'on' : ''}}"
-              wx:for="{{home.dims}}" wx:key="key"
-              hover-class="hm-press" data-key="{{item.key}}" bindtap="pickDim">
-          <view class="hm-dim-ico i-{{item.icon}}"></view>
-          <view class="hm-dim-name">{{item.name}}</view>
-          <view class="hm-dim-sub">{{item.sub}}</view>
-        </view>
-      </view>
-
-      <!-- TA们喜欢 · 横滑回信卡片流 -->
-      <view class="hm-love" id="hm-love" wx:if="{{home.loveCards.length}}">
-        <view class="hm-love-head">
-          <text class="hm-love-t1">TA们</text><text class="hm-love-t2">喜欢</text>
-          <view class="hm-love-heart"></view>
-        </view>
-        <scroll-view class="hm-love-scroll" scroll-x enhanced show-scrollbar="{{false}}">
-          <view class="hm-love-in">
-            <view class="hm-love-card" wx:for="{{home.loveCards}}" wx:key="index"
-                  hover-class="hm-press" data-sid="{{item.sid}}" data-idx="{{item.idx}}" bindtap="tapLoveCard">
-              <view class="hm-love-who">
-                <text class="hm-love-name">{{item.who}}</text>
-                <text class="hm-love-date">{{item.date}}</text>
-              </view>
-              <view class="hm-love-note">{{item.note}}</view>
-              <view class="hm-love-src">「{{item.word}}」 · 《{{item.title}}》</view>
+        <view class="quick-row">
+          <view class="quick-card white" hover-class="hm-press" bindtap="tapQuickCat">
+            <view class="qc-icon">⊞</view>
+            <view>
+              <view class="qc-label">分类</view>
+              <view class="qc-sub">按主题找卡集</view>
             </view>
           </view>
-        </scroll-view>
-      </view>
-
-      <!-- Slogan -->
-      <view class="shelf-slogan">今天对这个世界做出<text class="accent">一点点</text>探索</view>
-      <view class="tagline">万物皆可抽一签。</view>
-
-      <!-- 列表头：维度 / 分类 / 默认 -->
-      <view class="hm-listhead">
-        <block wx:if="{{home.dim}}">
-          <view class="hm-lh-dim">
-            <text class="hm-lh-name">{{home.dim.name}}</text>
-            <text class="hm-lh-sub">{{home.dim.sub}}</text>
+          <view class="quick-card highlight" hover-class="hm-press" bindtap="tapQuickHot">
+            <view class="qc-icon">✦</view>
+            <view>
+              <view class="qc-label">热门活动</view>
+              <view class="qc-sub">本周精选</view>
+            </view>
           </view>
-          <view class="hm-lh-exit" hover-class="hm-press" bindtap="clearDim">看全部</view>
-        </block>
-        <block wx:elif="{{home.cat !== 'all'}}">
-          <view class="hm-lh-dim">
-            <text class="hm-lh-name">{{home.catLabel}}</text>
+          <view class="quick-card cream" hover-class="hm-press" bindtap="tapQuickNew">
+            <view class="qc-icon">★</view>
+            <view>
+              <view class="qc-label">新建卡片</view>
+              <view class="qc-sub">做一套自己的</view>
+            </view>
           </view>
-          <view class="hm-lh-exit" hover-class="hm-press" bindtap="clearCat">看全部</view>
-        </block>
-        <block wx:else>
-          <text class="hm-lh-count">{{home.rows.length}} 个卡集</text>
+        </view>
+        <view class="shelf-slogan">今天对这个世界做出<text class="accent">一点点</text>探索</view>
+        <view class="tagline">万物皆可抽一签。</view>
+        <view class="chips">
+          <view class="chip {{item.color}} {{item.on ? 'on' : ''}}"
+                wx:for="{{home.chips}}" wx:key="key"
+                hover-class="hm-press" data-key="{{item.key}}" bindtap="setCat">{{item.chip}}</view>
+        </view>
+        <view class="list-head">
+          <text class="count">{{home.rows.length}} 个卡集</text>
           <view class="sortseg">
             <button id="sort-hot" size="mini" class="{{home.sort === 'hot' ? 'on' : ''}}" bindtap="setSort" data-sort="hot">热门</button>
             <button id="sort-new" size="mini" class="{{home.sort === 'new' ? 'on' : ''}}" bindtap="setSort" data-sort="new">最新</button>
           </view>
-        </block>
+        </view>
       </view>
 
-      <!-- 卡集列表 -->
+      <!-- 卡集列表：浮起的方框卡 -->
       <view id="squareList">
         <view class="book-card" wx:for="{{home.rows}}" wx:key="id" bindtap="openSet" data-id="{{item.id}}" data-from="home">
           <view class="cover {{item.cover}}" style="position:relative">
@@ -158,26 +110,12 @@
       </view>
 
       <!-- 筛选空态 -->
-      <view class="hm-empty" wx:if="{{home.emptyText}}">
+      <view class="hm-empty" style="padding:48px 0 20px" wx:if="{{home.emptyText}}">
         <view class="hm-empty-text">{{home.emptyText}}</view>
         <button class="hm-empty-btn" hover-class="hm-press" bindtap="clearCat">看全部卡集</button>
       </view>
 
-      <view class="hm-foot">
-        <view class="hm-star"></view>
-        <text>缺席不损失 · 卡不会过期</text>
-      </view>
-    </view>
-
-    <!-- 分类面板（半屏 sheet） -->
-    <view class="hm-sheet-mask {{home.catSheet ? 'show' : ''}}" bindtap="closeCatSheet" catchtouchmove="noop"></view>
-    <view class="hm-sheet {{home.catSheet ? 'show' : ''}}" catchtouchmove="noop">
-      <view class="hm-sheet-head">按主题找卡集</view>
-      <view class="hm-sheet-chips">
-        <view class="hm-chip2 {{home.cat === item.key ? 'on' : ''}}"
-              wx:for="{{home.cats}}" wx:key="key"
-              hover-class="hm-press" data-key="{{item.key}}" bindtap="pickCat">{{item.chip}}</view>
-      </view>
+      <view class="shelf-tail"><text class="t-span">更多卡集，正在上架</text></view>
     </view>
 
     <!-- ═══════════════════ 卡集详情 ═══════════════════ -->
@@ -211,6 +149,19 @@
             <text>{{setPage.heatText}}</text>
           </view>
           <view class="spv2-chip" wx:if="{{setPage.locked}}">🔒 待解锁</view>
+          <!-- 公开互动：心动 / 留言 -->
+          <view class="sp-social">
+            <view class="sp-like {{setPage.social.liked ? 'on' : ''}} {{setPage.likePop ? 'pop' : ''}}"
+                  hover-class="sp-social-press" bindtap="toggleSetLike">
+              <text class="sp-heart">{{setPage.social.liked ? '♥' : '♡'}}</text>
+              <text class="sp-like-n">{{setPage.social.likesText}}</text>
+              <text class="sp-like-l">心动</text>
+            </view>
+            <view class="sp-comment" hover-class="sp-social-press" bindtap="openComments">
+              <text class="sp-comment-t">{{setPage.social.commentText}}</text>
+              <view class="sp-chev"></view>
+            </view>
+          </view>
         </view>
 
         <!-- ② 简介 + 创作者 -->
@@ -1031,6 +982,53 @@
         <button class="ghost" bindtap="closeRecord">暂时不记</button>
       </view>
       <view class="modal-meta">只给自己看 · 不记录也不影响任何功能</view>
+    </view>
+  </view>
+
+  <!-- ═══════════════════ 签友留言 ═══════════════════ -->
+  <view class="modal {{commentsSheet.show ? 'show' : ''}}" id="commentsModal">
+    <view class="sheet comments-sheet">
+      <view class="cs-head">
+        <view class="cs-head-txt">
+          <view class="cs-kicker">签 友 留 言</view>
+          <view class="cs-title">{{commentsSheet.title}}</view>
+        </view>
+        <button class="close-btn cs-close" bindtap="closeComments">✕</button>
+      </view>
+
+      <scroll-view class="cs-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+        <view class="cs-empty" wx:if="{{!commentsSheet.items.length}}">
+          <view class="cs-empty-stamp">签</view>
+          <view class="cs-empty-t">还没有人留言</view>
+          <view class="cs-empty-s">第一个说话的人，会被看见。</view>
+        </view>
+        <view class="cs-item" wx:for="{{commentsSheet.items}}" wx:key="id">
+          <view class="cs-avatar">{{item.avatar}}</view>
+          <view class="cs-main">
+            <view class="cs-meta">
+              <text class="cs-name">{{item.name}}</text>
+              <text class="cs-badge" wx:if="{{item.creator}}">做卡人</text>
+              <text class="cs-time">{{item.time}}</text>
+            </view>
+            <view class="cs-text">{{item.text}}</view>
+          </view>
+        </view>
+      </scroll-view>
+
+      <view class="cs-compose" wx:if="{{commentsSheet.canComment}}">
+        <textarea class="cs-textarea" value="{{commentsSheet.draft}}" maxlength="200"
+                  auto-height show-confirm-bar="{{false}}" cursor-spacing="24"
+                  bindinput="onCommentInput"
+                  placeholder="写下你抽到这张卡时，想到的那件小事…"></textarea>
+        <view class="cs-compose-foot">
+          <text class="cs-counter">{{commentsSheet.draftLen}}/200</text>
+          <button class="cs-send {{commentsSheet.draftLen ? 'on' : ''}}" bindtap="submitComment">发送</button>
+        </view>
+      </view>
+      <view class="cs-locked" wx:else>
+        <view class="cs-lock-t">抽过这张卡集，就可以留一句话。</view>
+        <button class="cs-lock-btn" hover-class="sp-social-press" bindtap="goDrawFromComments">去抽今天的卡</button>
+      </view>
     </view>
   </view>
 

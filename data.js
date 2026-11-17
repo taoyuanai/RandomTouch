@@ -288,6 +288,41 @@ const FANS = {"四月读书会":2100,"霜降以后":860,"圣诞办事处":540,"�
   "干饭决策局":2800,"打工人午餐组":120,"周末在上海":480,"一碗研究所":310,"打工人小王":36,
   "沈鱼白":24000,"老树":11000,"白鲸咖啡":8612,"阿茅":9780,"林医生":6733,"云朵收集者":15000};
 const INCOME = { withdrawn:0, pending:0, threshold:100 };
+
+/* 卡集公开互动种子数据（点赞 / 留言） */
+const SOCIAL_SEED = {
+  1:  { likes:328, liked:false },
+  2:  { likes:196, liked:true  },
+  5:  { likes:88,  liked:false },
+  8:  { likes:64,  liked:false },
+  9:  { likes:42,  liked:true  },
+  14: { likes:205, liked:false },
+};
+const COMMENTS_SEED = {
+  1: [
+    { id:'c1-1', name:'沈鱼白', avatar:'沈', text:'谢谢你们把这些信收下。写信的人已经不在了，读信的人还在。', time:'今天 09:12', creator:true },
+    { id:'c1-2', name:'林深见鹿', avatar:'林', text:'抽到「信笺」那天，刚好收到一封很久没联系的朋友的信。', time:'昨天 21:40', creator:false },
+    { id:'c1-3', name:'晚风', avatar:'晚', text:'每天拆一封，像在替某个人慢慢读完一整个春天。', time:'昨天 18:06', creator:false },
+  ],
+  2: [
+    { id:'c2-1', name:'老树', avatar:'老', text:'冬天不是用来熬的，是用来一天一天认领的。', time:'今天 08:30', creator:true },
+    { id:'c2-2', name:'围炉', avatar:'围', text:'抽到「汤婆子」，今晚就把热水袋找出来了。', time:'昨天 22:18', creator:false },
+  ],
+  5: [
+    { id:'c5-1', name:'干饭人', avatar:'干', text:'连续三天抽到「随便」，最后真的随便吃了一顿，居然还不错。', time:'今天 12:02', creator:false },
+  ],
+  8: [
+    { id:'c8-1', name:'一碗研究所', avatar:'一', text:'按图鉴去吃了第三家，汤头比描述里还浓一点。', time:'昨天 19:25', creator:true },
+  ],
+  9: [
+    { id:'c9-1', name:'摸鱼办', avatar:'摸', text:'抽到「带薪发呆」，正好开会。', time:'今天 15:41', creator:false },
+  ],
+  14: [
+    { id:'c14-1', name:'云朵收集者', avatar:'云', text:'拍云的时候记得抬头久一点，云走得比想象中快。', time:'今天 07:55', creator:true },
+    { id:'c14-2', name:'抬头看天', avatar:'抬', text:'抽到「积云」那天，真的在楼下看了十分钟。', time:'昨天 17:20', creator:false },
+  ],
+};
+
 const PLATFORM_INCOME = 22.80;
 const TXN_SEED = [
   {d:"11-12", t:"办公室摸鱼图鉴", amt:6.20, meta:"182 次抽签"},
@@ -300,6 +335,8 @@ module.exports = {
   CATS,
   CRAFT,
   FANS,
+  SOCIAL_SEED,
+  COMMENTS_SEED,
   PLATFORM_INCOME,
   TXN_SEED,
 };
