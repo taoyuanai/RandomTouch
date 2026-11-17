@@ -64,6 +64,16 @@ function fmt(n) {
   return Number(n || 0).toLocaleString('en-US');
 }
 
+/* 统计卡上的紧凑数字：36 / 1,204 / 1.2万 */
+function fmtShort(n) {
+  const v = Number(n || 0);
+  if (v >= 10000) {
+    const w = v / 10000;
+    return (w >= 10 ? Math.round(w) : w.toFixed(1).replace(/\.0$/, '')) + '万';
+  }
+  return v.toLocaleString('en-US');
+}
+
 // 周记标题池：按本周盖章数自动选择，第一人称、克制
 function weeklyTitle(stampN, weekNo) {
   if (stampN >= 7) return weekNo % 2 ? '整整一周，每天都有回信' : '第七天，邮戳盖满了';
@@ -273,7 +283,7 @@ Page({
     toastMsg: '',
     toastShow: false,
     toastHide: false,
-    home: { dateNum: '', dateWk: '', cats: [], cat: 'all',
+    home: { cats: [], cat: 'all',
             column: null, rows: [], emptyText: '', chipsStuck: false, sort: 'hot' },
     setPage: { exists: false, ctaShow: false, ctaFloating: false },
     draw: null,
@@ -284,7 +294,7 @@ Page({
     edit: { mode: 'edit', cards: [] },
     income: { exists: false },
     author: { exists: false, works: [] },
-    me: { date: '', cardN: 0, stampN: 0, emptied: 0, todayLine: '' },
+    me: { cardN: 0, stampN: 0, emptied: 0, todayLine: '' },
     demo: { mode: 'rich' },
     pay: { show: false, paying: false },
     check: { show: false, list: [] },
@@ -538,17 +548,6 @@ Page({
   /* ──────────────────────────────────────────────────────────
      首页 v3 · 三宫格 + 维度宫格 + TA们喜欢卡片流
      ────────────────────────────────────────────────────────── */
-  _hmDate() {
-    const d = new Date();
-    const wd = ['日', '一', '二', '三', '四', '五', '六'][d.getDay()];
-    const p2 = (n) => String(n).padStart(2, '0');
-    return {
-      num: d.getFullYear() + '.' + p2(d.getMonth() + 1) + '.' + p2(d.getDate()),
-      wk: '星期' + wd,
-      label: (d.getMonth() + 1) + '月' + d.getDate() + '日 · 周' + wd,
-    };
-  },
-
   _hmHasRec(u, idx) {
     if (!u || !u.recs || idx == null || !(idx in u.recs)) return false;
     const r = u.recs[idx];
@@ -588,6 +587,7 @@ Page({
     const rows = pool.map(s => {
       const v = setVM(s);
       const paid = s.price > 0 && s.creator !== ME;
+      const soc = this._socialOf(s);
       return {
         id: s.id,
         title: s.title,
@@ -601,6 +601,8 @@ Page({
         faint: v.dot === 'faint',
         tagCls: paid ? 'paid' : (s.heat > 800 ? 'hot' : 'free'),
         tagText: s.heat > 800 && !paid ? '🔥 热门' : (paid ? `¥${s.price}` : '免费'),
+        liked: !!soc.liked,
+        likeText: fmt(soc.likes || 0),
         sticker: this._hmSticker(s.cat),
       };
     });
@@ -635,7 +637,6 @@ Page({
     loveCards.sort((a, b) => b.note.length - a.note.length);
     loveCards.splice(8);
 
-    const dt = this._hmDate();
     const chipColors = {
       reading: 'mint', life: 'sky', emotion: 'blossom', work: 'honey',
       sport: 'mint', food: '', city: 'blossom', relation: 'sky',
@@ -647,8 +648,6 @@ Page({
       })) : []);
     this.setData({
       home: {
-        date: dt.label,
-        dateNum: dt.num, dateWk: dt.wk,
         quickCatSub: cat === 'all' ? '按主题找卡集' : '分类 · ' + catLabel,
         dims: HM_DIMS, dim,
         cat, catLabel, cats, chips,
@@ -958,7 +957,8 @@ Page({
     if (!s) return { likes: 0, liked: false };
     let soc = this.S.social[s.id];
     if (!soc) {
-      soc = { likes: Math.max(6, Math.round((s.heat || 0) / 28)), liked: false };
+      const base = s.creator === ME ? 0 : Math.max(6, Math.round((s.heat || 0) / 28));
+      soc = { likes: base, liked: false };
       this.S.social[s.id] = soc;
     }
     return soc;
@@ -2176,6 +2176,11 @@ Page({
       return;
     }
     const earn = this.ownEarn();
+    const fansN = (S.fans && S.fans[ME]) || 0;
+    const likeN = pub.reduce((a, s) => {
+      const soc = S.social && S.social[s.id];
+      return a + (soc ? (soc.likes || 0) : 0);
+    }, 0);
     const rvRows = S.craft.reviewing.map(d => {
       const complete = d.pool.filter(cardDone).length;
       return {
@@ -2213,6 +2218,10 @@ Page({
       craft: {
         empty: false,
         pubN: pub.length,
+        fansN,
+        fansText: fmtShort(fansN),
+        likeN,
+        likeText: fmtShort(likeN),
         reviewN: S.craft.reviewing.length,
         draftN: S.craft.drafts.length,
         earn,
@@ -2638,11 +2647,8 @@ Page({
       todayLine = bits.join(' · ');
     }
 
-    const now = new Date();
-    const wd = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][now.getDay()];
     this.setData({
       me: {
-        date: `${now.getMonth() + 1}月${now.getDate()}日 · ${wd}`,
         name: ME,
         avatar: '我',
         cardN,
@@ -2711,12 +2717,41 @@ Page({
       success(res) {
         const file = (res.tempFiles && res.tempFiles[0]) || null;
         if (!file) return;
-        that.S.rcTmp.img = file.tempFilePath;
-        that.setData({
-          'record.img': file.tempFilePath,
-          'record.hasImg': true,
-        });
+        that.cropRecordPhoto(file.tempFilePath);
       },
+    });
+  },
+
+  /* 选图后进入原生裁剪：固定 4:3，可拖动/缩放确认 */
+  cropRecordPhoto(src) {
+    if (!src) return;
+    if (typeof wx.cropImage !== 'function') {
+      this.applyRecordPhoto(src);
+      this.toast('当前版本不支持裁剪，已使用原图');
+      return;
+    }
+    wx.cropImage({
+      src,
+      cropScale: '4:3',
+      success: (res) => {
+        if (res && res.tempFilePath) {
+          this.applyRecordPhoto(res.tempFilePath);
+        }
+      },
+      fail: (err) => {
+        const msg = (err && err.errMsg) || '';
+        if (/cancel/i.test(msg)) return;
+        this.applyRecordPhoto(src);
+        this.toast('裁剪失败，已使用原图');
+      },
+    });
+  },
+
+  applyRecordPhoto(path) {
+    this.S.rcTmp.img = path;
+    this.setData({
+      'record.img': path,
+      'record.hasImg': true,
     });
   },
 

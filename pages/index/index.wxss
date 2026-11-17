@@ -3444,7 +3444,10 @@ page{
     display:flex;align-items:center;justify-content:center;
     cursor:pointer;overflow:hidden;position:relative;
     transition:all var(--duration-fast) var(--ease-default);
-  }.rc-photo:hover{border-color:var(--orange-300);background:var(--orange-50)}.rc-photo.has{border:1px solid var(--orange-200)}.rc-photo .t-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.rc-photo-empty{
+  }.rc-photo:hover{border-color:var(--orange-300);background:var(--orange-50)}.rc-photo.has{border:1px solid var(--orange-200)}.rc-photo .t-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.rc-crop-tip{
+    margin-top:6px;text-align:center;font-size:11px;line-height:1.5;
+    color:var(--text-tertiary);letter-spacing:0.5px;
+  }.rc-photo-empty{
     display:flex;flex-direction:column;align-items:center;
     gap:var(--space-2);color:var(--text-tertiary);
     font-size:var(--text-sm);letter-spacing:1px;
@@ -3653,9 +3656,11 @@ page{
     overflow:hidden;
   }.pc-photo{
     position:relative;flex:none;
-    height:65%;                       
+    height:65%;
     background:var(--surface-muted);
     overflow:hidden;
+  }.pc-photo.has-img{
+    height:auto;aspect-ratio:4/3;     /* 与上传裁剪比例一致，避免二次裁切 */
   }.pc-photo .t-img{
     position:absolute;inset:0;
     width:100%;height:100%;object-fit:cover;display:block;
@@ -3840,7 +3845,7 @@ page{
     font-size:var(--text-xs);color:var(--text-tertiary);
     letter-spacing:4px;margin-bottom:var(--space-3);
   }.poster-rec .pc-photo{
-    height:auto;aspect-ratio:16/10;            
+    height:auto;aspect-ratio:4/3;              /* 与上传裁剪比例一致 */
     border-radius:var(--radius-md);
     border:1px solid var(--border-default);
   }.poster-rec-note{
@@ -5133,6 +5138,9 @@ page{
 
 
 
+/* 首页整页滚动：页头随内容一起上移，把高度让给卡集列表 */
+#page-home .page-head{position:static;top:auto}
+
 /* ═══ 首页 v2.2 · 整页滚动 + 我的订阅前置 + 分类体系 ═══
    字体策略：mono 只用于纯数字；serif 只用于品牌/集名/封面字（子集已有）；
    其余一律不声明 font-family（继承系统字体）——新文案未进子集也不方框；
@@ -5478,6 +5486,16 @@ page{
   background:var(--surface-card);font-size:13px;color:var(--ink-2);line-height:1.4}
 .hm-chip2.on{background:var(--gradient-brand);border-color:transparent;
   color:#FFFFFF;font-weight:600}
+
+/* 首页卡集：标签行（热门/价格 + 心动数） */
+.bc-tagrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:var(--space-2)}
+.bc-tagrow .bc-status-tag{margin-top:0}
+.bc-like{display:inline-flex;align-items:center;gap:3px;height:22px;padding:0 8px;
+  border-radius:999px;background:var(--orange-50);color:var(--ink-3);
+  font-size:11px;line-height:1;letter-spacing:.3px;font-variant-numeric:tabular-nums}
+.bc-like.on{color:var(--orange-600)}
+.bc-heart{font-size:13px;line-height:1;color:var(--orange-400)}
+.bc-like.on .bc-heart{color:var(--orange-500)}
 
 /* ═══ 卡集公开互动：心动 + 留言 ═══ */
 .sp-social{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px}
