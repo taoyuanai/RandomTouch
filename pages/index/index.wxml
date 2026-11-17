@@ -3,8 +3,10 @@
 <template name="cardBack">
   <view class="card-back-inner">
     <view class="pc-empty" wx:if="{{!back.rec}}">
-      <view class="back-label">解 签</view>
-      <view class="t-p explain">{{back.explain}}</view>
+      <view class="pc-empty-center">
+        <view class="back-label">解 签</view>
+        <view class="t-p explain">{{back.explain}}</view>
+      </view>
       <view class="rec-slot empty" bindtap="openRecord" data-sid="{{back.sid}}" data-idx="{{back.idx}}" data-from="{{back.from}}">
         <image class="t-svg" src="/assets/icons/camera-orange.png" mode="aspectFit" />
         <text class="t-span rec-hint">拍下今天 · 盖个邮戳</text>
@@ -33,6 +35,20 @@
         </view>
       </view>
     </view>
+  </view>
+</template>
+
+<template name="recCard">
+  <view class="rec-card {{item.coverImage ? '' : 'is-fallback'}}" hover-class="rec-card-press" bindtap="openRecSet" data-id="{{item.id}}">
+    <image wx:if="{{item.coverImage}}" class="rec-cover" src="{{item.coverImage}}" mode="aspectFill" />
+    <view wx:else class="rec-cover rec-fallback {{item.cover}}">
+      <text class="rec-fallback-char">{{item.coverChar}}</text>
+    </view>
+    <view class="rec-shade"></view>
+    <view class="rec-badge">{{item.badge}}</view>
+    <view class="rec-hot" wx:if="{{item.hot}}">热门</view>
+    <view class="rec-title">{{item.title}}</view>
+    <view class="rec-meta">{{item.meta}}</view>
   </view>
 </template>
 
@@ -91,9 +107,12 @@
       <view id="squareList">
         <view class="book-card" wx:for="{{home.rows}}" wx:key="id" bindtap="openSet" data-id="{{item.id}}" data-from="home">
           <view class="cover {{item.cover}}" style="position:relative">
+            <image wx:if="{{item.coverImage}}" class="cover-img" src="{{item.coverImage}}" mode="aspectFill" />
+            <block wx:else>
+              <text class="t-span">{{item.covT4}}</text><text class="t-i">{{item.covS8}}</text>
+            </block>
             <view class="cover-price" wx:if="{{item.price > 0}}">¥{{item.price}}</view>
             <view class="cover-trial" wx:if="{{item.trial > 0}}">试{{item.trial}}张</view>
-            <text class="t-span">{{item.covT4}}</text><text class="t-i">{{item.covS8}}</text>
           </view>
           <view class="bc-info">
             <view class="t-h3">{{item.title}}</view>
@@ -126,17 +145,23 @@
         <view class="subhead">
           <button class="back" style="margin:0" bindtap="goBackSet">‹</button>
           <text class="t-span">卡集</text>
+          <button class="share-btn" open-type="share">分享</button>
         </view>
       </view>
 
       <view id="setBody" class="spv2 {{setPage.done ? 'is-done' : ''}}" wx:if="{{setPage.exists && setPage.id}}">
+        <view class="share-hint" wx:if="{{setPage.fromShare}}">朋友请你来抽一张</view>
+
         <!-- ① Hero：大封面签 + 集名 + meta + 热度 -->
         <view class="set-hero">
           <view class="cover-lg {{setPage.cover}}">
+            <image wx:if="{{setPage.coverImage}}" class="cover-lg-img" src="{{setPage.coverImage}}" mode="aspectFill" />
+            <block wx:else>
+              <text class="cov-main">{{setPage.covT}}</text>
+              <text class="cov-sub" wx:if="{{setPage.covS}}">{{setPage.covS}}</text>
+            </block>
             <view class="cover-price-lg" wx:if="{{setPage.price > 0}}">¥{{setPage.price}}</view>
             <view class="cover-trial-lg" wx:if="{{setPage.trial > 0}}">试{{setPage.trial}}张</view>
-            <text class="cov-main">{{setPage.covT}}</text>
-            <text class="cov-sub" wx:if="{{setPage.covS}}">{{setPage.covS}}</text>
           </view>
           <view class="spv2-h1">{{setPage.title}}</view>
           <view class="set-meta">
@@ -166,7 +191,15 @@
           </view>
         </view>
 
-        <!-- ② 简介 + 创作者 -->
+        <!-- ② 主操作：进入卡集后最重要的动作，放在首屏 -->
+        <view id="sp-tail" class="sp-tail">
+          <button class="sp-cta {{setPage.cta.kind}}" hover-class="sp-cta-press"
+                  bindtap="tapSetCta">{{setPage.cta.text}}</button>
+          <view class="sp-tail-note">{{setPage.cta.note}}</view>
+        </view>
+        <view id="sp-intro-end" style="height:1px"></view>
+
+        <!-- ③ 简介 + 创作者 -->
         <view class="panel spv2-panel" wx:if="{{setPage.intro || setPage.creator}}">
           <view class="set-intro" wx:if="{{setPage.intro}}">{{setPage.intro}}</view>
           <view class="creator-bar" wx:if="{{setPage.creator}}" bindtap="openAuthorPage" data-name="{{setPage.creator}}" data-from="set">
@@ -212,22 +245,16 @@
           <view class="rarity-note">最坏的运气，只是晚几天见到它。</view>
         </view>
 
-        <!-- ⑤ 怎么玩 -->
-        <view class="panel spv2-panel" wx:if="{{setPage.rules.length}}">
-          <view class="panel-head"><view class="t-b">怎么玩</view><text class="t-span">{{setPage.kind}}</text></view>
-          <view class="rules-list">
-            <view class="t-li" wx:for="{{setPage.rules}}" wx:key="*this"><text class="rules-i">{{index + 1}}</text><text class="rules-t">{{item}}</text></view>
+        <!-- ⑤ 怎么玩 · 一行摘要 -->
+        <view class="rule-brief" wx:if="{{setPage.ruleSummary}}" hover-class="rule-brief-press" bindtap="openRules">
+          <view class="rule-brief-main">
+            <text class="rule-brief-k">怎么玩</text>
+            <text class="rule-brief-t">{{setPage.ruleSummary}}</text>
           </view>
+          <text class="rule-brief-more">完整玩法 ›</text>
         </view>
 
-        <!-- ⑥ 操作 CTA + 说明 -->
-        <view id="sp-tail" class="sp-tail">
-          <button class="sp-cta {{setPage.cta.kind}}" hover-class="sp-cta-press"
-                  bindtap="tapSetCta">{{setPage.cta.text}}</button>
-          <view class="sp-tail-note">{{setPage.cta.note}}</view>
-        </view>
-
-        <!-- ⑦ 精选回信（有则显示） -->
+        <!-- 精选回信（有则显示） -->
         <block wx:if="{{setPage.picks.length}}">
           <view class="sp-rule"></view>
           <view class="sp-picks">
@@ -241,6 +268,25 @@
             </view>
           </view>
         </block>
+
+        <!-- 推荐卡集：相关 / 最近热门 -->
+        <view class="rec-section" wx:if="{{setPage.recs && setPage.recs.items.length}}">
+          <view class="rec-head">
+            <view class="rec-head-t">推荐卡集</view>
+            <view class="rec-refresh" bindtap="refreshSetRecs">换一批 ›</view>
+          </view>
+          <view class="rec-tabs">
+            <view class="rec-tab {{setPage.recs.tab === 'related' ? 'on' : ''}}"
+                  data-tab="related" bindtap="switchSetRecs">相关推荐</view>
+            <view class="rec-tab {{setPage.recs.tab === 'hot' ? 'on' : ''}}"
+                  data-tab="hot" bindtap="switchSetRecs">最近热门</view>
+          </view>
+          <view class="rec-grid">
+            <block wx:for="{{setPage.recs.items}}" wx:key="id">
+              <template is="recCard" data="{{item: item}}" />
+            </block>
+          </view>
+        </view>
 
         <!-- 浮动 CTA（滚过首屏后浮现） -->
         <view class="sp-float {{floatCta.show ? 'show' : ''}}">
@@ -295,12 +341,44 @@
           <!-- 组②：一行 mono 提示 -->
           <view class="dw-hint">{{draw.hint}}</view>
 
+          <!-- 抽卡回响：心动 + 留一句（无记录也可参与） -->
+          <view class="dw-echo" wx:if="{{draw.stage === 'after'}}">
+            <view class="dw-echo-like {{draw.social.liked ? 'on' : ''}} {{draw.likePop ? 'pop' : ''}}"
+                  hover-class="dw-echo-press" bindtap="toggleSetLike">
+              <text class="dw-echo-heart">{{draw.social.liked ? '♥' : '♡'}}</text>
+              <text class="dw-echo-n">{{draw.social.likesText}}</text>
+              <text class="dw-echo-l">心动</text>
+            </view>
+            <view class="dw-echo-comment" hover-class="dw-echo-press" bindtap="openComments">
+              <text class="dw-echo-pen">✎</text>
+              <text>留一句</text>
+            </view>
+          </view>
+
           <!-- 组③：动作（次在上，主在下） -->
           <view class="dw-actions">
             <button wx:if="{{draw.cta2}}" class="dw-btn {{draw.cta2.kind}}" hover-class="dw-btn-press"
                     bindtap="tapDrawCta" data-act="cta2">{{draw.cta2.text}}</button>
             <button class="dw-btn {{draw.cta.kind}}" hover-class="dw-btn-press"
                     bindtap="tapDrawCta" data-act="cta">{{draw.cta.text}}</button>
+          </view>
+
+          <!-- 再抽抽看：只推荐今天还能抽的卡集 -->
+          <view class="draw-rec" wx:if="{{draw.stage === 'after'}}">
+            <block wx:if="{{draw.recs && draw.recs.items.length}}">
+              <view class="rec-head rec-head-compact">
+                <view class="rec-head-t">再抽抽看</view>
+                <view class="rec-refresh" bindtap="refreshDrawRecs">换一批 ›</view>
+              </view>
+              <view class="rec-grid">
+                <block wx:for="{{draw.recs.items}}" wx:key="id">
+                  <template is="recCard" data="{{item: item}}" />
+                </block>
+              </view>
+            </block>
+            <view class="draw-rec-empty" wx:else bindtap="backToHome">
+              今天的签都抽过了，去发现逛逛 ›
+            </view>
           </view>
         </view>
       </view>
@@ -563,6 +641,27 @@
       <view id="editBody">
         <block wx:if="{{edit.mode === 'edit'}}">
           <view class="panel">
+            <view class="t-label">卡集封面</view>
+            <view class="cover-edit">
+              <view class="cover-edit-box {{edit.coverImage ? 'has' : ''}}" bindtap="chooseCover">
+                <image wx:if="{{edit.coverImage}}" class="cover-edit-img" src="{{edit.coverImage}}" mode="aspectFill" />
+                <view wx:else class="cover-edit-empty">
+                  <view class="cover-edit-plus">＋</view>
+                  <text class="t-span">上传封面</text>
+                </view>
+              </view>
+              <view class="cover-edit-side">
+                <view class="cover-edit-tip">3:4 竖版 · 建议 900×1200</view>
+                <view class="cover-edit-sub">主体居中；右上角会叠加价格/试抽标签，重要内容不要贴边。</view>
+                <view class="cover-edit-actions">
+                  <button class="mini-cta" bindtap="chooseCover">{{edit.coverImage ? '更换封面' : '选择图片'}}</button>
+                  <button class="cover-edit-del" wx:if="{{edit.coverImage}}" bindtap="clearCover">删除</button>
+                </view>
+              </view>
+            </view>
+          </view>
+
+          <view class="panel" style="margin-top:12px">
             <view class="form-row">
               <view class="t-label">标题</view>
               <input class="fi" value="{{edit.title}}" bindinput="onEditTitle" placeholder="给卡集起个名字（至少 2 个字）" />
@@ -781,6 +880,17 @@
         </view>
         <view class="t-p me-today">{{me.todayLine}}</view>
 
+        <view class="rules-entry" hover-class="rules-entry-press" bindtap="openRules">
+          <view class="rules-entry-head">
+            <view class="t-b">怎么玩</view>
+            <view class="rules-entry-more">完整规则 <text class="rules-entry-go">›</text></view>
+          </view>
+          <view class="rules-entry-line">每天 1 张 · 0 点重置</view>
+          <view class="rules-entry-line">收藏集抽完即空 / 常驻集天天可抽</view>
+          <view class="rules-entry-line">付费集前 1 张免费试抽</view>
+          <view class="rules-entry-line muted">缺席不损失，卡不会过期</view>
+        </view>
+
         <view class="panel" style="padding:6px 18px;margin-bottom:12px">
           <view class="li" bindtap="backToCreate">创作中心<text class="t-span li-val">{{me.craftN}} 个作品</text><text class="t-span">›</text></view>
           <view class="li" style="border:none" bindtap="goIncome">收益看板<text class="t-span li-val">{{me.availText}}</text><text class="t-span">›</text></view>
@@ -790,8 +900,6 @@
           <view class="li" style="border:none" bindtap="meSettings">设置<text class="t-span">›</text></view>
         </view>
 
-        <view class="t-p me-foot">每天 0 点，新的一签。</view>
-        <view class="t-p me-foot">缺席不损失，卡不会过期。</view>
       </view>
     </view>
 
@@ -868,6 +976,17 @@
                 data-act="back" bindtap="tapDoneAction">回到这一集</button>
         <button class="dp-btn gold" hover-class="dp-btn-press"
                 data-act="booklet" bindtap="tapDoneAction">✦ 翻开纪念册</button>
+      </view>
+
+      <!-- 抽空后的下一集推荐 -->
+      <view class="dp-next {{donePage.ctaShow ? 'show' : ''}}" wx:if="{{donePage.recs && donePage.recs.length}}">
+        <view class="dp-next-t">下一集在等你</view>
+        <view class="rec-grid">
+          <block wx:for="{{donePage.recs}}" wx:key="id">
+            <template is="recCard" data="{{item: item}}" />
+          </block>
+        </view>
+        <view class="dp-next-more" bindtap="tapDoneMore">去发现更多 ›</view>
       </view>
     </view>
   </view>
@@ -978,6 +1097,35 @@
         <button class="ghost" bindtap="closeRecord">暂时不记</button>
       </view>
       <view class="modal-meta">只给自己看 · 不记录也不影响任何功能</view>
+    </view>
+  </view>
+
+  <!-- ═══════════════════ 怎么玩 · 完整规则 ═══════════════════ -->
+  <view class="modal {{rulesSheet.show ? 'show' : ''}}" id="rulesModal">
+    <view class="sheet rules-sheet">
+      <button class="close-btn rules-close" bindtap="closeRules">✕</button>
+      <view class="rules-kicker">抽 卡 说 明</view>
+      <view class="rules-title">怎么玩</view>
+
+      <view class="rules-block">
+        <view class="rules-h">每天</view>
+        <view class="rules-li"><text class="rules-n">1</text><text class="rules-tx">每天可抽 1 张，0 点重置（北京时间）</text></view>
+      </view>
+      <view class="rules-block">
+        <view class="rules-h">收藏集</view>
+        <view class="rules-li"><text class="rules-n">2</text><text class="rules-tx">抽过的不再出现，抽完即空，留一张纪念</text></view>
+      </view>
+      <view class="rules-block">
+        <view class="rules-h">常驻集</view>
+        <view class="rules-li"><text class="rules-n">3</text><text class="rules-tx">天天可抽，抽到就是答案</text></view>
+      </view>
+      <view class="rules-block">
+        <view class="rules-h">付费集</view>
+        <view class="rules-li"><text class="rules-n">4</text><text class="rules-tx">前 1 张免费试抽，试抽不占每日额度</text></view>
+        <view class="rules-li"><text class="rules-n">5</text><text class="rules-tx">解锁是一次性的，之后每天照抽</text></view>
+      </view>
+
+      <view class="rules-foot">缺席不损失，卡不会过期</view>
     </view>
   </view>
 

@@ -301,6 +301,7 @@ Page({
     pub: { show: false },
     record: { show: false, note: '', img: '', hasImg: false, count: 0 },
     commentsSheet: { show: false, sid: null, title: '', items: [], count: 0, canComment: false, draft: '', draftLen: 0 },
+    rulesSheet: { show: false },
     poster: { show: false, kind: 'highlight', ratio: '34' },
     floatCta: { show: false },
     donePage: { show: false, ctaShow: false },
@@ -309,7 +310,7 @@ Page({
     bigCard: { show: false, flipped: false, back: { sid: '', idx: 0, rec: null } },
   },
 
-  onLoad() {
+  onLoad(options) {
     let statusBarHeight = 20;
     let navTop = 64;
     try {
@@ -372,6 +373,47 @@ Page({
     this.renderCraft();
     this.setData({ demo: { mode: 'rich' } });
     this.go('home', true);
+    this.handleLaunchOptions(options);
+  },
+
+  /* 分享 / 二维码进入：统一解析并直达卡集 */
+  onShow(options) {
+    if (!this.S) return;
+    this.handleLaunchOptions(options);
+  },
+
+  handleLaunchOptions(options) {
+    const sid = this._shareSidOf(options);
+    if (!sid) return;
+    const key = String(sid);
+    if (this._lastShareKey === key) return;
+    this._lastShareKey = key;
+    const s = this.S.sets.find(x => x.id === sid);
+    if (!s) {
+      this.toast('这个卡集暂时不在了，看看别的');
+      this.go('home');
+      return;
+    }
+    this.S.shareSid = sid;
+    this.S.cameFrom = 'home';
+    if (this.data.page === 'set' && this.data.setPage && this.data.setPage.id === sid) {
+      this.renderSetPage();
+      return;
+    }
+    this.openSetById(sid, 'home');
+  },
+
+  _shareSidOf(options) {
+    if (!options) return 0;
+    const q = options.query || options;
+    let raw = q.sid || q.setId || q.set;
+    if (!raw && q.scene) {
+      const m = String(q.scene).match(/(?:^|[&?])s=(\d+)/);
+      if (m) raw = m[1];
+    }
+    if (!raw) return 0;
+    const sid = parseInt(decodeURIComponent(String(raw)), 10);
+    return Number.isFinite(sid) && sid > 0 ? sid : 0;
   },
 
   onReady() {
@@ -400,6 +442,16 @@ Page({
   },
 
   onShareAppMessage() {
+    const sp = this.data.setPage;
+    if (this.data.page === 'set' && sp && sp.exists && sp.id) {
+      const s = this.S.sets.find(x => x.id === sp.id);
+      if (s) {
+        return {
+          title: `《${s.title}》 · 今天来抽一签`,
+          path: `/pages/index/index?sid=${s.id}&from=share`,
+        };
+      }
+    }
     return {
       title: '万物皆可抽一签 · 今日做点小事',
       path: '/pages/index/index',
@@ -407,6 +459,16 @@ Page({
   },
 
   onShareTimeline() {
+    const sp = this.data.setPage;
+    if (this.data.page === 'set' && sp && sp.exists && sp.id) {
+      const s = this.S.sets.find(x => x.id === sp.id);
+      if (s) {
+        return {
+          title: `《${s.title}》 · 今天来抽一签`,
+          query: `sid=${s.id}&from=timeline`,
+        };
+      }
+    }
     return { title: '万物皆可抽一签 · 今日做点小事' };
   },
 
@@ -469,6 +531,7 @@ Page({
      导航 / 轻提示
      ────────────────────────────────────────────────────────── */
   go(id, initial) {
+    if (id !== 'set') this.S.shareSid = null;
     if (this.data.page === 'set' && id !== 'set') this.teardownSetObservers();
     if (this.data.page === 'home' && id !== 'home') this.teardownHomeObserver();
     if (this.data.page === 'draw' && id !== 'draw') clearTimeout(this._drawTimer);
@@ -497,6 +560,7 @@ Page({
   },
 
   goBackSet() {
+    this.S.shareSid = null;
     this.renderSetPage();
     this.go(this.S.cameFrom || 'home');
   },
@@ -594,6 +658,7 @@ Page({
         covT4: s.covT.slice(0, 4),
         covS8: s.covS.slice(0, 8),
         cover: s.cover,
+        coverImage: s.coverImage || '',
         price: s.price,
         trial: s.trial,
         meta: `@${s.creator} · ${s.count} 张 · ${s.type === 'collect' ? '收藏集' : '常驻集'}`,
@@ -752,7 +817,9 @@ Page({
   openSet(e) {
     const d = e.currentTarget.dataset;
     this.S.cameFrom = d.from || 'home';
+    this.S.shareSid = null;
     this.S.cur = Number(d.id);
+    this._setRecTab = 'related';
     this.renderSetPage();
     this.go('set');
   },
@@ -760,6 +827,7 @@ Page({
   openSetById(id, from) {
     this.S.cameFrom = from || 'home';
     this.S.cur = Number(id);
+    this._setRecTab = 'related';
     this.renderSetPage();
     this.go('set');
   },
@@ -886,6 +954,10 @@ Page({
       trialRow = { used, trial: s.trial, pct: Math.round(used / s.trial * 100) };
     }
 
+    const ruleSummary = s.price > 0
+      ? `付费集 · 前 ${s.trial || 1} 张免费试抽 · 解锁后每天可抽`
+      : (isResident ? '常驻集 · 每天 1 张 · 天天可抽' : '收藏集 · 每天 1 张 · 抽完即空');
+
     /* ── 公开互动：心动 + 留言 ── */
     const soc = this._socialOf(s);
     const commentN = this._commentsOf(s).length;
@@ -909,6 +981,7 @@ Page({
         cta,
         /* ── v2 · 原型 set-hero / 进度 / 稀有度 ── */
         cover: s.cover || '',
+        coverImage: s.coverImage || '',
         covT: s.covT || s.title || '',
         covS: s.covS || '',
         count: count,
@@ -934,8 +1007,11 @@ Page({
           commentText: commentN ? commentN + ' 条留言' : '写第一条留言',
         },
         canComment: this._canComment(s),
+        fromShare: this.S.shareSid === s.id,
         likePop: false,
+        recs: this._setRecs(s),
         rules: buildRules(s),
+        ruleSummary,
         rarity: ['N', 'R', 'SR', 'SSR'].map(k => {
           const n = (s.rar && s.rar[k]) || 0;
           return { k, n, pct: Math.round(n / (count || 1) * 100) };
@@ -953,6 +1029,162 @@ Page({
   /* ──────────────────────────────────────────────────────────
      卡集公开互动：心动 + 留言
      ────────────────────────────────────────────────────────── */
+  /* ──────────────────────────────────────────────────────────
+     推荐卡集：相关 / 热门
+     ────────────────────────────────────────────────────────── */
+  _recDone(s) {
+    if (!s || s.type !== 'collect') return false;
+    const u = s.user;
+    const count = s.count || (s.pool || []).length;
+    return !!u && (u.got || []).length >= count;
+  },
+
+  _recPriceTier(p) {
+    const v = Number(p || 0);
+    if (v <= 0) return 0;
+    if (v <= 6) return 1;
+    if (v <= 12) return 2;
+    return 3;
+  },
+
+  _recCandidates(currentId, opts) {
+    opts = opts || {};
+    let list = (this.S.sets || []).filter(s =>
+      s.id !== currentId &&
+      s.creator !== ME &&
+      !this._recDone(s)
+    );
+    if (opts.drawable) {
+      list = list.filter(s => setVM(s).act === 'draw');
+    }
+    return list;
+  },
+
+  _recRelated(currentId, opts) {
+    const cur = this.S.sets.find(x => x.id === currentId);
+    if (!cur) return [];
+    return this._recCandidates(currentId, opts).map(s => {
+      let score = 0;
+      if (s.cat === cur.cat) score += 3;
+      if (s.type === cur.type) score += 2;
+      if (s.creator === cur.creator) score += 1;
+      if (this._recPriceTier(s.price) === this._recPriceTier(cur.price)) score += 1;
+      if (!s.user) score += 1;
+      return { s, score };
+    }).sort((a, b) =>
+      b.score - a.score || (b.s.heat || 0) - (a.s.heat || 0)
+    ).map(x => x.s);
+  },
+
+  _recHot(currentId, opts, exclude) {
+    return this._recCandidates(currentId, opts)
+      .filter(s => !exclude || !exclude.includes(s.id))
+      .sort((a, b) => (b.heat || 0) - (a.heat || 0));
+  },
+
+  _recPick(list, offset, limit) {
+    if (!list || !list.length) return [];
+    const out = [];
+    const n = Math.min(limit, list.length);
+    for (let i = 0; i < n; i++) out.push(list[(offset + i) % list.length]);
+    return out;
+  },
+
+  _recsFor(currentId, mode, limit, offset, opts) {
+    const related = this._recRelated(currentId, opts);
+    const hot = this._recHot(currentId, opts);
+    const primary = mode === 'hot' ? hot : related;
+    const fallback = mode === 'hot' ? related : hot;
+    let chosen = this._recPick(primary, offset || 0, limit);
+    if (chosen.length < limit) {
+      const used = chosen.map(s => s.id);
+      const extra = fallback.filter(s => !used.includes(s.id));
+      chosen = chosen.concat(this._recPick(extra, 0, limit - chosen.length));
+    }
+    return chosen.map(s => this._recItem(s));
+  },
+
+  _recItem(s) {
+    const count = s.count || (s.pool || []).length;
+    const price = Number(s.price || 0);
+    return {
+      id: s.id,
+      title: s.title || '',
+      coverImage: s.coverImage || '',
+      cover: s.cover || 'c1',
+      coverChar: (s.covT || s.title || '签').slice(0, 1),
+      covT: (s.covT || s.title || '·').slice(0, 6),
+      covS: (s.covS || '').slice(0, 8),
+      badge: price > 0 ? (s.trial > 0 ? `试${s.trial}张` : `¥${price}`) : '免费',
+      meta: `${count} 张 · ${price > 0 ? '¥' + price : '免费'}`,
+      hot: (s.heat || 0) > 800,
+    };
+  },
+
+  _recOff(key) {
+    this._recOffsets = this._recOffsets || {};
+    return this._recOffsets[key] || 0;
+  },
+
+  _bumpRecOff(key, step) {
+    this._recOffsets = this._recOffsets || {};
+    this._recOffsets[key] = (this._recOffsets[key] || 0) + step;
+  },
+
+  _setRecs(s) {
+    const tab = this._setRecTab || 'related';
+    return {
+      tab,
+      items: this._recsFor(s.id, tab, 3, this._recOff('set:' + s.id)),
+    };
+  },
+
+  _applySetRecs() {
+    const s = this.S.sets.find(x => x.id === this.S.cur);
+    if (!s) return;
+    this.setData({ 'setPage.recs': this._setRecs(s) });
+  },
+
+  switchSetRecs(e) {
+    const tab = e.currentTarget.dataset.tab || 'related';
+    const s = this.S.sets.find(x => x.id === this.S.cur);
+    if (!s) return;
+    this._setRecTab = tab;
+    this._recOffsets = this._recOffsets || {};
+    this._recOffsets['set:' + s.id] = 0;
+    this._applySetRecs();
+  },
+
+  refreshSetRecs() {
+    const s = this.S.sets.find(x => x.id === this.S.cur);
+    if (!s) return;
+    this._bumpRecOff('set:' + s.id, 3);
+    this._applySetRecs();
+  },
+
+  refreshDrawRecs() {
+    const s = this.S.sets.find(x => x.id === this.S.cur);
+    if (!s) return;
+    this._bumpRecOff('draw:' + s.id, 3);
+    this.setData({
+      'draw.recs': {
+        items: this._recsFor(s.id, 'related', 3, this._recOff('draw:' + s.id), { drawable: true }),
+      },
+    });
+  },
+
+  openRecSet(e) {
+    const id = Number(e.currentTarget.dataset.id);
+    if (!id) return;
+    if (this.data.donePage && this.data.donePage.show) this.closeDone();
+    this.openSetById(id, 'home');
+  },
+
+  tapDoneMore() {
+    this.closeDone();
+    this.go('home');
+  },
+
   _socialOf(s) {
     if (!s) return { likes: 0, liked: false };
     let soc = this.S.social[s.id];
@@ -996,14 +1228,35 @@ Page({
     const soc = this._socialOf(s);
     soc.liked = !soc.liked;
     soc.likes = Math.max(0, (soc.likes || 0) + (soc.liked ? 1 : -1));
-    this.setData({
-      'setPage.social.liked': soc.liked,
-      'setPage.social.likes': soc.likes,
-      'setPage.social.likesText': fmt(soc.likes),
-      'setPage.likePop': true,
-    });
-    setTimeout(() => this.setData({ 'setPage.likePop': false }), 320);
+    const patch = {};
+    if (this.data.setPage && this.data.setPage.exists) {
+      patch['setPage.social.liked'] = soc.liked;
+      patch['setPage.social.likes'] = soc.likes;
+      patch['setPage.social.likesText'] = fmt(soc.likes);
+      patch['setPage.likePop'] = true;
+    }
+    if (this.data.draw) {
+      patch['draw.social.liked'] = soc.liked;
+      patch['draw.social.likes'] = soc.likes;
+      patch['draw.social.likesText'] = fmt(soc.likes);
+      patch['draw.likePop'] = true;
+    }
+    this.setData(patch);
+    setTimeout(() => {
+      const off = {};
+      if (this.data.setPage && this.data.setPage.exists) off['setPage.likePop'] = false;
+      if (this.data.draw) off['draw.likePop'] = false;
+      this.setData(off);
+    }, 320);
     if (wx.vibrateShort) wx.vibrateShort({ type: 'light' });
+  },
+
+  openRules() {
+    this.setData({ 'rulesSheet.show': true });
+  },
+
+  closeRules() {
+    this.setData({ 'rulesSheet.show': false });
   },
 
   openComments() {
@@ -1058,13 +1311,19 @@ Page({
     });
     this.S.commentDrafts[s.id] = '';
     const items = this._commentItems(s);
-    this.setData({
+    const patch = {
       commentsSheet: Object.assign({}, sheet, {
         items, count: items.length, draft: '', draftLen: 0,
       }),
-      'setPage.social.commentCount': items.length,
-      'setPage.social.commentText': items.length + ' 条留言',
-    });
+    };
+    if (this.data.setPage && this.data.setPage.exists) {
+      patch['setPage.social.commentCount'] = items.length;
+      patch['setPage.social.commentText'] = items.length + ' 条留言';
+    }
+    if (this.data.draw) {
+      patch['draw.social.commentCount'] = items.length;
+    }
+    this.setData(patch);
     if (wx.hideKeyboard) wx.hideKeyboard();
     if (wx.vibrateShort) wx.vibrateShort({ type: 'light' });
     this.toast('已留下这句话');
@@ -1207,11 +1466,24 @@ Page({
     if (!s) return;
     if (setVM(s).act !== 'draw') return;
     S.cur = s.id;
+    this._recOffsets = this._recOffsets || {};
+    this._recOffsets['draw:' + s.id] = 0;
     this.renderDraw();
     this.go('draw');
   },
 
   /* ══════════════ 抽卡页 · 三组法则 ══════════════ */
+  _drawSocialOf(s) {
+    const soc = this._socialOf(s);
+    const n = this._commentsOf(s).length;
+    return {
+      liked: !!soc.liked,
+      likes: soc.likes || 0,
+      likesText: fmt(soc.likes || 0),
+      commentCount: n,
+    };
+  },
+
   _dwFront(s, idx) {
     const RAR = { N: '#43A585', R: '#4E9ED9', SR: '#E2A236', SSR: '#D9A227' };
     const c = (s.pool || [])[idx] || {};
@@ -1294,6 +1566,11 @@ Page({
           meta: count + ' 张' + (s.creator ? ' · @' + s.creator : ''),
         },
         cta, cta2, back, front, flipped, backIdx,
+        social: this._drawSocialOf(s),
+        recs: {
+          items: this._recsFor(s.id, 'related', 3, this._recOff('draw:' + s.id), { drawable: true }),
+        },
+        likePop: false,
       },
     });
   },
@@ -1798,6 +2075,7 @@ Page({
         title: s.title || '',
         count, days, stamps, cols, cells,
         note: count + ' 张 · ' + days + ' 天 · ' + stamps + ' 枚邮戳',
+        recs: this._recsFor(s.id, 'hot', 3, 0),
       },
     });
     setTimeout(() => this.setData({ 'donePage.show': true }), 30);
@@ -2236,6 +2514,7 @@ Page({
     S.craftEmptyView = false;
     const d = {
       id: ++S.seq, title: '', intro: '', type: 'collect', cat: 'create', price: 0, trial: 0, status: 'draft',
+      coverImage: '',
       pool: ['N', 'N', 'N', 'R', 'R', 'N', 'SR', 'SSR'].map(r => ({ w: '', r, b: '' })),
     };
     S.craft.drafts.push(d);
@@ -2274,6 +2553,7 @@ Page({
       edit: {
         mode: 'edit',
         headTitle: '编辑卡集',
+        coverImage: d.coverImage || '',
         title: d.title || '',
         intro: d.intro || '',
         type: d.type,
@@ -2311,6 +2591,56 @@ Page({
   onEditIntro(e) {
     if (!this.S.ed) return;
     this.S.ed.intro = e.detail.value;
+  },
+
+  /* 卡集封面：固定 3:4 裁剪后写入草稿 */
+  chooseCover() {
+    if (!this.S.ed) return;
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['image'],
+      sourceType: ['album', 'camera'],
+      success: (res) => {
+        const file = (res.tempFiles && res.tempFiles[0]) || null;
+        if (!file) return;
+        this.cropCover(file.tempFilePath);
+      },
+    });
+  },
+
+  cropCover(src) {
+    if (!src) return;
+    if (typeof wx.cropImage !== 'function') {
+      this.applyCover(src);
+      this.toast('当前版本不支持裁剪，已使用原图');
+      return;
+    }
+    wx.cropImage({
+      src,
+      cropScale: '3:4',
+      success: (res) => {
+        if (res && res.tempFilePath) this.applyCover(res.tempFilePath);
+      },
+      fail: (err) => {
+        const msg = (err && err.errMsg) || '';
+        if (/cancel/i.test(msg)) return;
+        this.applyCover(src);
+        this.toast('裁剪失败，已使用原图');
+      },
+    });
+  },
+
+  applyCover(path) {
+    if (!this.S.ed) return;
+    this.S.ed.coverImage = path;
+    this.setData({ 'edit.coverImage': path });
+    this.toast('封面已更新');
+  },
+
+  clearCover() {
+    if (!this.S.ed) return;
+    this.S.ed.coverImage = '';
+    this.setData({ 'edit.coverImage': '' });
   },
 
   onEditCardInput(e) {
@@ -2387,6 +2717,7 @@ Page({
     const errs = [];
     if (!(d.title || '').trim() || d.title.trim().length < 2) errs.push('标题：至少 2 个字');
     if (!(d.intro || '').trim() || d.intro.trim().length < 10) errs.push('简介：至少 10 个字，给抽卡人一个预期');
+    if (!d.coverImage) errs.push('封面：请上传一张 3:4 的卡集封面');
     const complete = d.pool.filter(cardDone);
     if (complete.length < 8) errs.push(`完整的卡：至少 8 张，现在 ${complete.length} 张（词、稀有度、解释都齐才算完整）`);
     const long = d.pool.filter(c => (c.w || '').trim().length > 8);
@@ -2496,6 +2827,7 @@ Page({
       covT: d.title.trim().slice(0, 8),
       covS: d.intro.trim().replace(/[，。、；！？…—\s]/g, '').slice(0, 7) || '认真做的',
       cover: 'c' + (id % 6 + 1),
+      coverImage: d.coverImage || '',
       cat: d.cat, type: d.type, price: d.price, trial: d.price > 0 ? 1 : 0,
       count: pool.length, creator: ME, heat: 0, date: todayMD(),
       intro: d.intro.trim(), rar, pool, user: null,
