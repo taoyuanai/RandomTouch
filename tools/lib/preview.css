@@ -1,0 +1,44 @@
+/* ── 浏览器预览适配 ── */
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+body {
+  background: var(--surface-page);
+  -webkit-tap-highlight-color: transparent;
+}
+#app {
+  min-height: 100vh;
+}
+/* image mode 映射到 object-fit */
+img[data-mode="aspectFit"] { object-fit: contain; }
+img[data-mode="aspectFill"] { object-fit: cover; }
+img[data-mode="widthFix"] { height: auto; }
+img[data-mode="heightFix"] { width: auto; }
+
+/* 桌面：手机框预览 */
+@media (min-width: 440px) {
+  body {
+    background: #ECECEF;
+  }
+  .phone {
+    max-width: 390px;
+    margin: 0 auto;
+    min-height: 100vh;
+    box-shadow: 0 12px 44px rgba(0, 0, 0, 0.14);
+  }
+  .status-spacer,
+  .tabbar,
+  .cta-fixed-wrap,
+  .modal,
+  .dp {
+    left: 50%;
+    right: auto;
+    width: 390px;
+    margin-left: -195px;
+  }
+  .modal {
+    padding: 24px;
+  }
+}

@@ -1,10 +1,19 @@
 // 今日做点小事 · 微信小程序版
 // 移植自远程仓库 static/day_small_things_v2.html（V2.3c 原型）
 const seed = require('../../data.js');
+const posterKit = require('../../utils/posterKit/export.js');
+
+function getViewport() {
+  try {
+    const info = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
+    return { w: info.windowWidth, h: info.windowHeight };
+  } catch (e) { return { w: 375, h: 667 }; }
+}
 
 const BRAND = '今日做点小事';
 const ME = '打工人小王';
 const RARC = { N: '#FF8A5C', R: '#FF6B35', SR: '#E55A2B', SSR: '#D9A227' };
+const SP_RAR = { N: '#43A585', R: '#4E9ED9', SR: '#E2A236', SSR: '#D9A227' };
 const RARNAME = { N: '薄荷 · 常见', R: '晴空 · 稀有', SR: '蜜琥珀 · 珍贵', SSR: '鎏金 · 传说' };
 const TABS = ['home', 'cards', 'create', 'me'];
 const RAR_KEYS = ['N', 'R', 'SR', 'SSR'];
@@ -24,8 +33,8 @@ function pad2(n) {
 
 function getTodayStr() {
   const now = new Date();
-  const days = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-  return `${now.getMonth() + 1}月${now.getDate()}日 · ${days[now.getDay()]}`;
+  const days = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+  return `${now.getFullYear()}.${pad2(now.getMonth() + 1)}.${pad2(now.getDate())} · ${days[now.getDay()]}`;
 }
 
 function getTodayShort() {
@@ -53,6 +62,26 @@ function stampDate(d) {
 
 function fmt(n) {
   return Number(n || 0).toLocaleString('en-US');
+}
+
+// 周记标题池：按本周盖章数自动选择，第一人称、克制
+function weeklyTitle(stampN, weekNo) {
+  if (stampN >= 7) return weekNo % 2 ? '整整一周，每天都有回信' : '第七天，邮戳盖满了';
+  if (stampN >= 5) return `这一周，${stampN} 天留下了痕迹`;
+  if (stampN >= 3) return `本周的 ${stampN} 个瞬间`;
+  if (stampN >= 1) return `这周，至少有 ${stampN} 天不一样`;
+  return '先抽为敬，下周补上邮戳';
+}
+
+// ISO 周键（周一为一周起点），与 posterKit/templates/weekly34.js 保持同算法
+function isoWeekKey(ts) {
+  const d = new Date(ts);
+  const t = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  t.setDate(t.getDate() - ((t.getDay() + 6) % 7) + 3);
+  const f = new Date(t.getFullYear(), 0, 4);
+  f.setDate(f.getDate() - ((f.getDay() + 6) % 7) + 3);
+  const week = 1 + Math.round((t - f) / 604800000);
+  return `${t.getFullYear()}-W${week}`;
 }
 
 function cardDone(c) {
@@ -179,6 +208,54 @@ function stampedCount(s) {
   return Object.keys(u.recs).filter(k => got.includes(Number(k))).length;
 }
 
+/* ═══ 首页 v2.2 · 整页滚动 + 我的订阅前置 + 分类体系 ═══
+   字体策略：新文案走系统字体（未进宋体子集也不方框）；
+   serif 只用于品牌/集名/封面字；mono 只用于纯数字。 */
+
+const HM_SHOW_CATS = true;    // cat 打标完成前可置 false，chips 只剩「全部」
+
+const HM_CATS = [
+  { key: 'reading',  chip: '阅读', title: '我看我存在',           sub: '读一点，记下来，假装自己活过。',                          empty: '书架空着，脑子也是。去放点什么进来。' },
+  { key: 'life',     chip: '生活', title: '人间值得',             sub: '不是因为人间有多好，是因为来都来了。',                    empty: '今天的人间，暂时不值得。但明天可能值。' },
+  { key: 'emotion',  chip: '情绪', title: '情绪不只流过我的身体', sub: '它住下了，还交了房租。',                                  empty: '此刻情绪稳定，稳定地不想说话。' },
+  { key: 'work',     chip: '工作', title: '咸鱼的咸度也是不同的', sub: '有人是海盐，有人是咸鱼干，有人只是泡水里的黄瓜。',        empty: '今天没有班味，因为根本没上班。' },
+  { key: 'sport',    chip: '运动', title: '实力不详，遇强则强',   sub: '平时瘫着，遇到好看的跑道/球场/日落，突然会跑。',          empty: '身体还在待机，精神已经热身三回了。' },
+  { key: 'food',     chip: '美食', title: '胃是情绪器官',         sub: '难过的时候，胃比脑子先知道。',                            empty: '肚子不饿，但心饿了。吃点什么？' },
+  { key: 'city',     chip: '城市', title: '我的城市不告诉我',     sub: '它每天给我上课，但从不发课表。',                          empty: '这座城市还有很多角落，我没去过，也没准备好去。' },
+  { key: 'relation', chip: '关系', title: '人类样本观察室',       sub: '观察别人，顺便理解自己。毕竟我也是样本。',                empty: '暂时没有人类可以观察。观察一下镜子里的？' },
+  { key: 'nature',   chip: '自然', title: '树木不赶时间',         sub: '它长它的，我急我的。但我们都在今天。',                    empty: '今天没有出门。但窗户外面的树，已经绿了一整天。' },
+  { key: 'create',   chip: '创造', title: '手比脑子诚实',         sub: '想不清楚的时候，做点什么东西出来。不一定好，但一定真实。', empty: '手闲了，脑子就开始乱想了。做点什么？' },
+];
+
+const HM_CAT_DAILY = { key: 'daily', chip: '每日一签', title: '每日一签',
+  sub: '不用集齐什么。今天抽过，今天就算数。',
+  empty: '今天还没抽。来一封？' };
+
+/* 首页 v3 · 维度宫格（微信读书式入口） */
+const HM_DIMS = [
+  { key: 'edit',   name: '编辑推荐', sub: '本周编辑精选',       icon: 'edit' },
+  { key: 'hot',    name: '最热榜单', sub: '按热度排名',         icon: 'hot' },
+  { key: 'season', name: '时令卡集', sub: '节气 · 节日 · 季节', icon: 'season' },
+  { key: 'new',    name: '最新上线', sub: '最近上架',           icon: 'new' },
+  { key: 'love',   name: 'TA们喜欢', sub: '回信精选',           icon: 'love' },
+  { key: 'free',   name: '免费专区', sub: '0 元开始',           icon: 'free' },
+];
+/* 编辑精选：演示数据手选（正式版由运营后台配置） */
+const HM_EDIT_IDS = [1, 14, 11, 8];
+
+/* 「新上架」运营位：先留位不上线（v1 不进 chips），上线时 concat 进 cats 即可 */
+const HM_CAT_NEWS = { key: 'news', chip: '新上架', title: '新上架',
+  sub: '最近来到这里的新集子。',
+  empty: '还没有新上架的卡集。' };
+
+function catChipOf(key) {
+  const c = HM_CATS.find(x => x.key === key);
+  if (c) return c.chip;
+  if (key === HM_CAT_DAILY.key) return HM_CAT_DAILY.chip;
+  if (key === HM_CAT_NEWS.key) return HM_CAT_NEWS.chip;
+  return key || '未分类';
+}
+
 Page({
   data: {
     brand: BRAND,
@@ -196,8 +273,9 @@ Page({
     toastMsg: '',
     toastShow: false,
     toastHide: false,
-    home: { date: '', chips: [], quicks: [], setCount: 0, sets: [], sort: 'hot' },
-    setPage: { exists: false, ctaShow: false },
+    home: { dateNum: '', dateWk: '', cats: [], cat: 'all',
+            column: null, rows: [], emptyText: '', chipsStuck: false, sort: 'hot' },
+    setPage: { exists: false, ctaShow: false, ctaFloating: false },
     draw: null,
     mapV: { cells: [], drawn: 0, count: 0, pct: 0 },
     done: { exists: false },
@@ -212,8 +290,12 @@ Page({
     check: { show: false, list: [] },
     pub: { show: false },
     record: { show: false, note: '', img: '', hasImg: false, count: 0 },
-    poster: { show: false, kind: 'highlight' },
-    bigCard: { show: false, flipped: false },
+    poster: { show: false, kind: 'highlight', ratio: '34' },
+    floatCta: { show: false },
+    donePage: { show: false, ctaShow: false },
+    subs: { waiting: [], ongoing: [], done: [], total: 0, weekly: null },
+    mine: { empty: true, days: 0, lit: 0, stamps: 0, done: [], ongoingCount: 0, notes: [] },
+    bigCard: { show: false, flipped: false, back: { sid: '', idx: 0, rec: null } },
   },
 
   onLoad() {
@@ -265,11 +347,13 @@ Page({
       toastToken: 0,
       envelopeTimers: [],
       unlockTimer: null,
+      weeklyMade: {},      // key = `${setId}:${weekNo}`
+      posterExport: null,  // 当前海报的导出数据（与 WXML 预览同源）
     };
 
     this.resetMode('rich');
     this.renderHome();
-    this.renderCards();
+    this.renderSubs();
     this.renderMe();
     this.renderCraft();
     this.setData({ demo: { mode: 'rich' } });
@@ -291,6 +375,10 @@ Page({
 
   onUnload() {
     const S = this.S;
+    this.teardownSetObservers();
+    this.teardownHomeObserver();
+    clearTimeout(this._drawTimer);
+    clearTimeout(this._doneTimer);
     if (!S) return;
     clearTimeout(S.toastTimer);
     clearTimeout(S.unlockTimer);
@@ -316,6 +404,7 @@ Page({
     S.mode = m;
     S.income.withdrawn = 0;
     S.income.pending = 0;
+    S.weeklyMade = {};
     S.sets = clone(S.authored);
     if (m === 'new') {
       S.sets = S.sets.filter(s => s.creator !== ME);
@@ -343,7 +432,7 @@ Page({
     S.craftEmptyView = false;
     this.resetMode(m);
     this.renderHome();
-    this.renderCards();
+    this.renderSubs();
     this.renderMe();
     this.renderCraft();
     if (S.cur != null && this.data.page === 'set') this.renderSetPage();
@@ -366,8 +455,13 @@ Page({
      导航 / 轻提示
      ────────────────────────────────────────────────────────── */
   go(id, initial) {
+    if (this.data.page === 'set' && id !== 'set') this.teardownSetObservers();
+    if (this.data.page === 'home' && id !== 'home') this.teardownHomeObserver();
+    if (this.data.page === 'draw' && id !== 'draw') clearTimeout(this._drawTimer);
+    if (id === 'home') this.renderHome();
     if (id === 'create') this.renderCraft();
     if (id === 'income') this.renderIncome();
+    if (id === 'cards') this.renderSubs();
     if (id === 'me') this.renderMe();
     this.setData({
       page: id,
@@ -437,38 +531,58 @@ Page({
     }, 2800);
   },
 
-  toastSearch() {
-    this.toast('搜索功能开发中');
+  /* ──────────────────────────────────────────────────────────
+     首页 v3 · 三宫格 + 维度宫格 + TA们喜欢卡片流
+     ────────────────────────────────────────────────────────── */
+  _hmDate() {
+    const d = new Date();
+    const wd = ['日', '一', '二', '三', '四', '五', '六'][d.getDay()];
+    const p2 = (n) => String(n).padStart(2, '0');
+    return {
+      num: d.getFullYear() + '.' + p2(d.getMonth() + 1) + '.' + p2(d.getDate()),
+      wk: '星期' + wd,
+    };
   },
 
-  /* ──────────────────────────────────────────────────────────
-     发现页
-     ────────────────────────────────────────────────────────── */
+  _hmHasRec(u, idx) {
+    if (!u || !u.recs || idx == null || !(idx in u.recs)) return false;
+    const r = u.recs[idx];
+    return Array.isArray(r) ? r.length > 0 : !!r;
+  },
+
+  _hmSticker(cat) {
+    return { reading: '📖', nature: '🎋', city: '🏙️', food: '🍜',
+      work: '💼', emotion: '🌙', sport: '⚽', relation: '👥',
+      create: '✨' }[cat] || '🃏';
+  },
+
   renderHome() {
     const S = this.S;
-    const colorMap = {
-      '全部': '', '文学': 'mint', '生活': 'sky', '味觉': 'honey', '城市': 'blossom',
-      '心理': 'mint', '自然': 'sky', '治愈': 'mint', '职场': 'sky', '书单': 'honey',
-      '情感': 'blossom', '美食': '', '奇趣': 'sky', '旅行': 'mint', '健康': 'honey',
-    };
-    const chips = S.catList.map(c => ({
-      label: c,
-      color: colorMap[c] || '',
-      on: S.cat === c,
-    }));
-    const quicks = [
-      { cls: 'white', icon: '⊞', label: '分类', sub: '按主题找卡集' },
-      { cls: 'highlight', icon: '✦', label: '热门活动', sub: '本周精选' },
-      { cls: 'cream', icon: '★', label: '新建卡片', sub: '做一套自己的' },
-    ];
-    const list = S.sets
-      .filter(s => S.cat === '全部' || s.cat === S.cat)
-      .slice()
-      .sort((a, b) => S.sort === 'hot' ? b.heat - a.heat : b.date.localeCompare(a.date));
+    const sets = S.sets || [];
+    const cat = HM_SHOW_CATS ? (this._hmCat || 'all') : 'all';
+    const dimKey = this._hmDim || '';
+    const dim = HM_DIMS.find(d => d.key === dimKey && d.key !== 'love') || null;
 
-    const sets = list.map(s => {
+    /* ① 维度 / 分类过滤（维度优先，互斥） */
+    let pool;
+    if (dim) {
+      if (dim.key === 'edit')        pool = sets.filter(s => HM_EDIT_IDS.includes(s.id));
+      else if (dim.key === 'hot')    pool = sets.slice().sort((a, b) => (b.heat || 0) - (a.heat || 0));
+      else if (dim.key === 'season') pool = sets.filter(s => s.cat === 'nature');
+      else if (dim.key === 'new')    pool = sets.slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+      else if (dim.key === 'free')   pool = sets.filter(s => !(s.price > 0 && s.creator !== ME));
+      else pool = sets;
+    } else if (cat !== 'all') {
+      pool = sets.filter(s => s.cat === cat);
+    } else {
+      pool = sets.slice().sort((a, b) => S.sort === 'hot'
+        ? (b.heat || 0) - (a.heat || 0)
+        : (b.date || '').localeCompare(a.date || ''));
+    }
+
+    const rows = pool.map(s => {
       const v = setVM(s);
-      const sticker = s.cat === '文学' ? '📖' : (s.cat === '节令' ? '🎋' : (s.cat === '决策' ? '🎲' : (s.cat === '城市' ? '🏙️' : (s.cat === '兴趣' ? '✨' : '🃏'))));
+      const paid = s.price > 0 && s.creator !== ME;
       return {
         id: s.id,
         title: s.title,
@@ -480,48 +594,127 @@ Page({
         meta: `@${s.creator} · ${s.count} 张 · ${s.type === 'collect' ? '收藏集' : '常驻集'}`,
         vmText: v.text,
         faint: v.dot === 'faint',
-        tagCls: s.heat > 800 ? 'hot' : (s.price === 0 ? 'free' : 'paid'),
-        tagText: s.heat > 800 ? '🔥 热门' : (s.price === 0 ? '免费' : `¥${s.price}`),
-        sticker,
+        tagCls: paid ? 'paid' : (s.heat > 800 ? 'hot' : 'free'),
+        tagText: s.heat > 800 && !paid ? '🔥 热门' : (paid ? `¥${s.price}` : '免费'),
+        sticker: this._hmSticker(s.cat),
       };
     });
 
+    /* ② 分类面板数据 + 当前分类名 */
+    const cats = [{ key: 'all', chip: '全部' }]
+      .concat(HM_SHOW_CATS ? [HM_CAT_DAILY].concat(HM_CATS) : []);
+    const catMeta = cats.find(c => c.key === cat);
+    const catLabel = catMeta ? catMeta.chip : '全部';
+    const catEmpty = (catMeta && catMeta.empty) || '';
+
+    /* ③ TA们喜欢：全局回信精选（横滑卡片流） */
+    const loveCards = [];
+    sets.forEach(s => {
+      const u = s.user;
+      if (!u || !u.recs) return;
+      Object.keys(u.recs).forEach(k => {
+        const idx = Number(k);
+        const r0 = u.recs[k];
+        const rec = Array.isArray(r0) ? r0[r0.length - 1] : r0;
+        if (!rec || !(rec.note || '').trim()) return;
+        loveCards.push({
+          sid: s.id, idx,
+          who: ME,
+          date: rec.date || '',
+          note: rec.note.trim(),
+          word: (s.pool[idx] || {}).w || '·',
+          title: s.title || '',
+        });
+      });
+    });
+    loveCards.sort((a, b) => b.note.length - a.note.length);
+    loveCards.splice(8);
+
+    const dt = this._hmDate();
     this.setData({
       home: {
-        date: getTodayStr(),
-        chips,
-        quicks,
-        setCount: list.length,
-        sets,
+        dateNum: dt.num, dateWk: dt.wk,
+        quickCatSub: cat === 'all' ? '按主题找卡集' : '分类 · ' + catLabel,
+        dims: HM_DIMS, dim,
+        cat, catLabel, cats,
+        catSheet: !!(this.data.home && this.data.home.catSheet),
+        loveCards,
+        rows, emptyText: (!dim && cat !== 'all' && !rows.length) ? catEmpty : '',
         sort: S.sort,
       },
     });
   },
 
-  setCat(e) {
-    this.S.cat = e.currentTarget.dataset.cat;
+  /* 三宫格：分类面板 */
+  tapQuickCat() {
+    this.setData({ 'home.catSheet': true });
+  },
+
+  pickCat(e) {
+    this._hmCat = e.currentTarget.dataset.key || 'all';
+    this._hmDim = '';
+    this.setData({ 'home.catSheet': false });
     this.renderHome();
+    wx.pageScrollTo({ scrollTop: 0, duration: 200 });
+  },
+
+  closeCatSheet() {
+    this.setData({ 'home.catSheet': false });
+  },
+
+  noop() {},
+
+  /* 三宫格：热门活动 → 最热榜单 */
+  tapQuickHot() {
+    this.S.sort = 'hot';
+    this._hmDim = '';
+    this._hmCat = 'all';
+    this.renderHome();
+    wx.pageScrollTo({ scrollTop: 0, duration: 200 });
+    this.toast('已切换至最热榜单');
+  },
+
+  /* 三宫格：新建卡片 → 创作中心 */
+  tapQuickNew() {
+    this.go('create');
+  },
+
+  /* 维度宫格 */
+  pickDim(e) {
+    const key = e.currentTarget.dataset.key;
+    if (key === 'love') {
+      wx.pageScrollTo({ selector: '#hm-love', duration: 240 });
+      return;
+    }
+    this._hmDim = (this._hmDim === key) ? '' : key;
+    this._hmCat = 'all';
+    this.renderHome();
+    wx.pageScrollTo({ scrollTop: 0, duration: 200 });
+  },
+
+  clearDim() {
+    this._hmDim = '';
+    this.renderHome();
+  },
+
+  clearCat() {
+    this._hmCat = 'all';
+    this.renderHome();
+  },
+
+  /* TA们喜欢卡片 → 大卡 */
+  tapLoveCard(e) {
+    this.showBigCard(Number(e.currentTarget.dataset.sid), Number(e.currentTarget.dataset.idx));
   },
 
   setSort(e) {
-    const k = e.currentTarget.dataset.sort;
-    this.S.sort = k;
+    this.S.sort = e.currentTarget.dataset.sort;
     this.renderHome();
   },
 
-  quickAction(e) {
-    const i = Number(e.currentTarget.dataset.index);
-    if (i === 0) this.toast('分类筛选功能开发中');
-    else if (i === 1) {
-      this.S.sort = 'hot';
-      this.renderHome();
-      wx.pageScrollTo({ scrollTop: 0, duration: 200 });
-      this.toast('已切换至热门排序');
-    } else if (i === 2) {
-      this.go('create');
-      this.toast('进入创作中心');
-    }
-  },
+  /* chips 已收进分类入口，吸顶观察器不再需要；保留空实现兼容旧调用 */
+  initHomeObserver() {},
+  teardownHomeObserver() {},
 
   openDemo() {
     this.renderCraft();
@@ -550,97 +743,262 @@ Page({
     const S = this.S;
     const s = S.sets.find(x => x.id === S.cur);
     if (!s) {
-      this.setData({ setPage: { exists: false, ctaShow: false } });
+      this.setData({ setPage: { exists: false } });
       return;
     }
-    const v = setVM(s);
-    const u = s.user;
-    const mine = s.creator === ME;
-    const pct = u ? (u.drawn / s.count * 100).toFixed(1) : '0';
-    let statusCls = 'active';
-    let statusText = '● 今日可抽';
-    if (v.key === 'empty') { statusCls = 'done'; statusText = '✓ 已抽空'; }
-    else if (v.key === 'locked') { statusCls = 'locked'; statusText = '🔒 待解锁'; }
-    else if (v.key === 'done') { statusCls = 'done'; statusText = '⏳ 今日已抽'; }
+    const u = s.user || {};
+    const pool = s.pool || [];
+    const count = s.count || pool.length;
+    const got = u.got || [];
+    const isResident = s.type === 'resident';
+    const done = !isResident && count > 0 && got.length >= count;
+    const hasRec = (i) => {
+      if (i == null) return null;
+      const r = u.recs && u.recs[i];
+      return Array.isArray(r) ? r[r.length - 1] : r;
+    };
+    const todayIdx = u.todayDrawn
+      ? (u.todayIdx != null ? u.todayIdx : (got.length ? got[got.length - 1] : 0))
+      : null;
+    const todayRec = hasRec(todayIdx);
 
-    const gotN = (u && u.got) ? u.got.length : (u ? u.drawn : 0);
-    const stN = stampedCount(s);
-    const showStampRow = s.type === 'collect' && !!u && gotN > 0;
-    const stampPct = gotN ? Math.min(100, (stN / gotN * 100)).toFixed(0) : 0;
+    /* ① 序章元信息 */
+    const metaBits = [];
+    if (s.creator) metaBits.push('@' + s.creator);
+    metaBits.push(count + ' 张');
+    if (s.cat) metaBits.push(catChipOf(s.cat));
 
-    const showProgress = s.type === 'collect' && !!u;
-    const showTrial = s.price > 0 && s.trial > 0 && !!u && !u.unlocked;
-    const trialDots = showTrial ? Array.from({ length: s.trial }, (_, i) => ({ used: i < (u.trialUsed || 0) })) : [];
+    /* ② 进度点阵 */
+    const dots = pool.map((_, i) => ({ i, on: got.includes(i) }));
+    let progressNote;
+    if (done) progressNote = `全部点亮 · ${count} 张`;
+    else if (isResident) progressNote = `已拆 ${u.drawn || 0} 封 · 点亮 ${got.length}/${count}`;
+    else if (!got.length) progressNote = `还没开始 · 共 ${count} 张`;
+    else progressNote = `第 ${got.length} 天 · 还剩 ${count - got.length} 张`;
 
-    const rules = buildRules(s).map((r, i) => ({ n: i + 1, text: r }));
-    const rarityRows = RAR_KEYS.map(k => {
-      const p = (s.rar[k] / s.count * 100).toFixed(0);
-      return { key: k, count: s.rar[k], pct: p };
+    /* ③ 全图（空位=虚线签位 / 点亮=白签） */
+    const cells = pool.map((c, i) => {
+      const n = (c.w || '').length;
+      return {
+        idx: i,
+        got: got.includes(i),
+        word: c.w || '',
+        wordCls: n >= 7 ? 'l7' : (n >= 5 ? 'l5' : 'l4'),
+        rarColor: SP_RAR[c.r || 'N'] || SP_RAR.N,
+        no: `No.${pad2(i + 1)}`,
+        isToday: u.todayDrawn && todayIdx === i,
+      };
     });
 
-    let ctaShow = true;
-    let ctaText = '';
-    let ctaNote = '';
-    let ctaSolid = true;
-    let ctaDisabled = false;
-    if (v.key === 'empty') {
-      ctaText = '看抽空纪念';
-      ctaNote = '全图点亮 · 生成纪念海报';
-    } else if (v.key === 'done') {
-      ctaShow = false;
+    /* ④ 精选回信（笔记最长的 2 条；点击可跳大卡） */
+    const picks = [];
+    pool.forEach((c, i) => {
+      const rec = hasRec(i);
+      if (rec && (rec.note || '').trim()) {
+        picks.push({ idx: i, word: c.w || '·', note: rec.note.trim(), date: rec.date || '' });
+      }
+    });
+    picks.sort((a, b) => b.note.length - a.note.length);
+    picks.splice(2);
+
+    /* ⑤ CTA 状态机 */
+    const trialLeft = !isResident && s.price > 0 && s.trial > 0 && !u.unlocked && !u.trialUsed;
+    let cta;
+    if (done) {
+      cta = { tap: 'booklet', kind: 'ink', text: '✦ 翻开纪念册', note: `${count} 张 · 全部点亮` };
+    } else if (isResident) {
+      if (u.todayDrawn && todayRec) {
+        cta = { tap: 'view', kind: 'tint', text: '看看今天的卡', note: '今天的邮戳已盖好' };
+      } else if (u.todayDrawn) {
+        cta = { tap: 'stamp', kind: 'brand', text: '补盖今天的邮戳', note: '今天的卡还没写回信' };
+      } else {
+        cta = {
+          tap: 'draw', kind: 'brand',
+          text: got.length ? '今天再抽一封' : '拆第一封',
+          note: '常驻签 · 每天可抽',
+        };
+      }
+    } else if (u.todayDrawn && !todayRec) {
+      cta = { tap: 'stamp', kind: 'brand', text: '补盖今天的邮戳', note: '今天的卡还没写回信' };
+    } else if (u.todayDrawn) {
+      cta = { tap: 'view', kind: 'tint', text: '看看今天的卡', note: '今天的邮戳已盖好' };
+    } else if (!got.length) {
+      cta = {
+        tap: 'draw', kind: 'brand', text: '拆第一封',
+        note: trialLeft ? '首封免费试抽 · 之后每天一封' : `第 1 天 · 还剩 ${count} 张`,
+      };
+    } else if (s.price > 0 && !u.unlocked) {
+      cta = { tap: 'draw', kind: 'brand', text: `解锁全集 · ¥${s.price}`, note: '一次解锁 · 之后每天一封' };
     } else {
-      ctaText = v.btnL;
-      ctaDisabled = v.off;
-      ctaSolid = !v.off;
-      ctaNote = v.key === 'locked' ? '解锁后永久可用，每天可抽'
-        : (v.key === 'trial_go' ? '试抽免费，不计入每日限额'
-          : (v.key === 'record' ? '拍张照或写句话 · 只给自己看'
-            : '每天 0 点重置，缺席不损失'));
+      cta = {
+        tap: 'draw', kind: 'brand', text: '拆今天这一封',
+        note: `第 ${got.length + 1} 天 · 还剩 ${count - got.length} 张`,
+      };
+    }
+
+    /* ── v2 · 收集进度 / 邮戳 / 试抽 ── */
+    const gotN = got.length;
+    let prog = null, stampRow = null, trialRow = null;
+    if (!isResident && u) {
+      prog = {
+        drawn: u.drawn || 0,
+        count,
+        pct: Math.round((u.drawn || 0) / (count || 1) * 100),
+      };
+      if ((u.drawn || 0) > 0) {
+        prog.est = { drawn: u.drawn || 0, rest: count - (u.drawn || 0), date: finishDate(s) };
+      }
+      if (gotN > 0) {
+        const stN = stampedCount(s);
+        stampRow = { stN, gotN, pct: Math.round(stN / gotN * 100) };
+      }
+    }
+    if (isResident && u) {
+      prog = { drawn: u.drawn || 0, count: 0, pct: 0 };
+    }
+    if (s.price > 0 && s.trial > 0 && u && !u.unlocked) {
+      const used = Math.min(u.trialUsed || 0, s.trial);
+      trialRow = { used, trial: s.trial, pct: Math.round(used / s.trial * 100) };
     }
 
     this.setData({
       setPage: {
         exists: true,
         id: s.id,
-        title: s.title,
-        covT: s.covT,
-        covS: s.covS,
-        cover: s.cover,
-        price: s.price,
-        trial: s.trial,
-        count: s.count,
-        cat: s.cat,
-        typeText: s.type === 'collect' ? '收藏集' : '常驻集',
-        heatText: fmt(s.heat),
-        statusCls,
-        statusText,
-        intro: s.intro,
-        creator: s.creator,
-        avatar: (s.creator || '·')[0],
-        fansText: S.fans[s.creator] ? `${fmt(S.fans[s.creator])} 位关注者` : '做卡人',
-        mine,
-        followed: !!S.follow[s.creator],
-        showProgress,
-        drawn: u ? u.drawn : 0,
-        pct,
-        finishText: (u && u.drawn > 0) ? finishDate(s) : '',
-        showStampRow,
-        stampN: stN,
-        gotN,
-        stampPct,
-        showTrial,
-        trialUsed: u ? (u.trialUsed || 0) : 0,
-        trialDots: trialDots.map((d, i) => ({ used: d.used, i })),
-        trialLabel: showTrial ? ((u.trialUsed || 0) >= s.trial ? '试抽已用完，解锁后可继续抽' : '试抽免费，不占每日额度') : '',
-        rules,
-        rarityRows,
-        ctaShow,
-        ctaText,
-        ctaNote,
-        ctaSolid,
-        ctaDisabled,
+        todayIdx,
+        done,
+        coverChar: (s.covT || s.title || '·').slice(0, 1),
+        title: s.title || '',
+        creator: s.creator || '',
+        metaLine: metaBits.join(' · '),
+        intro: (s.intro || '').trim(),
+        gridCls: count <= 12 ? 'c4' : 'c3',
+        dots,
+        progressNote,
+        cells,
+        picks,
+        cta,
+        /* ── v2 · 原型 set-hero / 进度 / 稀有度 ── */
+        cover: s.cover || '',
+        covT: s.covT || s.title || '',
+        covS: s.covS || '',
+        count: count,
+        price: s.price || 0,
+        trial: s.trial || 0,
+        kind: isResident ? '常驻集' : '收藏集',
+        catChip: catChipOf(s.cat),
+        heatText: s.heat > 0 ? fmt(s.heat) + ' 人抽过' : '',
+        locked: !!(u && s.price > 0 && s.creator !== ME && !u.unlocked),
+        creatorAvatar: (s.creator || '·').slice(0, 1),
+        fansText: S.fans && S.fans[s.creator]
+          ? fmt(S.fans[s.creator]) + ' 位关注者' : '做卡人',
+        following: !!S.follow[s.creator],
+        own: s.creator === ME,
+        prog,
+        stampRow,
+        trialRow,
+        rules: buildRules(s),
+        rarity: ['N', 'R', 'SR', 'SSR'].map(k => {
+          const n = (s.rar && s.rar[k]) || 0;
+          return { k, n, pct: Math.round(n / (count || 1) * 100) };
+        }),
       },
+      'floatCta.show': false,
     });
+    wx.nextTick(() => {
+      if (this.data.page !== 'set') return;
+      if (this._spObsId !== s.id) { this._spObsId = s.id; this.initSetObservers(); }
+      this.updateFloatCta();
+    });
+  },
+
+  /* 全图 / 精选回信 点击 → 大卡 */
+  tapSetCell(e) {
+    const idx = Number(e.currentTarget.dataset.idx);
+    const sp = this.data.setPage;
+    if (!sp || !sp.cells[idx]) return;
+    if (!sp.cells[idx].got) { this.toast('还没抽到这一张'); return; }
+    this.showBigCard(sp.id, idx);
+  },
+
+  /* 详情页关注 */
+  toggleFollowSet() {
+    const S = this.S;
+    const s = S.sets.find(x => x.id === S.cur);
+    if (!s || !s.creator || s.creator === ME) return;
+    S.follow[s.creator] = !S.follow[s.creator];
+    this.toast(S.follow[s.creator] ? '已关注 @' + s.creator + '。' : '已取消关注。');
+    this.renderSetPage();
+  },
+
+  /* CTA 分发 */
+  tapSetCta() {
+    const sp = this.data.setPage;
+    if (!sp) return;
+    const s = this.S.sets.find(x => x.id === sp.id);
+    if (!s) return;
+    switch (sp.cta.tap) {
+      case 'draw':
+        this.mainAct();                 // 试抽 / 正式 / 付费墙分流沿用原状态机
+        break;
+      case 'stamp':
+        this.goSetRecord(s);
+        break;
+      case 'view':
+        this.showBigCard(s.id, sp.todayIdx != null ? sp.todayIdx : 0);
+        break;
+      case 'booklet':
+        this.openPoster({ currentTarget: { dataset: { type: 'memorial', sid: s.id } } });
+        break;
+    }
+  },
+
+  /* 打开盖章面板 */
+  goSetRecord(s) {
+    const sp = this.data.setPage;
+    const idx = (sp && sp.todayIdx != null)
+      ? sp.todayIdx
+      : (s.user && s.user.todayIdx);
+    if (idx == null) return;
+    this.openRecordAt(s.id, idx, 'set');
+  },
+
+  /* ── 浮动 CTA：滚过首屏浮现、尾部 CTA 可见时退场 ── */
+  initSetObservers() {
+    if (this._spObs) { this._spObs.disconnect(); this._spObs = null; }
+    this._spScrolled = false;
+    this._spTailVisible = false;
+    const obs = wx.createIntersectionObserver(this, { observeAll: false });
+    obs.relativeToViewport();
+    obs.observe('#sp-intro-end', (res) => {
+      this._spScrolled = res.boundingClientRect.top < 0;
+      this.updateFloatCta();
+    });
+    obs.observe('#sp-tail', (res) => {
+      this._spTailVisible = res.intersectionRatio > 0;
+      this.updateFloatCta();
+    });
+    this._spObs = obs;
+  },
+
+  teardownSetObservers() {
+    if (this._spObs) {
+      this._spObs.disconnect();
+      this._spObs = null;
+      this._spObsId = null;
+    }
+    if (this.data.floatCta && this.data.floatCta.show) {
+      this.setData({ 'floatCta.show': false });
+    }
+  },
+
+  updateFloatCta() {
+    const sp = this.data.setPage;
+    if (!sp || !this._spObs) return;
+    const show = sp.cta.kind === 'brand' && this._spScrolled && !this._spTailVisible;
+    if (show !== !!(this.data.floatCta && this.data.floatCta.show)) {
+      this.setData({ 'floatCta.show': show });
+    }
   },
 
   toggleFollow(e) {
@@ -683,24 +1041,203 @@ Page({
   startDraw(sid) {
     const S = this.S;
     const s = S.sets.find(x => x.id === sid);
-    if (!s || setVM(s).act !== 'draw') return;
-    const u = s.user;
-    let idx = 0;
-    if (s.type === 'collect') {
-      const got = (u && u.got) ? u.got : [];
-      const remaining = s.pool.map((_, i) => i).filter(i => !got.includes(i));
-      if (!remaining.length) { this.openDone(s.id); return; }
-      idx = remaining[Math.floor(Math.random() * remaining.length)];
-    } else {
-      idx = Math.floor(Math.random() * s.pool.length);
-    }
-    const next = (s.type === 'collect') ? ((u ? u.drawn : 0) + 1) : 0;
-    const trial = !!(s.price > 0 && s.creator !== ME && !(u && u.unlocked) && (((u && u.trialUsed) || 0) < s.trial));
-    S.draw = { sid: s.id, card: s.pool[idx], idx, next, trial };
-    S.mailOpening = false;
-    S.posterCtx = { sid: s.id, idx };
-    this.setupDrawPage(s);
+    if (!s) return;
+    if (setVM(s).act !== 'draw') return;
+    S.cur = s.id;
+    this.renderDraw();
     this.go('draw');
+  },
+
+  /* ══════════════ 抽卡页 · 三组法则 ══════════════ */
+  _dwFront(s, idx) {
+    const RAR = { N: '#43A585', R: '#4E9ED9', SR: '#E2A236', SSR: '#D9A227' };
+    const c = (s.pool || [])[idx] || {};
+    const n = (c.w || '').length;
+    return {
+      word: c.w || '·',
+      rarColor: RAR[c.r || 'N'] || RAR.N,
+      wordCls: n >= 7 ? 'l7' : (n >= 5 ? 'l5' : 'l4'),
+      serial: 'No.' + pad2(idx + 1),
+    };
+  },
+
+  _dwBack(s, idx) {
+    const b = this.buildCardBack(s, idx, 'draw');
+    return {
+      no: `No.${pad2(idx + 1)} / ${s.pool.length}`,
+      explain: b.explain,
+      creator: b.creator,
+      title: b.title,
+      note: b.rec ? b.rec.note : '',
+      img: b.rec ? b.rec.img : '',
+      date: b.rec ? b.rec.date : '',
+      count: b.rec ? b.rec.count : 0,
+      stampAnim: !!b.stampAnim,
+    };
+  },
+
+  renderDraw() {
+    const S = this.S;
+    const s = S.sets.find(x => x.id === S.cur);
+    if (!s) return;
+    const u = s.user || {};
+    const pool = s.pool || [];
+    const count = s.count || pool.length;
+    const got = u.got || [];
+    const isResident = s.type === 'resident';
+    const done = !isResident && count > 0 && got.length >= count;
+    const stage = (u.todayDrawn || u.trialToday) ? 'after' : 'draw';
+    const hasRec = stage === 'after' && u.todayIdx != null
+      && !!(u.recs && u.recs[u.todayIdx] != null);
+
+    let cta, cta2 = null;
+    if (done) {
+      cta = { tap: 'booklet', kind: 'gold', text: '✦ 翻开纪念册' };
+      cta2 = { tap: 'home', kind: 'ghost', text: '回到这一集' };
+    } else if (stage === 'draw') {
+      if (!got.length && !u.trialUsed && !isResident && s.price > 0) {
+        cta = { tap: 'draw', kind: 'brand', text: '拆第一封' };
+      } else if (isResident) {
+        cta = { tap: 'draw', kind: 'brand', text: got.length ? '今天再抽一封' : '拆第一封' };
+      } else {
+        cta = { tap: 'draw', kind: 'brand', text: '拆今天这一封' };
+      }
+    } else if (hasRec) {
+      cta = { tap: 'share', kind: 'brand', text: '分享这张明信片' };
+      cta2 = { tap: 'view', kind: 'ghost', text: '看看今天的卡' };
+    } else {
+      cta = { tap: 'stamp', kind: 'brand', text: '补盖今天的邮戳' };
+    }
+
+    const prev = this.data.draw || {};
+    const backIdx = stage === 'after' && u.todayIdx != null ? u.todayIdx : -1;
+    let back = prev.back || null;
+    let front = prev.front || null;
+    let flipped = !!prev.flipped;
+    if (backIdx >= 0 && (!back || prev.backIdx !== backIdx || prev.sid !== s.id)) {
+      back = this._dwBack(s, backIdx);
+      front = this._dwFront(s, backIdx);
+      flipped = false;
+    }
+
+    this.setData({
+      draw: {
+        sid: s.id,
+        stage,
+        done,
+        hint: stage === 'draw' ? '轻触信封 · 拆今天这一封' : '轻触卡面 · 翻到另一面',
+        envelope: {
+          coverChar: (s.covT || s.title || '·').slice(0, 1),
+          meta: count + ' 张' + (s.creator ? ' · @' + s.creator : ''),
+        },
+        cta, cta2, back, front, flipped, backIdx,
+      },
+    });
+  },
+
+  tapEnvelope() {
+    const S = this.S;
+    const s = S.sets.find(x => x.id === S.cur);
+    if (!s) return;
+    const d = this.data.draw || {};
+    if (d.stage === 'opening') return;
+    const u = s.user || {};
+    if (u.todayDrawn || u.trialToday) { this.tapCard(); return; }
+    const count = s.count || s.pool.length;
+    if (s.type !== 'resident' && (u.got || []).length >= count) {
+      this.openDoneView();
+      return;
+    }
+    this.setData({ 'draw.stage': 'opening', 'draw.hint': '' });
+    clearTimeout(this._drawTimer);
+    this._drawTimer = setTimeout(() => this._resolveDrawnCard(s), 920);
+  },
+
+  _resolveDrawnCard(s) {
+    const S = this.S;
+    const u = s.user || (s.user = {
+      drawn: 0, trialUsed: 0, unlocked: s.price === 0 || s.creator === ME,
+      todayDrawn: false, got: [], recs: {},
+    });
+    if (!u.recs) u.recs = {};
+    const isResident = s.type === 'resident';
+    const paid = s.price > 0 && s.creator !== ME;
+    const trial = paid && !u.unlocked && (u.trialUsed || 0) < s.trial;
+    let idx = 0;
+    if (isResident) {
+      idx = Math.floor(Math.random() * s.pool.length);
+    } else {
+      const got = u.got || [];
+      const left = s.pool.map((_, i) => i).filter(i => !got.includes(i));
+      if (!left.length) { this.openDoneView(); return; }
+      idx = left[Math.floor(Math.random() * left.length)];
+    }
+    if (trial) {
+      u.trialUsed = (u.trialUsed || 0) + 1;
+      u.trialToday = true;
+    } else {
+      u.todayDrawn = true;
+    }
+    u.todayIdx = idx;
+    if (!u.got) u.got = [];
+    if (!u.got.includes(idx)) u.got.push(idx);
+    u.drawn = (u.drawn || 0) + 1;
+    if (!isResident) {
+      if (!u.drawnLog) u.drawnLog = [];
+      u.drawnLog.push({ idx, date: todayMD(), ts: Date.now() });
+    }
+    if (s.creator === ME) s.totalDrawn = (s.totalDrawn || 0) + 1;
+
+    this.renderDraw();
+    this.renderHome();
+    this.renderSubs();
+    this.renderMe();
+
+    const count = s.count || s.pool.length;
+    if (!isResident && (u.got || []).length >= count) {
+      setTimeout(() => this.openDoneView(), 600);
+    }
+  },
+
+  tapCard() {
+    const d = this.data.draw;
+    if (!d || d.stage !== 'after') return;
+    this.setData({ 'draw.flipped': !d.flipped });
+  },
+
+  tapDrawCta(e) {
+    const d = this.data.draw;
+    if (!d) return;
+    const c = e.currentTarget.dataset.act === 'cta2' ? d.cta2 : d.cta;
+    if (!c) return;
+    const S = this.S;
+    const u = (S.sets.find(x => x.id === S.cur) || {}).user || {};
+    switch (c.tap) {
+      case 'draw': this.tapEnvelope(); break;
+      case 'stamp': this.openRecordDraw(); break;
+      case 'view': this.showBigCard(S.cur, u.todayIdx || 0); break;
+      case 'share':
+        this.openPoster({ currentTarget: { dataset: { type: 'card', sid: S.cur, idx: u.todayIdx } } });
+        break;
+      case 'booklet':
+        this.openPoster({ currentTarget: { dataset: { type: 'memorial', sid: S.cur } } });
+        break;
+      case 'home': this.goSetView(S.cur); break;
+    }
+  },
+
+  openRecordDraw() {
+    const s = this.S.sets.find(x => x.id === this.S.cur);
+    if (!s) return;
+    const u = s.user || {};
+    if (u.todayIdx == null) return;
+    this.openRecordAt(s.id, u.todayIdx, 'draw');
+  },
+
+  goSetView(id) {
+    if (id != null) this.S.cur = id;
+    this.renderSetPage();
+    this.go('set');
   },
 
   setupDrawPage(s) {
@@ -720,7 +1257,7 @@ Page({
         rarColor: RARC[card.r] || RARC.N,
         word: card.w,
         wordCls: bwCls(card.w),
-        lit: s.cat === '文学',
+        lit: s.cat === 'reading',
         collect,
         envFrom: `@${s.creator} 寄`,
         hint: '轻触火漆 · 开启今天',
@@ -730,6 +1267,11 @@ Page({
         actionsShow: false,
         tail: collect ? '拆开信封，看看今天是哪一张。' : '抽到什么，就是什么。\n今天的纠结，到此为止。',
         back: this.buildCardBack(s, D.idx, 'draw'),
+        // V2.5 · 动作区占位（信封开启后由 computeDrawActions 定稿）
+        primaryText: '盖个邮戳 · 记录今天',
+        primaryKind: 'stamp',
+        showShareBtn: true,
+        weeklyReady: false,
       },
     });
   },
@@ -762,6 +1304,7 @@ Page({
         'draw.hint': '轻触卡面 · 翻过来看看',
         'draw.actionsShow': true,
       });
+      this.computeDrawActions();        // ← 改动：动作区在此定稿（状态已同步落库）
       S.mailOpening = false;
     }, 920));
 
@@ -780,19 +1323,17 @@ Page({
     if (s.type === 'collect') {
       u.drawn++;
       if (!u.got) u.got = [];
-      if (!u.got.includes(D.idx)) u.got.push(D.idx);
+      if (!u.got.includes(D.idx)) {
+        u.got.push(D.idx);
+        // V2.5 · 周记数据：collect 每次抽卡追加一条，服务周记/streak
+        (u.drawnLog = u.drawnLog || []).push({ idx: D.idx, date: todayMD(), ts: Date.now() });
+      }
     }
     if (s.creator === ME) s.totalDrawn = (s.totalDrawn || 0) + 1;
 
-    const rest = Math.max(0, s.pool.length - (u.got ? u.got.length : 0));
-    const tail = s.type === 'collect'
-      ? (D.trial ? '试抽结束 · 解锁后每天继续'
-        : (rest <= 0 ? '这是最后一张 · 全图点亮，去生成纪念海报吧' : `还剩 ${rest} 张 · 明天继续`))
-      : '抽到什么，就是什么。\n今天的纠结，到此为止。';
-    this.setData({ 'draw.tail': tail });
-
+    // V2.5 · tail 与主行动统一由 computeDrawActions 计算（920ms 定稿时调用）
     this.renderHome();
-    this.renderCards();
+    this.renderSubs();
     this.renderMe();
     this.renderSetPage();
   },
@@ -802,18 +1343,80 @@ Page({
     this.setData({ 'draw.flipped': !this.data.draw.flipped });
   },
 
-  drawActionCollect() {
-    this.toast('已收入卡包');
+  /* ── V2.5 动作区状态机：信封开启后 / 盖章后调用 ──
+     stamp    盖个邮戳（默认主行动）
+     share    已盖章，升级为分享明信片
+     trial    试抽还有余额（当前 trial=1 不会出现，为多试抽预留）
+     unlock   试抽用尽，转化时机
+     memorial 本张抽空了全图                                   */
+  computeDrawActions() {
+    const S = this.S;
+    const D = S.draw;
+    if (!D) return;
+    const s = S.sets.find(x => x.id === D.sid);
+    if (!s) return;
+    const u = s.user || {};
+
+    let primaryKind = 'stamp';
+    let primaryText = '';
+    let tail = '';
+
+    if (s.type === 'collect' && (u.got || []).length >= s.pool.length) {
+      primaryKind = 'memorial';
+      primaryText = '集齐啦 · 看纪念册';
+      tail = '这是最后一张 · 全图点亮，去纪念册看看吧';
+    } else if (D.trial) {
+      if ((u.trialUsed || 0) < s.trial) {
+        primaryKind = 'trial';
+        primaryText = `再试一张 · 还剩 ${s.trial - (u.trialUsed || 0)} 张`;
+        tail = '试抽免费，不占每日额度';
+      } else {
+        primaryKind = 'unlock';
+        primaryText = `解锁全集 · ¥${s.price}`;
+        tail = '试抽结束 · 解锁后每天继续';
+      }
+    } else if (getRec(u, D.idx)) {
+      primaryKind = 'share';
+      primaryText = '分享这张明信片';
+      tail = '✓ 今天的邮戳已盖好，这张卡现在是明信片了';
+    } else if (s.type === 'collect') {
+      primaryKind = 'stamp';
+      primaryText = '盖个邮戳 · 记录今天';
+      const rest = Math.max(0, s.pool.length - (u.got || []).length);
+      tail = `已收进卡包 · 还剩 ${rest} 张，明天继续`;
+    } else {
+      primaryKind = 'stamp';
+      primaryText = '盖个邮戳 · 记录今天';
+      tail = '抽到什么，就是什么。\n今天的纠结，到此为止。';
+    }
+
+    this.setData({
+      'draw.primaryKind': primaryKind,
+      'draw.primaryText': primaryText,
+      'draw.showShareBtn': primaryKind !== 'share',
+      'draw.tail': tail,
+      'draw.weeklyReady': !!this.weeklyForSet(s),
+    });
   },
 
-  drawAgain() {
+  drawPrimaryAction() {
     const S = this.S;
-    if (!S.draw) return;
-    const sid = S.draw.sid;
-    this.openSetById(sid, 'home');
-    setTimeout(() => {
-      if (this.data.page === 'set') this.mainAct();
-    }, 300);
+    const D = S.draw;
+    if (!D) return;
+    const s = S.sets.find(x => x.id === D.sid);
+    if (!s) return;
+    const kind = this.data.draw.primaryKind;
+    if (kind === 'stamp') {
+      this.openRecordAt(s.id, D.idx, 'draw');
+    } else if (kind === 'share') {
+      this.openPoster();                 // 无参调用，openPoster 内部默认 type='draw'
+    } else if (kind === 'trial') {
+      this.startDraw(s.id);              // 直接重抽，信封完整重播，不再绕详情页
+    } else if (kind === 'unlock') {
+      this.openPay(s);                   // 解锁成功后既有逻辑会送一张并重进抽卡
+    } else if (kind === 'memorial') {
+      this.openDone(s.id);
+    }
   },
 
   /* ──────────────────────────────────────────────────────────
@@ -884,7 +1487,7 @@ Page({
       s.user.unlocked = true;
       this.setData({ 'pay.show': false, 'pay.paying': false });
       this.renderHome();
-      this.renderCards();
+      this.renderSubs();
       this.renderMe();
       this.renderSetPage();
       if (!s.user.todayDrawn && setVM(s).act === 'draw') {
@@ -946,25 +1549,33 @@ Page({
     this.showBigCard(Number(cell.sid), idx);
   },
 
-  showBigCard(sid, idx) {
+  setMapTap(e) {
+    const d = e.currentTarget.dataset;
+    if (d && String(d.dark) === 'true') return;
+    this.showBigCard(Number(d.sid), Number(d.idx));
+  },
+
+  showBigCard(sid, idx, opts = {}) {
     const S = this.S;
     const s = S.sets.find(x => x.id === sid);
     if (!s) return;
     const c = s.pool[idx];
     if (!c) return;
     S.posterCtx = { sid, idx };
+    const back = this.buildCardBack(s, idx, 'big');
+    if (opts.stampAnim) back.stampAnim = true;
     this.setData({
       bigCard: {
         show: true,
-        flipped: false,
+        flipped: !!opts.flipped,
         rar: c.r,
         rarColor: RARC[c.r] || RARC.N,
         no: `No.${pad2(idx + 1)} / ${s.pool.length}`,
         word: c.w,
         wordCls: bwCls(c.w),
         settitle: `《${s.title}》`,
-        lit: s.cat === '文学',
-        back: this.buildCardBack(s, idx, 'big'),
+        lit: s.cat === 'reading',
+        back,
       },
     });
   },
@@ -982,35 +1593,300 @@ Page({
      ────────────────────────────────────────────────────────── */
   openDone(id) {
     this.S.cur = id;
-    this.renderDone();
-    this.go('done');
+    this.openDoneView();
   },
 
+  /* ── 抽空页 · 金色时刻（全屏接管） ── */
   renderDone() {
     const S = this.S;
     const s = S.sets.find(x => x.id === S.cur);
     if (!s) return;
-    const ssrCount = s.pool.filter(c => c.r === 'SSR').length;
     const u = s.user || {};
     const got = u.got || [];
-    const stN = stampedCount(s);
-    const full = got.length > 0 && stN >= got.length;
-    const miss = Math.max(0, got.length - stN);
+    const count = s.count || (s.pool || []).length;
+
+    /* 点阵行列：先按可用高度定行数，再出列数（4/6/8 档） */
+    const vp = getViewport();
+    const CELL = 22;
+    const availH = Math.max(180, vp.h - 330);
+    let rows = Math.max(1, Math.floor(availH / CELL));
+    if (rows > 6) rows = 6;
+    let cols = Math.ceil(count / rows);
+    if (cols > 8) { cols = 8; rows = Math.ceil(count / 8); }
+    if (cols < 4) cols = 4;
+    const cells = [];
+    for (let i = 0; i < rows * cols; i++) cells.push({ i, on: i < count });
+
+    const stamps = got.filter(i => {
+      const r = u.recs && u.recs[i];
+      return Array.isArray(r) ? r.length > 0 : !!r;
+    }).length;
+    const log = u.drawnLog || [];
+    let days = Math.max(1, got.length);
+    if (log.length >= 2) {
+      days = Math.max(1, Math.round((log[log.length - 1].ts - log[0].ts) / 86400000) + 1);
+    }
+
+    clearTimeout(this._doneTimer);
     this.setData({
-      done: {
-        exists: true,
-        id: s.id,
-        title: s.title,
-        count: s.count,
-        creator: s.creator,
-        avatar: (s.creator || '·')[0],
-        ssrCount,
-        stN,
-        gotCount: got.length,
-        full,
-        miss,
+      donePage: {
+        show: false, ctaShow: false,
+        eyebrow: '全部点亮 · 完整图鉴',
+        title: s.title || '',
+        count, days, stamps, cols, cells,
+        note: count + ' 张 · ' + days + ' 天 · ' + stamps + ' 枚邮戳',
       },
     });
+    setTimeout(() => this.setData({ 'donePage.show': true }), 30);
+    this._doneTimer = setTimeout(() => {
+      this.setData({ 'donePage.ctaShow': true });
+    }, 1200);
+  },
+
+  openDoneView() {
+    this.renderDone();
+  },
+
+  closeDone() {
+    clearTimeout(this._doneTimer);
+    this._doneTimer = null;
+    this.setData({ 'donePage.show': false, 'donePage.ctaShow': false });
+  },
+
+  tapDoneAction(e) {
+    const act = e.currentTarget.dataset.act;
+    if (act === 'booklet') {
+      this.openPoster({ currentTarget: { dataset: { type: 'memorial', sid: this.S.cur } } });
+    } else if (act === 'back') {
+      this.closeDone();
+      this.goSetView(this.S.cur);
+    }
+  },
+
+  /* ══════════════ 订阅页 · 纸面直排 ══════════════ */
+  _subHasRec(u, idx) {
+    if (!u || !u.recs || idx == null || !(idx in u.recs)) return false;
+    const r = u.recs[idx];
+    return Array.isArray(r) ? r.length > 0 : !!r;
+  },
+
+  /* ──────────────────────────────────────────────────────────
+     订阅页 v2：行动提醒卡 + 统计 + 三组卡片
+     ────────────────────────────────────────────────────────── */
+  renderSubs() {
+    const now = new Date();
+    const wd = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][now.getDay()];
+    const subs = (this.S.sets || []).filter(s => s.user);
+    const today = [], subscribed = [], doneRows = [];
+    let waitingN = 0, cardsN = 0, emptied = 0;
+
+    subs.forEach(s => {
+      const u = s.user || {};
+      const res = s.type === 'resident';
+      const count = s.count || (s.pool || []).length;
+      const got = (u.got || []).length;
+      const v = setVM(s);
+      cardsN += (u.drawn || 0);
+      const doneSet = !res && count > 0 && got >= count;
+      if (doneSet) emptied++;
+      const todayIdx = u.todayIdx != null ? u.todayIdx
+        : (u.todayDrawn && (u.got || []).length ? u.got[u.got.length - 1] : null);
+      const waiting = u.todayDrawn && !this._hmHasRec(u, todayIdx);
+      if (waiting) waitingN++;
+      const cov = (s.covT || s.title || '·');
+      const row = {
+        id: s.id,
+        title: s.title || '',
+        charA: cov.slice(0, 1),
+        charB: cov.slice(1, 2) || '',
+        idx: todayIdx,
+        prog: res ? '已拆 ' + (u.drawn || 0) + ' 封' : (doneSet ? count + ' 张' : got + ' / ' + count),
+        waiting,
+      };
+      if (doneSet) {
+        doneRows.push(Object.assign(row, { status: '已集齐', statusCls: 'gold', tap: 'booklet', todo: false }));
+      } else if (u.todayDrawn) {
+        if (waiting) {
+          subscribed.push(Object.assign(row, { status: '等你回信', statusCls: 'wait', tap: 'stamp', todo: true }));
+        } else {
+          subscribed.push(Object.assign(row, { status: '已盖戳', statusCls: 'quiet', tap: 'big', todo: false }));
+        }
+      } else {
+        const locked = v.act === 'paywall';
+        today.push(Object.assign(row, {
+          status: locked ? '待解锁 · ¥' + s.price : (res ? '今日可抽' : '今天的信到了'),
+          statusCls: 'go', tap: 'draw', todo: true,
+        }));
+      }
+    });
+    /* 组内排序：可抽在前 / 等回信在前 */
+    today.sort((a, b) => (b.todo ? 1 : 0) - (a.todo ? 1 : 0));
+    subscribed.sort((a, b) => (b.waiting ? 1 : 0) - (a.waiting ? 1 : 0));
+    const firstDraw = today.length ? today[0] : null;
+    const firstWait = subscribed.find(r => r.waiting) || null;
+
+    let weekly = null;
+    subs.forEach(s => {
+      if (weekly) return;
+      const w = this.weeklyForSet(s);
+      if (w) weekly = { sid: s.id, title: s.title, weekNo: w.weekNo };
+    });
+
+    this.setData({ subs: {
+      date: (now.getMonth() + 1) + '月' + now.getDate() + '日 · ' + wd,
+      total: subs.length,
+      remindDraw: firstDraw ? { n: today.length, sid: firstDraw.id } : null,
+      remindStamp: firstWait ? { n: waitingN, sid: firstWait.id, idx: firstWait.idx } : null,
+      statCan: today.length,
+      statCards: cardsN,
+      statEmpty: emptied,
+      today, subscribed, done: doneRows,
+      weekly,
+    }});
+  },
+
+  /* 提醒卡直达动作 */
+  tapRemindDraw() {
+    const r = this.data.subs.remindDraw;
+    if (r) this.goSubsDraw(r.sid, 'cards');
+  },
+
+  tapRemindStamp() {
+    const r = this.data.subs.remindStamp;
+    if (!r) return;
+    this.S.cur = r.sid;
+    this.openRecordAt(r.sid, r.idx, 'cards');
+  },
+
+  tapSubsRow(e) {
+    const d = e.currentTarget.dataset;
+    const sid = Number(d.sid);
+    const s = this.S.sets.find(x => x.id === sid);
+    if (!s) return;
+    const from = d.from || 'cards';
+    const u = s.user || {};
+    if (d.tap === 'stamp') {
+      const idx = d.idx != null ? Number(d.idx)
+        : (u.todayIdx != null ? u.todayIdx
+          : (u.todayDrawn && u.got && u.got.length ? u.got[u.got.length - 1] : null));
+      if (idx == null) return;
+      this.S.cur = sid;
+      this.S.cameFrom = from;
+      this.openRecordAt(sid, idx, from);
+    } else if (d.tap === 'draw') {
+      this.goSubsDraw(sid, from);
+    } else {
+      this.goSubsView(sid, from);
+    }
+  },
+
+  goSubsDraw(sid, from) {
+    const s = this.S.sets.find(x => x.id === sid);
+    if (!s) return;
+    this.S.cur = sid;
+    this.S.cameFrom = from || 'cards';
+    if (setVM(s).act === 'draw') this.startDraw(sid);
+    else this.mainAct();
+  },
+
+  goSubsView(sid, from) {
+    this.S.cameFrom = from || 'cards';
+    this.goSetView(sid);
+  },
+
+  tapSubsBrowse() {
+    this.go('home');
+  },
+
+  /* ══════════════ 我的 · 收藏册 ══════════════ */
+  renderMine() {
+    const sets = this.S.sets || [];
+    let lit = 0, stamps = 0, subCount = 0;
+    const doneCovers = [], notes = [];
+    const recDates = {};
+    sets.forEach(s => {
+      const u = s.user;
+      if (!u) return;
+      subCount++;
+      const pool = s.pool || [];
+      const count = s.count || pool.length;
+      const got = u.got || [];
+      lit += got.length;
+      const isDone = s.type !== 'resident' && count > 0 && got.length >= count;
+      if (isDone) {
+        const log = u.drawnLog || [];
+        const days = log.length >= 2
+          ? Math.max(1, Math.round((log[log.length - 1].ts - log[0].ts) / 86400000) + 1)
+          : Math.max(1, got.length);
+        doneCovers.push({
+          id: s.id, title: s.title || '',
+          coverChar: (s.covT || s.title || '·').slice(0, 1),
+          meta: `${count} 张 · ${days} 天`,
+        });
+      }
+      const recs = u.recs || {};
+      Object.keys(recs).forEach(k => {
+        const r = recs[k];
+        const arr = Array.isArray(r) ? r : (r ? [r] : []);
+        arr.forEach((rec, ri) => {
+          if (!rec) return;
+          if (rec.note || rec.img) {
+            stamps++;
+            if (rec.date) recDates[rec.date] = 1;
+          }
+          if (rec.note && rec.note.trim() && pool[k]) {
+            notes.push({
+              key: s.id + ':' + k + ':' + ri,
+              sid: s.id, idx: Number(k),
+              setTitle: s.title || '',
+              word: (pool[k] || {}).w || '·',
+              note: rec.note.trim(),
+              date: rec.date || '',
+              len: rec.note.trim().length,
+            });
+          }
+        });
+      });
+    });
+
+    let days = Object.keys(recDates).length;
+    if (!days) {
+      const dl = {};
+      sets.forEach(s => {
+        ((s.user && s.user.drawnLog) || []).forEach(e => {
+          if (e && e.ts) dl[new Date(e.ts).toDateString()] = 1;
+        });
+      });
+      days = Object.keys(dl).length;
+    }
+    if (!days && (lit || stamps)) days = 1;
+
+    notes.sort((a, b) => b.len - a.len);
+    notes.splice(2);
+
+    this.setData({
+      mine: {
+        empty: !subCount,
+        days, lit, stamps,
+        done: doneCovers,
+        ongoingCount: subCount - doneCovers.length,
+        notes,
+      },
+    });
+  },
+
+  tapMineCover(e) {
+    const sid = Number(e.currentTarget.dataset.sid);
+    this.openPoster({ currentTarget: { dataset: { type: 'memorial', sid } } });
+  },
+
+  tapMineNote(e) {
+    const d = e.currentTarget.dataset;
+    this.showBigCard(Number(d.sid), Number(d.idx));
+  },
+
+  tapMineBrowse() {
+    this.go('home');
   },
 
   browseBooklet(e) {
@@ -1069,6 +1945,13 @@ Page({
       });
     }
 
+    let weeklyEntry = null;
+    S.sets.forEach(s => {
+      if (weeklyEntry || !s.user) return;
+      const w = this.weeklyForSet(s);
+      if (w) weeklyEntry = { sid: s.id, title: s.title, weekNo: w.weekNo };
+    });
+
     this.setData({
       cards: {
         isNew: false,
@@ -1079,6 +1962,7 @@ Page({
         pending,
         recPend,
         recFirst: recPend[0] || null,
+        weeklyEntry,
         groups,
       },
     });
@@ -1179,7 +2063,7 @@ Page({
     const S = this.S;
     S.craftEmptyView = false;
     const d = {
-      id: ++S.seq, title: '', intro: '', type: 'collect', cat: '兴趣', price: 0, trial: 0, status: 'draft',
+      id: ++S.seq, title: '', intro: '', type: 'collect', cat: 'create', price: 0, trial: 0, status: 'draft',
       pool: ['N', 'N', 'N', 'R', 'R', 'N', 'SR', 'SSR'].map(r => ({ w: '', r, b: '' })),
     };
     S.craft.drafts.push(d);
@@ -1223,7 +2107,7 @@ Page({
         type: d.type,
         cat: d.cat,
         price: d.price,
-        cats: S.catList.slice(1),
+        cats: HM_CATS.map(c => ({ key: c.key, chip: c.chip })),
         prices: [0, 6, 12, 19],
         rarKeys: RAR_KEYS.slice(),
         complete,
@@ -1404,7 +2288,7 @@ Page({
         title: d.title,
         intro: d.intro,
         submitted: d.submitted || '',
-        meta: `${d.type === 'collect' ? '收藏集' : '常驻集'} · ${d.cat} · ${complete.length} 张 · ${d.price > 0 ? `¥${d.price}（前 ${d.trial} 张免费试抽）` : '免费'}`,
+        meta: `${d.type === 'collect' ? '收藏集' : '常驻集'} · ${catChipOf(d.cat)} · ${complete.length} 张 · ${d.price > 0 ? `¥${d.price}（前 ${d.trial} 张免费试抽）` : '免费'}`,
         rarStat,
         cards: complete.map(c => ({ badge: c.r, w: c.w, b: c.b })),
         count: complete.length,
@@ -1591,9 +2475,11 @@ Page({
       todayLine = bits.join(' · ');
     }
 
+    const now = new Date();
+    const wd = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][now.getDay()];
     this.setData({
       me: {
-        date: getTodayStr(),
+        date: `${now.getMonth() + 1}月${now.getDate()}日 · ${wd}`,
         name: ME,
         avatar: '我',
         cardN,
@@ -1712,27 +2598,67 @@ Page({
       u.recs[rc.idx] = rec;
     }
     this.setData({ 'record.show': false });
-    this.toast('已盖上今天的邮戳');
+    const weekly = this.weeklyState(s);
+    const weeklyFresh = weekly.ready && weekly.stampN === 7 && !this.isWeeklyMade(s, weekly.weekNo);
+    if (weeklyFresh) this.toast('本周集齐 7 张 · 可以生成周记了');
+    else if (rc.from === 'draw') this.toast('已盖上今天的邮戳');
+    else this.toast('已盖上邮戳，可以分享这张明信片了');
 
     if (rc.from === 'draw') {
-      const back = this.buildCardBack(s, rc.idx, 'draw');
+      /* 抽卡页：无论盖章前在正面还是背面，盖章后停在背面，
+         落戳动画直接可见 */
+      const back = this._dwBack(s, rc.idx);
       back.stampAnim = true;
-      this.setData({ 'draw.back': back });
+      this.setData({
+        'draw.back': back,
+        'draw.backIdx': rc.idx,
+        'draw.front': this._dwFront(s, rc.idx),
+        'draw.flipped': true,
+        'draw.hint': '轻触卡面 · 翻到另一面',
+      });
+      this.renderHome();
+      this.renderSubs();
+      this.renderMe();
       setTimeout(() => {
-        if (this.data.draw) this.setData({ 'draw.back.stampAnim': false });
+        if (this.data.draw) {
+          this.setData({ 'draw.back.stampAnim': false });
+          this.renderDraw();     // 重算 CTA：补盖 → 分享这张明信片
+        }
       }, 620);
     } else {
+      /* 回看场景（big / set / cards 来源）：不重置、不闪正面 */
       this.renderHome();
-      this.renderCards();
+      this.renderSubs();
       this.renderSetPage();
-      this.showBigCard(s.id, rc.idx);
-      setTimeout(() => {
-        if (!this.data.bigCard.show) return;
-        this.setData({ 'bigCard.flipped': true, 'bigCard.back.stampAnim': true });
+      if (this.data.bigCard.show) {
+        // 正在查看大卡：原地刷新背面，翻面状态不丢
+        const back = this.buildCardBack(s, rc.idx, 'big');
+        back.stampAnim = true;
+        this.setData({ 'bigCard.back': back, 'bigCard.flipped': true });
+      } else {
+        // 从详情页 / 订阅页补盖：打开大卡即背面 + 落戳动画
+        this.showBigCard(s.id, rc.idx, { flipped: true, stampAnim: true });
+      }
+      // 若抽卡页还在背后（例如从「看看今天的卡」大卡里补盖），同步刷新抽卡卡背
+      if (this.data.page === 'draw') {
+        const dwBack = this._dwBack(s, rc.idx);
+        dwBack.stampAnim = true;
+        this.setData({
+          'draw.back': dwBack,
+          'draw.backIdx': rc.idx,
+          'draw.front': this._dwFront(s, rc.idx),
+          'draw.flipped': true,
+        });
         setTimeout(() => {
-          if (this.data.bigCard) this.setData({ 'bigCard.back.stampAnim': false });
+          if (this.data.draw) {
+            this.setData({ 'draw.back.stampAnim': false });
+            this.renderDraw();
+          }
         }, 620);
-      }, 450);
+      }
+      setTimeout(() => {
+        if (this.data.bigCard) this.setData({ 'bigCard.back.stampAnim': false });
+      }, 620);
     }
     S.rc = null;
   },
@@ -1740,44 +2666,263 @@ Page({
   /* ──────────────────────────────────────────────────────────
      海报 / 纪念册
      ────────────────────────────────────────────────────────── */
-  getRecBlock() {
-    const S = this.S;
-    if (!S.posterCtx) return null;
-    const s = S.sets.find(x => x.id === S.posterCtx.sid);
-    if (!s || !s.pool[S.posterCtx.idx]) return null;
-    const rec = getRec(s.user, S.posterCtx.idx);
-    if (!rec) return null;
+
+  /* ──────────────────────────────────────────────────────────
+     周记（weekly）
+     ────────────────────────────────────────────────────────── */
+  ensureDrawnLog(s) {
+    const u = s && s.user;
+    if (!u || s.type !== 'collect' || !u.got || !u.got.length) return;
+    if (!u.drawnLog) {
+      // 演示数据兜底：把已有的 got 摊到最近 N 天，保证历史集合也能看周记
+      const now = Date.now();
+      u.drawnLog = u.got.map((idx, i) => {
+        const d = new Date(now - (u.got.length - 1 - i) * 86400000);
+        return {
+          idx,
+          date: `${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`,
+          ts: d.getTime(),
+        };
+      });
+    }
+  },
+
+  weeklyState(s) {
+    if (!s || s.type !== 'collect') return { ready: false };
+    this.ensureDrawnLog(s);
+    const u = s.user;
+    const logs = (u && u.drawnLog) || [];
+    if (!u || logs.length < 7) return { ready: false };
+
+    const win = logs.slice(-7);
+    const weekNo = Math.ceil(logs.length / 7);
+    const recs = win.map(l => getRec(u, l.idx));
+    const stampN = recs.filter(Boolean).length;
+
+    const photos = [];
+    recs.forEach((r, i) => {
+      if (r && r.img) {
+        photos.push({
+          img: r.img,
+          note: r.note || '',
+          date: r.date || win[i].date,
+          idx: win[i].idx,
+        });
+      }
+    });
+    // 主拍立得优先取笔记最长的回信，其余按原顺序
+    photos.sort((a, b) => (b.note || '').length - (a.note || '').length);
+
+    const noteRecs = recs.filter(r => r && r.note);
+    let quote = '';
+    if (photos.length && photos[0].note) quote = photos[0].note;
+    if (!quote && noteRecs.length) {
+      quote = noteRecs.reduce((a, b) => ((b.note || '').length > (a.note || '').length ? b : a)).note;
+    }
+
+    const words = win.map(l => (s.pool[l.idx] || {}).w).filter(Boolean);
+    const first = win[0].date.split('-');
+    const last = win[6].date.split('-');
+    const year = new Date().getFullYear();
+
+    const cards = win.map(l => {
+      const c = s.pool[l.idx] || { w: '', r: 'N' };
+      return { idx: l.idx, word: c.w, rar: c.r, wordCls: bwCls(c.w) };
+    });
+    const stamps = win.map(l => ({
+      k: `${l.ts}-${l.idx}`,
+      on: !!getRec(u, l.idx),
+      date: l.date,
+    }));
+
+    // 连续周数：从本周往回数，每周至少 1 枚邮戳（与 Canvas 模板一致）
+    const stampWeeks = {};
+    (u.drawnLog || []).forEach(e => {
+      if (getRec(u, e.idx)) stampWeeks[isoWeekKey(e.ts)] = true;
+    });
+    let streak = 0;
+    let cursor = new Date();
+    while (stampWeeks[isoWeekKey(cursor.getTime())]) {
+      streak++;
+      cursor = new Date(cursor.getTime() - 7 * 86400000);
+    }
+
     return {
-      img: rec.img || '',
-      note: rec.note || '',
-      date: rec.date || '',
-      stampDate: stampDate(rec.date),
+      ready: true,
+      weekNo,
+      window: win,
+      cards,
+      stamps,
+      stampN,
+      streak,
+      drawnN: win.length,
+      title: weeklyTitle(stampN, weekNo),
+      range: `${year}.${first[0]}.${first[1]} — ${last[0]}.${last[1]}`,
+      kicker: `《${s.title}》 · 第 ${weekNo} 周`,
+      variant: photos.length >= 2 ? 'photo' : 'card',
+      photos: photos.slice(0, 2),
+      wordLine: words.slice(0, 7).join('、') + (words.length > 7 ? '…' : ''),
+      quote,
     };
   },
 
-  buildHighlight(c, s, opts) {
+  weeklyKey(s, weekNo) {
+    return `${s.id}:${weekNo}`;
+  },
+
+  isWeeklyMade(s, weekNo) {
+    return !!this.S.weeklyMade[this.weeklyKey(s, weekNo)];
+  },
+
+  markWeeklyMade(s, weekNo) {
+    this.S.weeklyMade[this.weeklyKey(s, weekNo)] = true;
+  },
+
+  weeklyForSet(s) {
+    const w = this.weeklyState(s);
+    if (!w.ready || this.isWeeklyMade(s, w.weekNo)) return null;
+    return w;
+  },
+
+  openWeekly(e) {
+    const S = this.S;
+    const d = e && e.currentTarget && e.currentTarget.dataset;
+    const id = d && d.id != null ? Number(d.id) : S.cur;
+    const s = S.sets.find(x => x.id === id);
+    if (!s) return;
+    const w = this.weeklyState(s);
+    if (!w.ready) {
+      this.toast('再抽几张，抽满 7 张就能生成周记');
+      return;
+    }
+    this.markWeeklyMade(s, w.weekNo);
+    S.posterType = 'weekly';
+    this.setData({
+      poster: {
+        show: true,
+        kind: 'weekly',
+        booklet: false,
+        ratio: '34',
+        sid: s.id,
+        title: w.title,
+        kicker: w.kicker,
+        range: w.range,
+        cards: w.cards,
+        stamps: w.stamps,
+        stampN: w.stampN,
+        streak: w.streak,
+        drawnN: w.drawnN,
+        weekNo: w.weekNo,
+        variant: w.variant,
+        photos: w.photos,
+        wordLine: w.wordLine,
+        quote: w.quote,
+      },
+    });
+    this.renderSubs();
+    if (this.data.page === 'set') this.renderSetPage();
+    if (this.data.page === 'draw') this.computeDrawActions();
+  },
+
+  setPosterRatio(e) {
+    this.setData({ 'poster.ratio': e.currentTarget.dataset.ratio });
+  },
+
+  /* ── V2.6 · Canvas 周记导出（posterKit） ── */
+  async openWeeklyPoster(e) {
+    const S = this.S;
+    const d = e && e.currentTarget && e.currentTarget.dataset;
+    const id = d && d.id != null ? Number(d.id) : S.cur;
+    const s = S.sets.find(x => x.id === id);
+    if (!s) return;
+    // qrSrc：服务端 wxacode.getUnlimited({ scene: `p=w&s=${s.id}` }) 的结果，
+    // 缓存后传入；传空字符串会渲染 QR 占位框，不报错。
+    const data = posterKit.buildWeeklyData(s, { qrSrc: '' });
+    if (!data) { this.toast('本周还没有抽卡记录'); return; }
+
+    // 渠道选择：小红书 3:4 / 朋友圈 9:16
+    const tap = await new Promise((resolve) => {
+      wx.showActionSheet({
+        itemList: ['小红书 · 3:4', '朋友圈 · 9:16'],
+        success: (r) => resolve(r.tapIndex),
+        fail: () => resolve(-1),
+      });
+    });
+    if (tap < 0) return;
+    await this.exportWeeklyById(id, tap === 1 ? '916' : '34');
+  },
+
+  /** 按指定比例生成并保存周记；预览弹层保存也走这里 */
+  async exportWeeklyById(id, ratio) {
+    const S = this.S;
+    const s = S.sets.find(x => x.id === id);
+    if (!s) return;
+    const data = posterKit.buildWeeklyData(s, { qrSrc: '' });
+    if (!data) { this.toast('本周还没有抽卡记录'); return; }
+    // 从周记预览保存时，复用预览里的标题，避免随机文案和预览不一致
+    const pv = this.data.poster || {};
+    if (pv.show && pv.kind === 'weekly' && pv.sid === s.id && pv.title) {
+      data.titleText = pv.title;
+    }
+    wx.showLoading({ title: '生成中', mask: true });
+    try {
+      const temp = ratio === '916'
+        ? await posterKit.exportWeekly916(data)
+        : await posterKit.exportWeekly34(data);
+      await posterKit.saveToAlbum(temp);
+      this.markWeeklyMade(s, data.weekNo);
+      this.renderSubs();
+      if (this.data.page === 'set') this.renderSetPage();
+      if (this.data.page === 'draw') this.computeDrawActions();
+      if (this.data.poster.show) this.setData({ 'poster.show': false });
+      this.toast(ratio === '916' ? '朋友圈版已保存 📸' : '周记已保存到相册 📸');
+    } catch (err) {
+      console.warn(err);
+      this.toast('生成失败，请重试');
+    } finally {
+      wx.hideLoading();
+    }
+  },
+
+  async demoWeekly() {
+    const s = this.S.sets.find(x => x.id === 14);
+    if (!s) { this.toast('演示数据里没有找到「云的图鉴」'); return; }
+    posterKit.synthesizeLog(s, 7);
+    this.S.cur = 14;
+    await this.openWeeklyPoster();
+  },
+
+  async demoWeekly916() {
+    const s = this.S.sets.find(x => x.id === 14);
+    if (!s) { this.toast('演示数据里没有找到「云的图鉴」'); return; }
+    posterKit.synthesizeLog(s, 7);
+    this.S.cur = 14;
+    await this.exportWeeklyById(14, '916');
+  },
+
+  async demoMemorial() {
+    const s = this.S.sets.find(x => x.id === 14);
+    if (!s) return;
+    s.user = s.user || {};
+    s.user.got = s.pool.map((_, i) => i);
+    posterKit.synthesizeLog(s, s.pool.length);
+    const data = posterKit.buildMemorialData(s, { qrSrc: '' });
+    if (!data) return;
+    wx.showLoading({ title: '生成中', mask: true });
+    try {
+      await posterKit.exportAndSaveMemorial34(data);
+      this.toast('纪念海报已保存 📸');
+    } catch (e) {
+      console.warn(e);
+      this.toast('生成失败');
+    } finally {
+      wx.hideLoading();
+    }
+  },
+
+  buildHighlight(c, s, opts = {}) {
     if (!c || !s) return null;
-    const now = new Date();
-    const rec = this.getRecBlock();
-    return {
-      kind: 'highlight',
-      rar: c.r,
-      isSSR: c.r === 'SSR',
-      rarName: RARNAME[c.r] || c.r,
-      date: `${now.getMonth() + 1}月${now.getDate()}日`,
-      no: opts.no || `No.${pad2(s.pool.indexOf(c) + 1)} / ${s.pool.length}`,
-      word: c.w,
-      text: c.b || '',
-      setTitle: s.title,
-      setCover: (s.covT || s.title || '').slice(0, 1),
-      creator: s.creator,
-      count: s.count,
-      collect: s.type === 'collect',
-      gotN: (s.user && s.user.got) ? s.user.got.length : 0,
-      slogan: opts.slogan || '万物皆可抽一签',
-      setInfo: `@${s.creator} · ${s.count} 张卡${s.type === 'collect' ? ` · 已点亮 ${(s.user && s.user.got) ? s.user.got.length : 0}/${s.count}` : ''}`,
-      rec,
-    };
+    return posterKit.buildHighlightData(s, c, opts);   // 唯一真相源：预览与导出同源
   },
 
   openPoster(e) {
@@ -1789,61 +2934,55 @@ Page({
       if (!S.draw) { this.toast('请先抽一张卡'); return; }
       const s = S.sets.find(x => x.id === S.draw.sid);
       data = this.buildHighlight(S.draw.card, s, {
+        idx: S.draw.idx,                              // ← 显式传 idx
         no: `No.${pad2(S.draw.idx + 1)} / ${s.pool.length}`,
         slogan: '万物皆可抽一签',
       });
     } else if (type === 'memorial') {
-      data = this.buildMemorialPoster();
+      const d = (e && e.currentTarget && e.currentTarget.dataset) || {};
+      data = this.buildMemorialPoster({ sid: d.sid != null ? Number(d.sid) : undefined });
     } else if (type === 'card') {
-      const s = S.sets.find(x => x.id === S.cur);
+      const d = (e && e.currentTarget && e.currentTarget.dataset) || {};
+      const sid = Number(d.sid != null ? d.sid : S.cur);
+      const s = S.sets.find(x => x.id === sid);
       if (!s) return;
-      const c = s.pool[Math.max(0, ((s.user && s.user.got && s.user.got.length) || 1) - 1)];
+      let idx;
+      if (d.idx != null) {
+        idx = Number(d.idx);
+      } else {
+        const gotArr = (s.user && s.user.got) || [];
+        idx = gotArr.length ? gotArr[gotArr.length - 1] : 0;
+      }
+      const c = s.pool[idx];
+      if (!c) return;
       data = this.buildHighlight(c, s, {
-        no: `No.${pad2(s.pool.indexOf(c) + 1)} / ${s.pool.length}`,
+        idx,
+        no: `No.${pad2(idx + 1)} / ${s.pool.length}`,
+        slogan: '扫码抽一张',
+      });
+    } else if (type === 'big') {
+      // 回看场景：分享当前大卡的这一张
+      const d = (e && e.currentTarget && e.currentTarget.dataset) || {};
+      const sid = Number(d.sid != null ? d.sid : S.cur);
+      const idx = Number(d.idx != null ? d.idx : 0);
+      const s = S.sets.find(x => x.id === sid);
+      if (!s || !s.pool[idx]) return;
+      data = this.buildHighlight(s.pool[idx], s, {
+        idx,
+        no: `No.${pad2(idx + 1)} / ${s.pool.length}`,
         slogan: '扫码抽一张',
       });
     }
     if (!data) return;
-    this.setData({ poster: Object.assign({ show: true, booklet: !!data.rec }, data) });
+    S.posterExport = data;                            // ← 供 savePoster 真实导出
+    this.setData({ poster: Object.assign({ show: true, booklet: !!data.rec, ratio: '34' }, data) });
   },
 
-  buildMemorialPoster() {
+  buildMemorialPoster(opts = {}) {
     const S = this.S;
-    const s = S.sets.find(x => x.id === S.cur);
+    const s = S.sets.find(x => x.id === (opts.sid != null ? opts.sid : S.cur));
     if (!s) return null;
-    const u = s.user || {};
-    const got = u.got || [];
-    const ssrCount = s.pool.filter(c => c.r === 'SSR').length;
-    const gotSSR = got.filter(i => s.pool[i] && s.pool[i].r === 'SSR').length;
-    const ssrCard = s.pool.find(c => c.r === 'SSR');
-    const now = new Date();
-    const dateStr = todayDot();
-    const timeline = [];
-    if (got.length > 0) {
-      const first = s.pool[got[0]];
-      timeline.push({ label: '第 1 张', title: first ? first.w : '', date: '一切的开始' });
-      if (got.length > 2) {
-        const mid = s.pool[got[Math.floor(got.length / 2)]];
-        timeline.push({ label: `第 ${Math.floor(got.length / 2) + 1} 张`, title: mid ? mid.w : '', date: '过半 · 习惯已成' });
-      }
-      if (got.length > 1) {
-        const last = s.pool[got[got.length - 1]];
-        timeline.push({ label: '最后一张', title: last ? last.w : '', date: '圆满' });
-      }
-    }
-    return {
-      kind: 'memorial',
-      date: dateStr,
-      title: s.title,
-      count: s.count,
-      gotCount: got.length,
-      gotSSR,
-      ssrCount,
-      ssrW: gotSSR,
-      timeline,
-      quote: ssrCard ? ssrCard.b : '集齐本身，就是最好的签。',
-      slogan: '万物皆可抽一签',
-    };
+    return posterKit.buildMemorialData(s, opts);   // 唯一真相源：预览与导出同源
   },
 
   openBooklet(variant) {
@@ -1886,6 +3025,7 @@ Page({
         show: true,
         booklet: true,
         kind: 'booklet',
+        ratio: '34',
         full,
         title: s.title,
         creator: s.creator,
@@ -1916,16 +3056,63 @@ Page({
     const c = { w: demo.w, b: demo.b, r: rarity };
     const s = { title: '生活中的微小确幸', covT: '生活中的微小确幸', creator: '小鱼', count: 12, pool: [], user: null };
     const data = this.buildHighlight(c, s, { no: 'No. 003 / 012', slogan: '「做点小事，慢慢收集。」' });
-    this.setData({ poster: Object.assign({ show: true, booklet: false }, data) });
+    S.posterExport = data;
+    this.setData({ poster: Object.assign({ show: true, booklet: false, ratio: '34' }, data) });
   },
 
   hidePoster() {
     this.setData({ 'poster.show': false });
   },
 
-  savePoster() {
-    this.toast(this.S.posterType === 'booklet' ? '纪念册已保存到相册 📸' : '海报已保存到相册 📸');
-    setTimeout(() => this.setData({ 'poster.show': false }), 800);
+  async savePoster() {
+    const S = this.S;
+    const type = S.posterType;
+
+    // 周记：按当前预览比例走 posterKit 的真实 Canvas 导出
+    if (this.data.poster.kind === 'weekly') {
+      this.exportWeeklyById(
+        this.data.poster.sid,
+        this.data.poster.ratio === '916' ? '916' : '34'
+      );
+      return;
+    }
+
+    // booklet（长图纪念册）尚未 Canvas 化，维持演示提示
+    if (type === 'booklet') {
+      this.toast('纪念册已保存到相册 📸');
+      setTimeout(() => this.setData({ 'poster.show': false }), 800);
+      return;
+    }
+
+    const data = S.posterExport;
+    if (!data || (data.kind !== 'highlight' && data.kind !== 'memorial')) {
+      this.toast('生成失败，请重试');
+      return;
+    }
+
+    const tap = await new Promise((resolve) => {
+      wx.showActionSheet({
+        itemList: ['小红书 · 3:4', '朋友圈 · 9:16'],
+        success: (r) => resolve(r.tapIndex),
+        fail: () => resolve(-1),
+      });
+    });
+    if (tap < 0) return;
+
+    wx.showLoading({ title: '生成中', mask: true });
+    try {
+      const temp = data.kind === 'memorial'
+        ? (tap === 1 ? await posterKit.exportMemorial916(data) : await posterKit.exportMemorial34(data))
+        : (tap === 1 ? await posterKit.exportHighlight916(data) : await posterKit.exportHighlight34(data));
+      await posterKit.saveToAlbum(temp);
+      this.toast('海报已保存到相册 📸');
+      setTimeout(() => this.setData({ 'poster.show': false }), 800);
+    } catch (e) {
+      console.warn(e);
+      this.toast('保存失败，请重试');
+    } finally {
+      wx.hideLoading();
+    }
   },
 
   /* ──────────────────────────────────────────────────────────
@@ -1939,6 +3126,15 @@ Page({
     const u = s.user;
     u.drawn = s.count;
     u.got = s.pool.map((_, i) => i);
+    const now = Date.now();
+    u.drawnLog = s.pool.map((_, i) => {
+      const d = new Date(now - (s.pool.length - 1 - i) * 86400000);
+      return {
+        idx: i,
+        date: `${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`,
+        ts: d.getTime(),
+      };
+    });
     u.todayDrawn = false;
     u.todayIdx = null;
     u.recs = {
@@ -1948,7 +3144,7 @@ Page({
     };
     this.toast('已快进：「云的图鉴」8 张全收集 · 3 枚邮戳');
     this.renderHome();
-    this.renderCards();
+    this.renderSubs();
     this.renderMe();
     this.openDone(s.id);
   },
