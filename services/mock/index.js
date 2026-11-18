@@ -3,7 +3,7 @@
  * 页面禁止直接引用本文件（铁律 1）。
  */
 const store = require('./store.js');
-const { dateKeyOf, todayKey, weekMondayKey, keyPlus, todayShort, todayMD, stampDate } = require('../util/bktime.js');
+const { bkDate, dateKeyOf, todayKey, weekMondayKey, keyPlus, todayShort, todayMD, todayDot, stampDate } = require('../util/bktime.js');
 
 /* ── 失败注入 ── */
 let failureRate = 0;
@@ -187,6 +187,8 @@ async function saveStamp({ setId, idx, note, imgFileID } = {}) {
     img: imgFileID || '', imgFileID: imgFileID || '',
     note: (note || '').slice(0, 50),
     date: todayShort(), stampDate: '',
+    dateText: todayDot(),
+    dayText: '周' + '日一二三四五六'[bkDate().getUTCDay()],
     sec: { text: 'pass', media: imgFileID ? 'pass' : 'none' },
   };
   rec.stampDate = stampDate(rec.date);

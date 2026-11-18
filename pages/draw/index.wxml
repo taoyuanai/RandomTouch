@@ -1,4 +1,5 @@
 <import src="/templates/common.wxml"/>
+<import src="/templates/card.wxml"/>
 <view class="phone" style="--statusbar:{{statusBarHeight}}px;--navtop:{{navTop}}px">
   <view class="status-spacer"></view>
   <view class="screen">
@@ -7,43 +8,41 @@
       <view class="dw {{draw.stage}} {{draw.fast ? 'fast' : ''}}">
         <view class="dw-back" bindtap="backToSet">‹</view>
         <view class="dw-stage">
-          <!-- 组①：信封（未拆 / 拆信中） -->
           <view class="dw-env" wx:if="{{draw.stage !== 'after'}}" bindtap="tapEnvelope">
-            <view class="dw-env-body">
-              <view class="dw-env-char">{{draw.envelope.coverChar}}</view>
-              <view class="dw-env-meta">{{draw.envelope.meta}}</view>
-            </view>
-            <view class="dw-env-flap"></view>
-            <view class="dw-seal"><text class="dw-seal-mark">✦</text></view>
-          </view>
-
-          <!-- 组①：卡面（拆后，轻触翻面） -->
-          <view class="dw-cardwrap" wx:if="{{draw.stage === 'after'}}" bindtap="tapCard">
-            <view class="dw-flip">
-              <view class="dw-flip-inner {{draw.flipped ? 'is-flipped' : ''}}">
-                <view class="dw-face dw-frontface {{draw.sig ? 'sig' : ''}}">
-                  <view class="dw-bar sig {{draw.sigBar ? 'show' : ''}}" wx:if="{{draw.sig}}"></view>
-                  <view class="dw-word {{draw.front.wordCls}}">{{draw.front.word}}</view>
-                  <view class="dw-serial">{{draw.front.serial}}</view>
-                  <view class="dw-sig-stamp {{draw.sigStamp ? 'show' : ''}}" wx:if="{{draw.sig}}">题眼</view>
-                </view>
-                <view class="dw-face dw-backface">
-                  <view class="dw-bk-no" wx:if="{{draw.back.no}}">{{draw.back.no}}</view>
-                  <view class="dw-bk-note" wx:if="{{draw.back.note}}">{{draw.back.note}}</view>
-                  <view class="dw-bk-imgwrap" wx:if="{{draw.back.img}}">
-                    <image class="dw-bk-img" src="{{draw.back.img}}" mode="aspectFill"/>
+            <view class="dw-env-shadow"></view>
+            <view class="dw-env-back"></view>
+            <view class="dw-env-letter"></view>
+            <view class="dw-env-front">
+              <view class="dw-env-stamp">
+                <view class="dw-env-stamp-in" style="background:{{draw.env.tint}}">
+                  <view class="dw-env-stamp-name">
+                    <text class="dw-env-stamp-ch" wx:for="{{draw.env.seriesV}}" wx:key="*this"
+                          style="color:{{draw.env.ink}}">{{item}}</text>
                   </view>
-                  <view class="dw-bk-empty" wx:if="{{!draw.back.note && !draw.back.img}}">
-                    <view class="dw-bk-explain">{{draw.back.explain}}</view>
-                    <view class="dw-bk-empty-hint">今天的话，留给回信</view>
-                  </view>
-                  <view class="dw-bk-date {{draw.back.stampAnim ? 'stamp-anim' : ''}}"
-                        wx:if="{{draw.back.date}}">{{draw.back.date}}</view>
-                  <view class="dw-bk-count" wx:if="{{draw.back.count}}">已记 {{draw.back.count}} 条</view>
+                  <text class="dw-env-stamp-val" style="color:{{draw.env.ink}}">今日</text>
                 </view>
               </view>
+              <view class="dw-env-pmk">
+                <text class="dw-env-pmk-top">DAILY POST</text>
+                <text class="dw-env-pmk-date">{{draw.env.date}}</text>
+                <text class="dw-env-pmk-seq">{{draw.env.seq}}</text>
+              </view>
+              <text class="dw-env-from">FROM · 今日做点小事</text>
+            </view>
+            <view class="dw-env-flap"></view>
+            <view class="dw-env-wax">
+              <view class="dw-env-wax-half l"><text class="dw-env-wax-ch">今</text></view>
+              <view class="dw-env-wax-half r"><text class="dw-env-wax-ch">今</text></view>
             </view>
           </view>
+
+          <view class="dw-cardwrap" wx:if="{{draw.stage === 'after'}}" bindtap="tapCard">
+            <view class="dw-flip {{draw.flipped ? 'on' : ''}} {{draw.sigBar ? 'sig-bar' : ''}} {{draw.sigStamp ? 'sig-stamp' : ''}}">
+              <view class="dw-face a"><template is="cardFront" data="{{c: draw.front}}"/></view>
+              <view class="dw-face b"><template is="cardBack" data="{{c: draw.back}}"/></view>
+            </view>
+          </view>
+        </view>
 
           <!-- 组②：一行 mono 提示 -->
           <view class="dw-hint">{{draw.hint}}</view>
@@ -101,7 +100,6 @@
               今天的签都抽过了，去发现逛逛 ›
             </view>
           </view>
-        </view>
       </view>
     </view>
 

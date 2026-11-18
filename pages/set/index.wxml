@@ -1,4 +1,5 @@
 <import src="/templates/common.wxml"/>
+<import src="/templates/card.wxml"/>
 <view class="phone" style="--statusbar:0px;--navtop:0px">
   <view class="screen">
 <!-- ═══════════════════ 卡集详情 ═══════════════════ -->
@@ -21,7 +22,7 @@
               <text class="cov-main">{{setPage.covT}}</text>
               <text class="cov-sub" wx:if="{{setPage.covS}}">{{setPage.covS}}</text>
             </block>
-            <view class="cover-price-lg" wx:if="{{setPage.price > 0}}">¥{{setPage.price}}</view>
+            <view class="cover-price-sticker" wx:if="{{setPage.price > 0}}">¥{{setPage.price}}</view>
             <view class="cover-trial-lg" wx:if="{{setPage.trial > 0}}">试{{setPage.trial}}张</view>
           </view>
           <view class="spv2-h1">{{setPage.title}}</view>

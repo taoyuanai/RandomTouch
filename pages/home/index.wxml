@@ -67,8 +67,6 @@
             <block wx:else>
               <text class="t-span">{{item.covT4}}</text><text class="t-i">{{item.covS8}}</text>
             </block>
-            <view class="cover-price" wx:if="{{item.price > 0}}">¥{{item.price}}</view>
-            <view class="cover-trial" wx:if="{{item.trial > 0}}">试{{item.trial}}张</view>
           </view>
           <view class="bc-info">
             <view class="t-h3">{{item.title}}</view>

@@ -1,0 +1,56 @@
+<!-- templates/card.wxml · V1 纸品卡
+     缩放：--cw/--ch（默认 240×340）；单色印刷：一切颜色经 --ink 三件套 -->
+<import src="/templates/common.wxml"/>
+
+<template name="cardFront">
+  <view class="cf {{c.isKey ? 'k' : ''}} {{c.sigBar ? 'sig-bar' : ''}} {{c.sigStamp ? 'sig-stamp' : ''}}"
+        style="--ink:{{c.ink}};--ink-line:{{c.inkLine}};--ink-faint:{{c.inkFaint}}">
+    <view class="cf-frame"></view>
+    <view class="cf-head">
+      <text class="cf-no">No.{{c.no}}</text>
+      <text class="cf-series">{{c.series}}</text>
+    </view>
+    <view class="cf-rule"></view>
+    <block wx:if="{{c.isKey}}">
+      <view class="cf-wordv">
+        <text class="cf-wordv-t" wx:for="{{c.wordChars}}" wx:key="*this">{{item}}</text>
+      </view>
+      <view class="cf-keyseal"><text>题</text><text>眼</text></view>
+    </block>
+    <view wx:else class="cf-word {{c.wCls}}">
+      <block wx:if="{{c.row1}}">
+        <text class="cf-word-row">{{c.row1}}</text>
+        <text class="cf-word-row">{{c.row2}}</text>
+      </block>
+      <text wx:else class="cf-word-t">{{c.word}}</text>
+    </view>
+  </view>
+</template>
+
+<template name="cardBack">
+  <view class="cw"
+        style="--ink:{{c.ink}};--ink-line:{{c.inkLine}};--ink-faint:{{c.inkFaint}}">
+    <view class="cw-frame"></view>
+    <view class="cw-head">
+      <text class="cw-series">{{c.series}}</text>
+      <text class="cw-tag">POST CARD</text>
+    </view>
+    <view class="cw-div"></view>
+    <view class="cw-main">
+      <text class="cw-print">{{c.backText}}</text>
+      <view class="cw-write">
+        <text class="cw-note">{{c.note}}</text>
+      </view>
+    </view>
+    <view class="cw-post">
+      <view class="cw-stamp">
+        <image wx:if="{{c.photo}}" class="cw-stamp-img" src="{{c.photo}}" mode="aspectFill"/>
+        <text wx:else class="cw-stamp-empty">待盖戳</text>
+      </view>
+      <view wx:if="{{c.stamped}}" class="cw-pmk {{c.stampAnim ? 'pop' : ''}}">
+        <text class="cw-pmk-date">{{c.pmkDate}}</text>
+        <text class="cw-pmk-day">{{c.pmkDay}}</text>
+      </view>
+    </view>
+  </view>
+</template>

@@ -1,3 +1,4 @@
+<import src="/templates/card.wxml"/>
 <!-- D6 · 流程弹层：record / bigCard / poster / dp（cards/set/draw/map） -->
 <!-- ═══════════════════ 盖邮戳 / 回信 ═══════════════════ -->
   <view class="modal {{record.show ? 'show' : ''}}" id="recordModal">
@@ -32,25 +33,11 @@
   <view class="modal centered {{bigCard.show ? 'show' : ''}}" id="cardModal">
     <view class="sheet" style="padding-top:var(--space-8)">
       <button class="close-btn" bindtap="closeBigCard" style="position:absolute;top:12px;right:12px;z-index:10">✕</button>
-      <view class="bigcard {{bigCard.flipped ? 'flipped' : ''}} {{bigCard.lit ? 'lit' : ''}}" id="bigcard" bindtap="toggleBigCardFlip">
+      <view class="bigcard {{bigCard.flipped ? 'flipped' : ''}} {{bigCard.lit ? 'lit' : ''}}" id="bigcard" bindtap="toggleBigCardFlip"
+            style="--cw:264px;--ch:374px">
         <view class="card-inner">
-          <view class="card-face front">
-            <view class="cf-top">
-              <text class="t-span no">{{bigCard.no}}</text>
-            </view>
-            <view class="bigword serif {{bigCard.wordCls}}">{{bigCard.word}}</view>
-            <view class="bigcard-sig" wx:if="{{bigCard.sig}}">题眼</view>
-            <view class="cf-bottom">
-              <text class="t-span">{{bigCard.settitle}}</text>
-              <view class="t-span flip-hint">
-                <image class="t-svg" src="/assets/icons/rotate.png" mode="aspectFit" />
-                <text>轻触翻面</text>
-              </view>
-            </view>
-          </view>
-          <view class="card-face back" style="padding:0">
-            <template is="cardBack" data="{{back: bigCard.back}}" />
-          </view>
+          <view class="card-face front"><template is="cardFront" data="{{c: bigCard.front}}"/></view>
+          <view class="card-face back"><template is="cardBack" data="{{c: bigCard.back}}"/></view>
         </view>
       </view>
 

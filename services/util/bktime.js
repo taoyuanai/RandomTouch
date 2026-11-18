@@ -25,6 +25,11 @@ function todayShort() {
   const d = bkDate();
   return `${d.getUTCMonth() + 1}月${d.getUTCDate()}日`;
 }
+function todayDot() {
+  const d = bkDate();
+  const p = (n) => String(n).padStart(2, '0');
+  return `${d.getUTCFullYear()}.${p(d.getUTCMonth() + 1)}.${p(d.getUTCDate())}`;
+}
 function todayMD() {
   const d = bkDate();
   const p = (n) => String(n).padStart(2, '0');
@@ -38,4 +43,4 @@ function stampDate(d) {
   return `${y}.${p(m[1])}.${p(m[2])}`;
 }
 
-module.exports = { bkDate, dateKeyOf, todayKey, weekMondayKey, keyPlus, todayShort, todayMD, stampDate };
+module.exports = { bkDate, dateKeyOf, todayKey, weekMondayKey, keyPlus, todayShort, todayMD, todayDot, stampDate };

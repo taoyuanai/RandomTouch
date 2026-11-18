@@ -1,4 +1,5 @@
 <import src="/templates/common.wxml"/>
+<import src="/templates/card.wxml"/>
 <view class="phone" style="--statusbar:0px;--navtop:0px">
   <view class="screen">
 <view class="page" id="page-map">
