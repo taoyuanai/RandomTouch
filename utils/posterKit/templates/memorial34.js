@@ -16,9 +16,9 @@
                     节点 r4（白底 2px 金描边，末节点实心金）
                     日期轴上 10px 基线275 / caption 轴下基线312
                     （末节点 12 bold 金深，其余 11 ink2）
-   引言    356–442  有 SSR：「word」衬线 22 金渐变 基线378
+   引言    356–442  有题眼：「word」衬线 22 金渐变 基线378
                       + 解签 13/20 × 2 行（top 398）
-                    无 SSR：集齐钢戳 72×24 居中 y386
+                    无题眼：集齐钢戳 72×24 居中 y386
                       + 「盖了 N 枚邮戳…」基线442
    页脚    分隔498 / slogan 10 / QR 46（同 highlight 页脚）
    ══════════════════════════════════════════════════════════ */
@@ -64,22 +64,22 @@ function buildMemorialData(set, opts = {}) {
   const lastTs = tsList.length ? tsList[tsList.length - 1] : now;
   const days = Math.max(1, Math.round((lastTs - firstTs) / 86400000) + 1);
 
-  /* SSR 清单与引言（多张时优先取盖了邮戳的那张） */
-  const ssrIdxs = pool.map((c, i) => (c && c.r === 'SSR' ? i : -1)).filter((i) => i >= 0);
-  let ssrQuote = null;
-  if (ssrIdxs.length) {
-    let pick = ssrIdxs[0];
-    for (const i of ssrIdxs) { if (getRecLocal(u, i)) { pick = i; break; } }
-    ssrQuote = { word: (pool[pick] || {}).w || '', text: (pool[pick] || {}).b || '' };
-  }
+  /* 题眼引言（就是做卡人最想送的那句话） */
+  const sigIdx = set.signatureIdx != null ? set.signatureIdx : -1;
+  const sigQuote = sigIdx >= 0 && pool[sigIdx] ? {
+    word: pool[sigIdx].w || '',
+    text: pool[sigIdx].b || '',
+    note: (set.signatureNote || '').trim(),
+  } : null;
+  const sigLit = sigIdx >= 0 && got.includes(sigIdx);
 
-  /* 中点节点：首个 SSR（不在首尾时），否则半程「第 N 张」 */
+  /* 中点节点：题眼（不在首尾时），否则半程「第 N 张」 */
   let midPos = -1, midCaption = '';
   if (got.length > 2) {
-    const p = got.findIndex((i) => pool[i] && pool[i].r === 'SSR');
-    if (p > 0 && p < got.length - 1) {
+    const p = got.indexOf(sigIdx);
+    if (sigIdx >= 0 && p > 0 && p < got.length - 1) {
       midPos = p;
-      midCaption = `抽到「${pool[got[p]].w}」`;
+      midCaption = `抽到「${pool[sigIdx].w}」`;
     } else {
       const h = Math.floor(got.length / 2);
       if (h > 0 && h < got.length - 1) { midPos = h; midCaption = `第 ${h + 1} 张`; }
@@ -112,13 +112,12 @@ function buildMemorialData(set, opts = {}) {
     stats: {
       cards: count,
       days,
-      ssr: ssrIdxs.length,
       stamped,
-      thirdLabel: ssrIdxs.length ? 'SSR' : '邮戳',
-      third: ssrIdxs.length ? ssrIdxs.length : stamped,
+      thirdLabel: sigIdx >= 0 ? '题眼' : '邮戳',
+      third: sigIdx >= 0 ? (sigLit ? 1 : 0) : stamped,
     },
     timeline,
-    ssrQuote,
+    sigQuote,
     slogan: opts.slogan || '缺席不损失，卡不会过期',
     qrSrc: opts.qrSrc || '',
   };
@@ -203,7 +202,7 @@ function drawStats(ctx, data) {
     { n: data.stats.cards, l: '张' },
     { n: data.stats.days, l: '天' },
     { n: data.stats.third, l: data.stats.thirdLabel,
-      gold: data.stats.thirdLabel === 'SSR' && data.stats.third > 0 },
+      gold: data.stats.thirdLabel === '题眼' && data.stats.third > 0 },
   ];
   ctx.strokeStyle = P.line;
   ctx.lineWidth = 1;
@@ -277,7 +276,7 @@ function drawTimelineH(ctx, data) {
 /* ── 引言区：SSR 词+解签 / 集齐钢戳 ── */
 function drawQuote(ctx, data) {
   ctx.textAlign = 'center';
-  if (data.ssrQuote) {
+  if (data.sigQuote) {
     ctx.textBaseline = 'alphabetic';
     ctx.font = H.serifFont(22, 700);
     const g = ctx.createLinearGradient(0, 356, 0, 384);
@@ -285,15 +284,15 @@ function drawQuote(ctx, data) {
     g.addColorStop(0.55, P.gold.mid);
     g.addColorStop(1, P.gold.deep);
     ctx.fillStyle = g;
-    ctx.fillText(`「${H.ellipsisText(ctx, data.ssrQuote.word, CW - 120)}」`, W / 2, 378);
+    ctx.fillText(`「${H.ellipsisText(ctx, data.sigQuote.word, CW - 120)}」`, W / 2, 378);
     ctx.fillStyle = P.ink2;
     ctx.font = H.serifFont(13, 400);
     ctx.textBaseline = 'top';
-    const lines = H.clampLines(ctx, data.ssrQuote.text, CW - 80, 2);
+    const lines = H.clampLines(ctx, data.sigQuote.text, CW - 80, 2);
     lines.forEach((ln, i) => ctx.fillText(ln, W / 2, 398 + i * 20));
     ctx.textBaseline = 'alphabetic';
   } else {
-    /* 无 SSR 的集：盖下集齐钢戳作为情绪落点 */
+    /* 无题眼的集：盖下集齐钢戳作为情绪落点 */
     H.drawStamp(ctx, W / 2 - 36, 386,
       { text: data.stampDate, w: 72, h: 24, size: 10.5, rotate: -4 });
     ctx.fillStyle = P.ink3;

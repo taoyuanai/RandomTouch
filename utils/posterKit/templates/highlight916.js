@@ -113,15 +113,17 @@ function drawCardFace(ctx, data) {
   H.roundRect(ctx, 1, 1, CARD_W - 2, CARD_H - 2, 13);
   ctx.stroke();
 
-  ctx.save();                                       // 稀有度顶条 6px（渐变，裁圆角）
-  H.roundRect(ctx, 0, 0, CARD_W, CARD_H, 14);
-  ctx.clip();
-  const bg = ctx.createLinearGradient(0, 0, CARD_W, 0);
-  bg.addColorStop(0, data.isSSR ? P.gold.light : (P.rarLight[data.rar] || P.rarLight.N));
-  bg.addColorStop(1, data.isSSR ? P.gold.deep : (P.rar[data.rar] || P.rar.N));
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, CARD_W, 6);
-  ctx.restore();
+  if (data.sig) {
+    ctx.save();                                     // 题眼金色顶条 6px
+    H.roundRect(ctx, 0, 0, CARD_W, CARD_H, 14);
+    ctx.clip();
+    const bg = ctx.createLinearGradient(0, 0, CARD_W, 0);
+    bg.addColorStop(0, P.gold.light);
+    bg.addColorStop(1, P.gold.deep);
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, CARD_W, 6);
+    ctx.restore();
+  }
 
   drawBadge(ctx, data);                             // 徽章（左）+ No.（右）
   drawBigWord(ctx, data);
@@ -144,30 +146,31 @@ function drawCardFace(ctx, data) {
 }
 
 function drawBadge(ctx, data) {
-  ctx.font = H.sansFont(10, 700);
-  const tw = ctx.measureText(data.rar).width;
-  const bw = tw + 16, bh = 18, bx = 16, by = 24;
-  const c = P.rarText[data.rar] || P.rarText.N;
-  ctx.save();                                       // 稀有度徽章：描边 + 8% 底
-  ctx.globalAlpha = 0.08;
-  ctx.fillStyle = c;
-  H.roundRect(ctx, bx, by, bw, bh, 9);
-  ctx.fill();
-  ctx.restore();
-  ctx.strokeStyle = c;
-  ctx.lineWidth = 1.5;
-  H.roundRect(ctx, bx + 0.75, by + 0.75, bw - 1.5, bh - 1.5, 9);
-  ctx.stroke();
-  ctx.fillStyle = c;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(data.rar, bx + bw / 2, by + bh / 2 + 0.5);
+  const by = 24;
+  if (data.sig) {
+    const bw = 48, bh = 18, bx = 16;
+    ctx.save();
+    ctx.globalAlpha = 0.08;
+    ctx.fillStyle = P.gold.deep;
+    H.roundRect(ctx, bx, by, bw, bh, 9);
+    ctx.fill();
+    ctx.restore();
+    ctx.strokeStyle = P.gold.deep;
+    ctx.lineWidth = 1.5;
+    H.roundRect(ctx, bx + 0.75, by + 0.75, bw - 1.5, bh - 1.5, 9);
+    ctx.stroke();
+    ctx.fillStyle = P.gold.deep;
+    ctx.font = H.sansFont(10, 700);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('题眼', bx + bw / 2, by + bh / 2 + 0.5);
+  }
 
   ctx.fillStyle = P.ink3;                           // No.
   ctx.font = H.sansFont(11, 400);
   ctx.textAlign = 'right';
   ctx.textBaseline = 'middle';
-  ctx.fillText(data.no, CARD_W - 16, by + bh / 2 + 0.5);
+  ctx.fillText(data.no, CARD_W - 16, by + 9.5);
   ctx.textBaseline = 'alphabetic';
 }
 

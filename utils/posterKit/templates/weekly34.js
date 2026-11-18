@@ -64,7 +64,7 @@ function buildWeeklyData(set, opts = {}) {
       idx: e.idx, ts: e.ts,
       dateShort: fmtMD(e.ts),
       word: card.w || '·',
-      rarity: card.r || 'N',
+      sig: e.idx === set.signatureIdx,
       stamped: !!rec,
       rec,
     };
@@ -104,7 +104,7 @@ function buildWeeklyData(set, opts = {}) {
     weekNo: Math.max(1, Math.ceil((u.drawnLog || []).length / 7)),
     dateRangeText: `${fmtYMD(entries[0].ts)} — ${fmtMD(entries[entries.length - 1].ts)}`,
     layout: photos.length >= 2 ? 'photo' : 'card',
-    cards: entries.map((e) => ({ word: e.word, rarity: e.rarity })),
+    cards: entries.map((e) => ({ word: e.word, sig: e.sig })),
     stamps: entries.map((e) => ({ text: e.dateShort, stamped: e.stamped })),
     stats: { drawn: entries.length, stamped: stampedN, streak },
     quote: quoteRec ? quoteRec.rec.note.trim() : '',
@@ -224,12 +224,14 @@ function drawCard(ctx, card, x, y) {
   ctx.lineWidth = 1;
   H.roundRect(ctx, x + 0.5, y + 0.5, CARD_W - 1, CARD_H - 1, R);
   ctx.stroke();
-  ctx.save();                                  // 稀有度顶条裁剪在卡形内
-  H.roundRect(ctx, x, y, CARD_W, CARD_H, R);
-  ctx.clip();
-  ctx.fillStyle = P.rar[card.rarity] || P.rar.N;
-  ctx.fillRect(x, y, CARD_W, 4);
-  ctx.restore();
+  if (card.sig) {
+    ctx.save();                                // 题眼金色顶条
+    H.roundRect(ctx, x, y, CARD_W, CARD_H, R);
+    ctx.clip();
+    ctx.fillStyle = P.gold.deep;
+    ctx.fillRect(x, y, CARD_W, 4);
+    ctx.restore();
+  }
   drawCardWord(ctx, card.word, x + CARD_W / 2, y + CARD_H / 2 + 4);
 }
 

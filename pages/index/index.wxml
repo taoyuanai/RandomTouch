@@ -7,6 +7,11 @@
         <view class="back-label">解 签</view>
         <view class="t-p explain">{{back.explain}}</view>
       </view>
+      <view class="sig-block" wx:if="{{back.signature}}">
+        <view class="sig-mark">✦ 附言</view>
+        <view class="sig-hair"></view>
+        <view class="sig-note">{{back.signature.note || back.signature.fallback}}</view>
+      </view>
       <view class="rec-slot empty" bindtap="openRecord" data-sid="{{back.sid}}" data-idx="{{back.idx}}" data-from="{{back.from}}">
         <image class="t-svg" src="/assets/icons/camera-orange.png" mode="aspectFit" />
         <text class="t-span rec-hint">拍下今天 · 盖个邮戳</text>
@@ -28,6 +33,10 @@
       </view>
       <view class="pc-letter {{back.rec.img && !back.rec.note ? 'no-note' : ''}}">
         <view class="t-p pc-explain">{{back.explain}}</view>
+        <view class="sig-block compact" wx:if="{{back.signature}}">
+          <view class="sig-mark">✦ 附言</view>
+          <view class="sig-note">{{back.signature.note || back.signature.fallback}}</view>
+        </view>
         <view wx:if="{{back.rec.img && back.rec.note}}" class="t-p pc-note"><text class="t-span">「{{back.rec.note}}」</text></view>
         <view class="pc-meta">
           <text class="t-b">@{{back.creator}} · {{back.title}}</text>
@@ -170,6 +179,10 @@
             <text>{{setPage.count}} 张</text>
             <view class="dot-sep"></view>
             <text>{{setPage.catChip}}</text>
+            <block wx:if="{{setPage.signature.on}}">
+              <view class="dot-sep"></view>
+              <text>藏有一枚题眼</text>
+            </block>
           </view>
           <view class="set-heat" wx:if="{{setPage.heatText}}">
             <image class="set-heat-ico" src="/assets/icons/flame.png" mode="aspectFit"/>
@@ -231,18 +244,8 @@
             <view class="stamp-track"><view class="t-i" style="width:{{setPage.trialRow.pct}}%"></view></view>
             <text class="stamp-num">免费试抽 {{setPage.trialRow.used}}/{{setPage.trialRow.trial}}</text>
           </view>
+          <view class="collection-tail-note">最坏的运气，只是晚几天见到它。</view>
           <button class="ghost" hover-class="sb2-press" bindtap="openMap" data-id="{{setPage.id}}">看全图 · 暗格不剧透 ›</button>
-        </view>
-
-        <!-- ④ 稀有度分布 -->
-        <view class="panel spv2-panel rarity-panel">
-          <view class="panel-head"><view class="t-b">稀有度分布</view><text class="t-span">每张机会均等</text></view>
-          <view class="rarity-row {{item.k}}" wx:for="{{setPage.rarity}}" wx:key="k">
-            <view class="rarity-label"><view class="badge {{item.k}}">{{item.k}}</view></view>
-            <view class="rarity-track"><view class="t-i" style="width:{{item.pct}}%"></view></view>
-            <view class="rarity-count"><text class="rc-n">{{item.n}}</text> 张 ({{item.pct}}%)</view>
-          </view>
-          <view class="rarity-note">最坏的运气，只是晚几天见到它。</view>
         </view>
 
         <!-- ⑤ 怎么玩 · 一行摘要 -->
@@ -315,10 +318,11 @@
           <view class="dw-cardwrap" wx:if="{{draw.stage === 'after'}}" bindtap="tapCard">
             <view class="dw-flip">
               <view class="dw-flip-inner {{draw.flipped ? 'is-flipped' : ''}}">
-                <view class="dw-face dw-frontface">
-                  <view class="dw-bar" style="background:{{draw.front.rarColor}}"></view>
+                <view class="dw-face dw-frontface {{draw.sig ? 'sig' : ''}}">
+                  <view class="dw-bar sig {{draw.sigBar ? 'show' : ''}}" wx:if="{{draw.sig}}"></view>
                   <view class="dw-word {{draw.front.wordCls}}">{{draw.front.word}}</view>
                   <view class="dw-serial">{{draw.front.serial}}</view>
+                  <view class="dw-sig-stamp {{draw.sigStamp ? 'show' : ''}}" wx:if="{{draw.sig}}">题眼</view>
                 </view>
                 <view class="dw-face dw-backface">
                   <view class="dw-bk-no" wx:if="{{draw.back.no}}">{{draw.back.no}}</view>
@@ -398,16 +402,19 @@
           <view class="progress"><view class="t-i" style="width:{{mapV.pct}}%"></view></view>
           <view class="t-p tiny" style="text-align:left;padding:0 2px;margin-top:8px">暗格不显示任何字——没抽到之前，它只是空的。</view>
           <view class="map-grid">
-            <view class="map-cell {{item.dark ? 'dark' : ''}}" wx:for="{{mapV.cells}}" wx:key="idx" bindtap="mapCellTap" data-dark="{{item.dark}}" data-sid="{{item.sid}}" data-idx="{{item.idx}}">
+            <view class="map-cell {{item.dark ? 'dark' : ''}} {{item.sig ? 'sig' : ''}}" wx:for="{{mapV.cells}}" wx:key="idx" bindtap="mapCellTap" data-dark="{{item.dark}}" data-sid="{{item.sid}}" data-idx="{{item.idx}}">
               <block wx:if="{{!item.dark}}">
                 <view class="t-b">{{item.word}}</view>
-                <view class="t-i rdot {{item.rar}}"></view>
+                <view class="t-i rdot {{item.sig ? 'gold' : ''}}"></view>
                 <view class="mc-badge {{item.badge}}" wx:if="{{item.badge === 'cam'}}">
                   <image class="t-svg" src="/assets/icons/camera-gray.png" mode="aspectFit" />
                 </view>
                 <view class="mc-badge rec" wx:elif="{{item.badge === 'rec'}}"></view>
               </block>
-              <view class="t-b" wx:else>?</view>
+              <block wx:else>
+                <view class="t-b">?</view>
+                <view class="map-sig-mark" wx:if="{{item.sig}}">✦</view>
+              </block>
             </view>
           </view>
         </view>
@@ -432,13 +439,13 @@
         </view>
 
         <view class="done-grid">
-          <view class="done-cell {{item.rar}}" wx:for="{{done.cells}}" wx:key="idx">
+          <view class="done-cell {{item.sig ? 'sig' : ''}}" wx:for="{{done.cells}}" wx:key="idx">
             <text>{{item.word}}</text>
             <view class="dc-dot"></view>
           </view>
         </view>
 
-        <view class="final-quote">{{done.count}} 张全收齐 · 盖了 <text class="t-b" style="color:var(--orange-500)">{{done.stN}}</text> 枚邮戳 · 抽到 SSR {{done.ssrCount}} 张
+        <view class="final-quote">{{done.count}} 张全收齐 · 盖了 <text class="t-b" style="color:var(--orange-500)">{{done.stN}}</text> 枚邮戳
           <view class="t-span" style="font-size:11px;color:var(--ink-soft)">—— 从第一张到最后一张</view>
         </view>
 
@@ -717,10 +724,10 @@
           </view>
 
           <view class="panel" style="margin-top:12px">
-            <view class="panel-head"><text class="t-b">{{edit.countText}}</text><text class="t-span">{{edit.rarStat}}</text></view>
+            <view class="panel-head"><text class="t-b">{{edit.countText}}</text><text class="t-span">{{edit.signatureOn ? '已设题眼' : ''}}</text></view>
             <view class="ed-card {{item.open ? 'open' : ''}}" wx:for="{{edit.cards}}" wx:key="index">
               <view class="ed-head" bindtap="edToggle" data-index="{{index}}">
-                <view class="t-i badge {{item.badge}}">{{item.badge}}</view>
+                <view class="ed-sig-mark" wx:if="{{item.isSig}}">题</view>
                 <view class="t-b {{item.blank ? 'blank' : ''}}">{{item.label}}</view>
                 <text class="t-span cnt">{{item.cnt}}/2</text>
                 <text class="t-span arr">›</text>
@@ -731,14 +738,24 @@
                   <input class="fi" value="{{item.w}}" data-index="{{index}}" data-key="w" bindinput="onEditCardInput" placeholder="一个词，或一句短话" />
                 </view>
                 <view class="form-row">
-                  <view class="t-label">稀有度 · 只是标签</view>
-                  <view class="seg">
-                    <button wx:for="{{edit.rarKeys}}" wx:for-item="rar" wx:for-index="ri" wx:key="*this" class="{{item.rar === rar ? 'on' : ''}}" bindtap="edCardRar" data-index="{{index}}" data-rar="{{rar}}">{{rar}}</button>
-                  </view>
-                </view>
-                <view class="form-row">
                   <view class="t-label">解释 · 印在卡背</view>
                   <textarea class="fi" value="{{item.b}}" data-index="{{index}}" data-key="b" bindinput="onEditCardInput" maxlength="-1" placeholder="翻过卡面看到的话"></textarea>
+                </view>
+                <view class="form-row">
+                  <view class="sig-editor">
+                    <view class="sig-editor-txt">
+                      <view class="t-label">✦ 设为本集题眼</view>
+                      <view class="t-p tiny">全套卡里，你最想送到的那一张</view>
+                    </view>
+                    <view class="sig-switch {{item.isSig ? 'on' : ''}}" bindtap="edToggleSignature"
+                          data-index="{{index}}" data-on="{{item.isSig ? 'false' : 'true'}}">
+                      <view class="sig-switch-knob"></view>
+                    </view>
+                  </view>
+                  <view class="sig-note-wrap" wx:if="{{item.isSig}}">
+                    <view class="t-label">附言 · 选填</view>
+                    <textarea class="fi" maxlength="30" value="{{edit.signatureNote}}" bindinput="onSignatureNote" placeholder="为什么最想送这张？会印在卡背上（30 字内）"></textarea>
+                  </view>
                 </view>
                 <button size="mini" class="ed-del" bindtap="edDelCard" data-index="{{index}}">删除这张</button>
               </view>
@@ -758,14 +775,14 @@
             <view class="panel-head"><text class="t-b">{{edit.title}}</text><text class="t-span">审核中 · {{edit.submitted}}</text></view>
             <view class="t-p intro">{{edit.intro}}</view>
             <view class="t-p bc-meta" style="margin:10px 0 0">{{edit.meta}}</view>
-            <view class="t-p tiny" style="text-align:left;margin:12px 0 0">{{edit.rarStat}}</view>
+            <view class="t-p tiny" style="text-align:left;margin:12px 0 0">{{edit.signatureOn ? '已设题眼' : '未设题眼'}}</view>
             <view class="t-p tiny" style="text-align:left">提交后内容已锁定，审核通过即上架。</view>
           </view>
           <view class="panel" style="margin-top:12px">
             <view class="panel-head"><text class="t-b">卡池 · 只读</text><text class="t-span">{{edit.count}} 张</text></view>
             <view class="ed-card open" wx:for="{{edit.cards}}" wx:key="index">
               <view class="ed-head" style="cursor:default">
-                <view class="badge {{item.badge}}">{{item.badge}}</view>
+                <view class="ed-sig-mark" wx:if="{{item.isSig}}">题</view>
                 <view class="t-b">{{item.w}}</view>
               </view>
               <view class="ed-body"><view class="t-p intro" style="margin:0">{{item.b}}</view></view>
@@ -936,21 +953,13 @@
       </view>
 
       <view class="panel">
-        <view class="panel-head"><view class="t-b">稀有度</view><view class="t-span">金色 SSR</view></view>
-        <view class="dist-row N"><view class="badge N">N</view><view class="dist-bar"><view class="t-i N" style="width:38%"></view></view><text class="t-span">38%</text></view>
-        <view class="dist-row R"><view class="badge R">R</view><view class="dist-bar"><view class="t-i R" style="width:22%"></view></view><text class="t-span">22%</text></view>
-        <view class="dist-row SR"><view class="badge SR">SR</view><view class="dist-bar"><view class="t-i SR" style="width:8%"></view></view><text class="t-span">8%</text></view>
-        <view class="dist-row SSR"><view class="badge SSR">SSR</view><view class="dist-bar"><view class="t-i SSR" style="width:2%"></view></view><text class="t-span">2%</text></view>
+        <view class="panel-head"><view class="t-b">题眼</view><view class="t-span">作者签名</view></view>
+        <view class="t-p">金色只属于作者最想送出的那一张。先读到那句话，再发现它被偏爱过。</view>
       </view>
 
       <view class="panel" style="margin-top:12px">
         <view class="panel-head"><view class="t-b">动画海报</view><view class="t-span">点击预览</view></view>
-        <button class="cta solid" bindtap="openPosterDemo" data-rarity="SSR">SSR · 鎏金晚霞</button>
-        <view style="display:flex;gap:8px;margin-top:10px">
-          <button size="mini" class="mini-cta" style="flex:1" bindtap="openPosterDemo" data-rarity="N">N</button>
-          <button size="mini" class="mini-cta" style="flex:1" bindtap="openPosterDemo" data-rarity="R">R</button>
-          <button size="mini" class="mini-cta" style="flex:1" bindtap="openPosterDemo" data-rarity="SR">SR</button>
-        </view>
+        <button class="cta solid" bindtap="openPosterDemo">题眼 · 鎏金晚霞</button>
       </view>
 
       <view class="panel" style="margin-top:12px">
@@ -969,7 +978,7 @@
       <view class="empty" style="margin-top:12px">
         <view class="empty-icon">✨</view>
         <view class="t-h3">设计系统总览</view>
-        <view class="t-p">金色 SSR、稀有度配色、按钮、分布条与动画海报集中在这里预览；不影响主流程。</view>
+        <view class="t-p">题眼、金色签名、按钮与动画海报集中在这里预览；不影响主流程。</view>
       </view>
     </view>
   </view>
@@ -1034,14 +1043,14 @@
   <view class="modal centered {{bigCard.show ? 'show' : ''}}" id="cardModal">
     <view class="sheet" style="padding-top:var(--space-8)">
       <button class="close-btn" bindtap="closeBigCard" style="position:absolute;top:12px;right:12px;z-index:10">✕</button>
-      <view class="bigcard {{bigCard.flipped ? 'flipped' : ''}} {{bigCard.lit ? 'lit' : ''}}" id="bigcard" bindtap="toggleBigCardFlip" style="--rar-color:{{bigCard.rarColor}}">
+      <view class="bigcard {{bigCard.flipped ? 'flipped' : ''}} {{bigCard.lit ? 'lit' : ''}}" id="bigcard" bindtap="toggleBigCardFlip">
         <view class="card-inner">
           <view class="card-face front">
             <view class="cf-top">
-              <view class="t-i badge {{bigCard.rar}}">{{bigCard.rar}}</view>
               <text class="t-span no">{{bigCard.no}}</text>
             </view>
             <view class="bigword serif {{bigCard.wordCls}}">{{bigCard.word}}</view>
+            <view class="bigcard-sig" wx:if="{{bigCard.sig}}">题眼</view>
             <view class="cf-bottom">
               <text class="t-span">{{bigCard.settitle}}</text>
               <view class="t-span flip-hint">
@@ -1069,6 +1078,18 @@
   </view>
 
   <!-- ═══════════════════ 上架校验 ═══════════════════ -->
+  <view class="modal {{nudge.show ? 'show' : ''}}" id="nudgeModal">
+    <view class="sheet bottom-sheet">
+      <view class="modal-kind">题 眼</view>
+      <view class="modal-title">这套卡还没有题眼</view>
+      <view class="modal-body">要选一张你最想送出的吗？</view>
+      <view class="modal-actions">
+        <button class="cta solid" bindtap="goSignatureNudge">去选</button>
+        <button class="ghost" bindtap="skipSignatureNudge">跳过</button>
+      </view>
+    </view>
+  </view>
+
   <view class="modal {{check.show ? 'show' : ''}}" id="checkModal">
     <view class="sheet bottom-sheet">
       <view class="modal-kind">还 差 一 点</view>
@@ -1227,7 +1248,7 @@
       <view id="posterContent">
         <!-- Type A-916 · 单卡高亮 · 朋友圈 9:16 -->
         <view wx:if="{{poster.kind === 'highlight' && poster.ratio === '916'}}"
-              class="poster-card poster-h916 {{poster.rar}}">
+              class="poster-card poster-h916 {{poster.sig ? 'sig' : ''}}">
           <image wx:if="{{poster.rec && poster.rec.img}}" class="h916-bg" src="{{poster.rec.img}}" mode="aspectFill" />
           <view wx:if="{{poster.rec && poster.rec.img}}" class="h916-veil"></view>
           <view class="h916-inner">
@@ -1237,10 +1258,10 @@
             </view>
             <view class="h916-body">
               <view class="h916-card">
-                <view class="h916-bar {{poster.rar}}"></view>
+                <view class="h916-bar {{poster.sig ? 'sig' : ''}}"></view>
                 <view class="h916-cardtop">
-                  <text class="badge {{poster.rar}}">{{poster.rar}}</text>
                   <text class="h916-no">{{poster.no}}</text>
+                  <text class="h916-sig" wx:if="{{poster.sig}}">题眼</text>
                 </view>
                 <view class="h916-word {{poster.wordCls}}">{{poster.word}}</view>
                 <view class="h916-explain" wx:if="{{poster.text}}">{{poster.text}}</view>
@@ -1260,28 +1281,26 @@
         </view>
 
         <!-- Type A · 单卡高亮 -->
-        <view wx:elif="{{poster.kind === 'highlight'}}" class="poster-card {{poster.rar}}">
-          <view class="shine" wx:if="{{poster.isSSR}}"></view>
+        <view wx:elif="{{poster.kind === 'highlight'}}" class="poster-card {{poster.sig ? 'sig' : ''}}">
           <view class="poster-head">
             <view class="poster-brand">今日做点小事</view>
             <view class="poster-date">{{poster.date}}</view>
           </view>
           <view class="poster-highlight">
-            <view class="ph-rarity">
-              <text class="rarity-big {{poster.rar}}">{{poster.rar}}</text>
-              <text class="rarity-label">{{poster.rarName}}</text>
-            </view>
             <view class="ph-content">
               <view class="ph-no">{{poster.no}}</view>
               <view class="ph-title">{{poster.word}}</view>
               <view class="ph-text">{{poster.text}}</view>
             </view>
             <view class="ph-set">来自 <text class="t-b">《{{poster.setTitle}}》</text></view>
+            <view class="poster-sig-stamp" wx:if="{{poster.sig}}">题眼</view>
           </view>
           <view class="poster-setinfo">
             <view class="set-cover"><text>{{poster.setCover}}</text></view>
             <text class="t-span">{{poster.setInfo}}</text>
           </view>
+
+          <view class="poster-sig-note" wx:if="{{poster.sig && poster.signatureNote && !poster.rec}}">✦ 「{{poster.signatureNote}}」</view>
 
           <view class="poster-rec" wx:if="{{poster.rec}}">
             <view class="poster-rec-label">· 回 信 ·</view>
@@ -1317,7 +1336,7 @@
             <view class="m916-stat"><view class="t-b">{{poster.stats.cards}}</view><text class="t-span">张</text></view>
             <view class="m916-stat"><view class="t-b">{{poster.stats.days}}</view><text class="t-span">天</text></view>
             <view class="m916-stat">
-              <view class="t-b {{poster.stats.thirdLabel === 'SSR' ? 'gold-num' : ''}}">{{poster.stats.third}}</view>
+              <view class="t-b {{poster.stats.thirdLabel === '题眼' ? 'gold-num' : ''}}">{{poster.stats.third}}</view>
               <text class="t-span">{{poster.stats.thirdLabel}}</text>
             </view>
           </view>
@@ -1353,7 +1372,7 @@
               <view class="pm-stat"><text class="pm-n">{{poster.stats.cards}}</text><text class="pm-l">张</text></view>
               <view class="pm-stat"><text class="pm-n">{{poster.stats.days}}</text><text class="pm-l">天</text></view>
               <view class="pm-stat">
-                <text class="pm-n {{poster.stats.thirdLabel === 'SSR' ? 'pm-n-gold' : ''}}">{{poster.stats.third}}</text>
+                <text class="pm-n {{poster.stats.thirdLabel === '题眼' ? 'pm-n-gold' : ''}}">{{poster.stats.third}}</text>
                 <text class="pm-l">{{poster.stats.thirdLabel}}</text>
               </view>
             </view>
@@ -1389,7 +1408,7 @@
 
           <block wx:if="{{poster.variant === 'card'}}">
             <view class="weekly-wall">
-              <view class="weekly-card {{item.rar}}" wx:for="{{poster.cards}}" wx:key="idx">
+              <view class="weekly-card {{item.sig ? 'sig' : ''}}" wx:for="{{poster.cards}}" wx:key="idx">
                 <view class="wc-bar"></view>
                 <view class="wc-word {{item.wordCls}}">{{item.word}}</view>
               </view>
@@ -1447,7 +1466,7 @@
             <view class="bk-cover-stats">
               <view><text class="t-b">{{poster.stN}}</text><text class="t-span">枚邮戳</text></view>
               <view><text class="t-b">{{poster.gotCount}}</text><text class="t-span">张卡</text></view>
-              <view><text class="t-b">{{poster.ssrGot}}</text><text class="t-span">SSR</text></view>
+              <view><text class="t-b">{{poster.sigLit ? 1 : 0}}</text><text class="t-span">题眼</text></view>
             </view>
             <view class="bk-cover-range">{{poster.firstD ? poster.firstD + ' — ' + poster.lastD : poster.date}}</view>
           </view>
@@ -1455,7 +1474,7 @@
           <view class="bk-section {{item.tilt}}" wx:for="{{poster.sections}}" wx:key="idx">
             <view class="bk-cardface">
               <view class="bk-face-top">
-                <view class="badge {{item.rar}}">{{item.rar}}</view>
+                <view class="ed-sig-mark" wx:if="{{item.sig}}">题</view>
                 <text class="t-span bk-no">第 {{item.n + 1}} / {{poster.gotCount}} 张</text>
               </view>
               <view class="t-b bk-word">{{item.word}}</view>

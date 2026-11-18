@@ -17,7 +17,6 @@ const H = require('../helpers.js');
 
 const W = 414, HGT = 552, M = 24, CW = W - M * 2;      // 内容宽 366
 
-const RARNAME = { N: '薄荷 · 常见', R: '晴空 · 稀有', SR: '蜜琥珀 · 珍贵', SSR: '鎏金 · 传说' };
 
 /* ──────────────── 日期工具（与页面同义的最小副本） ──────────────── */
 const p2 = (n) => String(n).padStart(2, '0');
@@ -53,9 +52,8 @@ function buildHighlightData(set, card, opts = {}) {
   const count = set.count || pool.length;
   return {
     kind: 'highlight',
-    rar: card.r || 'N',
-    isSSR: card.r === 'SSR',
-    rarName: RARNAME[card.r] || card.r,
+    sig: idx >= 0 && idx === set.signatureIdx,
+    signatureNote: (set.signatureNote || '').trim(),
     date: fmtMD(opts.now || Date.now()),
     no: opts.no || (idx >= 0 ? `No.${p2(idx + 1)} / ${pool.length}` : ''),
     word: card.w || '',
@@ -100,16 +98,18 @@ async function drawHighlight34(ctx, data, kit = {}) {
 
 function drawClassicLayout(ctx, data, qrImg) {
   const hasRec = !!data.rec;
-  const heroBase = hasRec ? 108 : 116;         // 无回信时整体更舒展
-  const boxY = hasRec ? 142 : 152;
-  const boxH = hasRec ? 148 : 176;
+  const boxY = hasRec ? 104 : 112;
+  const boxH = hasRec ? 186 : 208;
 
   ctx.fillStyle = P.paper;
   ctx.fillRect(0, 0, W, HGT);
 
   drawTopStrip(ctx, data);
   drawHeader(ctx, data, true);
-  drawRarityHero(ctx, data, heroBase);
+  if (data.sig) {
+    H.drawStamp(ctx, W - M - 58, 16,
+      { text: '题眼', w: 58, h: 20, size: 10, rotate: -4, ink: P.gold.deep });
+  }
   drawContentBox(ctx, data, boxY, boxH, hasRec ? 2 : 3);
 
   // 来自
@@ -132,9 +132,10 @@ function drawClassicLayout(ctx, data, qrImg) {
 
 /* ── 稀有度顶条 4px（与站内 poster-card 顶条同构） ── */
 function drawTopStrip(ctx, data) {
+  if (!data.sig) return;
   const g = ctx.createLinearGradient(0, 0, W, 0);
-  g.addColorStop(0, P.rarLight[data.rar] ? P.rarLight[data.rar] : P.rarLight.N);
-  g.addColorStop(1, data.isSSR ? P.gold.deep : (P.rar[data.rar] || P.rar.N));
+  g.addColorStop(0, P.gold.light);
+  g.addColorStop(1, P.gold.deep);
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, 4);
 }
@@ -158,28 +159,6 @@ function drawHeader(ctx, data, withLine) {
     ctx.lineTo(W - M, 56.5);
     ctx.stroke();
   }
-}
-
-/* ── 稀有度大字 + 名称（SSR 鎏金纵向渐变） ── */
-function drawRarityHero(ctx, data, baseline) {
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'alphabetic';
-  ctx.font = H.sansFont(46, 700);
-  if (data.isSSR) {
-    const g = ctx.createLinearGradient(0, baseline - 36, 0, baseline + 8);
-    g.addColorStop(0, P.gold.light);
-    g.addColorStop(0.55, P.gold.mid);
-    g.addColorStop(1, P.gold.deep);
-    ctx.fillStyle = g;
-  } else {
-    ctx.fillStyle = P.rarText[data.rar] || P.rarText.N;
-  }
-  ctx.fillText(data.rar, W / 2, baseline);
-  ctx.fillStyle = P.ink3;
-  ctx.font = H.sansFont(11, 400);
-  H.setLetterSpacing(ctx, 2);
-  ctx.fillText(data.rarName, W / 2, baseline + 18);
-  H.setLetterSpacing(ctx, 0);
 }
 
 /* ── 内容盒：no / 词 / 解签 ── */
@@ -344,33 +323,21 @@ function drawHeroCard(ctx, data) {
   ctx.fillText(data.no, cx, y + 26);
   H.setLetterSpacing(ctx, 0);
 
-  ctx.font = H.sansFont(38, 700);               // 稀有度
-  if (data.isSSR) {
-    const g = ctx.createLinearGradient(0, y + 32, 0, y + 74);
-    g.addColorStop(0, P.gold.light);
-    g.addColorStop(0.55, P.gold.mid);
-    g.addColorStop(1, P.gold.deep);
-    ctx.fillStyle = g;
-  } else {
-    ctx.fillStyle = P.rarText[data.rar] || P.rarText.N;
+  if (data.sig) {
+    H.drawStamp(ctx, x + w - 72, y + 12,
+      { text: '题眼', w: 58, h: 20, size: 10, rotate: -4, ink: P.gold.deep });
   }
-  ctx.fillText(data.rar, cx, y + 66);
-  ctx.fillStyle = P.ink3;
-  ctx.font = H.sansFont(11, 400);
-  H.setLetterSpacing(ctx, 2);
-  ctx.fillText(data.rarName, cx, y + 84);
-  H.setLetterSpacing(ctx, 0);
 
   const wl = (data.word || '').length;          // 词
   ctx.fillStyle = P.ink;
-  ctx.font = H.serifFont(wl >= 7 ? 19 : 22, 700);
-  ctx.fillText(H.ellipsisText(ctx, data.word, w - 60), cx, y + 120);
+  ctx.font = H.serifFont(wl >= 7 ? 22 : 26, 700);
+  ctx.fillText(H.ellipsisText(ctx, data.word, w - 60), cx, y + 72);
 
   ctx.fillStyle = P.ink2;                       // 解签
   ctx.font = H.serifFont(13, 400);
   ctx.textBaseline = 'top';
   const lines = H.clampLines(ctx, data.text, w - 72, 2);
-  lines.forEach((ln, i) => ctx.fillText(ln, cx, y + 140 + i * 20));
+  lines.forEach((ln, i) => ctx.fillText(ln, cx, y + 100 + i * 20));
   ctx.textBaseline = 'alphabetic';
 }
 

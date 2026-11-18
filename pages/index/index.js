@@ -12,11 +12,7 @@ function getViewport() {
 
 const BRAND = '今日做点小事';
 const ME = '打工人小王';
-const RARC = { N: '#FF8A5C', R: '#FF6B35', SR: '#E55A2B', SSR: '#D9A227' };
-const SP_RAR = { N: '#43A585', R: '#4E9ED9', SR: '#E2A236', SSR: '#D9A227' };
-const RARNAME = { N: '薄荷 · 常见', R: '晴空 · 稀有', SR: '蜜琥珀 · 珍贵', SSR: '鎏金 · 传说' };
 const TABS = ['home', 'cards', 'create', 'me'];
-const RAR_KEYS = ['N', 'R', 'SR', 'SSR'];
 
 function clone(o) {
   return JSON.parse(JSON.stringify(o));
@@ -89,7 +85,7 @@ function isoWeekKey(ts) {
 }
 
 function cardDone(c) {
-  return !!(c && (c.w || '').trim() && (c.b || '').trim() && c.r);
+  return !!(c && (c.w || '').trim() && (c.b || '').trim());
 }
 
 function setVM(s) {
@@ -365,6 +361,7 @@ Page({
     pay: { show: false, paying: false },
     check: { show: false, list: [] },
     pub: { show: false },
+    nudge: { show: false },
     record: { show: false, note: '', img: '', hasImg: false, count: 0 },
     commentsSheet: { show: false, sid: null, title: '', items: [], count: 0, canComment: false, draft: '', draftLen: 0 },
     rulesSheet: { show: false },
@@ -964,6 +961,7 @@ Page({
     if (s.creator) metaBits.push('@' + s.creator);
     metaBits.push(count + ' 张');
     if (s.cat) metaBits.push(catChipOf(s.cat));
+    if (s.signatureIdx >= 0) metaBits.push('藏有一枚题眼');
 
     /* ② 进度点阵 */
     const dots = pool.map((_, i) => ({ i, on: got.includes(i) }));
@@ -981,7 +979,7 @@ Page({
         got: got.includes(i),
         word: c.w || '',
         wordCls: n >= 7 ? 'l7' : (n >= 5 ? 'l5' : 'l4'),
-        rarColor: SP_RAR[c.r || 'N'] || SP_RAR.N,
+        sig: i === s.signatureIdx,
         no: `No.${pad2(i + 1)}`,
         isToday: u.todayDrawn && todayIdx === i,
       };
@@ -1116,10 +1114,11 @@ Page({
         recs: this._setRecs(s),
         rules: buildRules(s),
         ruleSummary,
-        rarity: ['N', 'R', 'SR', 'SSR'].map(k => {
-          const n = (s.rar && s.rar[k]) || 0;
-          return { k, n, pct: Math.round(n / (count || 1) * 100) };
-        }),
+        signature: {
+          idx: s.signatureIdx,
+          note: s.signatureNote || '',
+          on: s.signatureIdx >= 0,
+        },
       },
       'floatCta.show': false,
     });
@@ -1580,12 +1579,10 @@ Page({
   },
 
   _dwFront(s, idx) {
-    const RAR = { N: '#43A585', R: '#4E9ED9', SR: '#E2A236', SSR: '#D9A227' };
     const c = (s.pool || [])[idx] || {};
     const n = (c.w || '').length;
     return {
       word: c.w || '·',
-      rarColor: RAR[c.r || 'N'] || RAR.N,
       wordCls: n >= 7 ? 'l7' : (n >= 5 ? 'l5' : 'l4'),
       serial: 'No.' + pad2(idx + 1),
     };
@@ -1617,8 +1614,11 @@ Page({
     const isResident = s.type === 'resident';
     const done = !isResident && count > 0 && got.length >= count;
     const stage = (u.todayDrawn || u.trialToday) ? 'after' : 'draw';
-    const hasRec = stage === 'after' && u.todayIdx != null
-      && !!(u.recs && u.recs[u.todayIdx] != null);
+    const todayIdx = u.todayIdx != null
+      ? u.todayIdx
+      : (u.todayDrawn && got.length ? got[got.length - 1] : null);
+    const hasRec = stage === 'after' && todayIdx != null
+      && !!(u.recs && u.recs[todayIdx] != null);
 
     let cta, cta2 = null;
     if (done) {
@@ -1640,7 +1640,9 @@ Page({
     }
 
     const prev = this.data.draw || {};
-    const backIdx = stage === 'after' && u.todayIdx != null ? u.todayIdx : -1;
+    const backIdx = stage === 'after' && todayIdx != null ? todayIdx : -1;
+    const sig = backIdx >= 0 && backIdx === s.signatureIdx;
+    const sigFirst = !!(sig && S.sigFirst);
     let back = prev.back || null;
     let front = prev.front || null;
     let flipped = !!prev.flipped;
@@ -1661,6 +1663,9 @@ Page({
           meta: count + ' 张' + (s.creator ? ' · @' + s.creator : ''),
         },
         cta, cta2, back, front, flipped, backIdx,
+        sig, sigFirst,
+        sigBar: sig && !sigFirst,
+        sigStamp: sig && !sigFirst,
         social: this._drawSocialOf(s),
         recs: {
           items: this._recsFor(s.id, 'related', 3, this._recOff('draw:' + s.id), { drawable: true }),
@@ -1716,6 +1721,8 @@ Page({
     u.todayIdx = idx;
     u.lastDrawDate = todayKey();
     if (!u.got) u.got = [];
+    const sigFirst = idx === s.signatureIdx && !u.got.includes(idx);
+    S.sigFirst = sigFirst;
     if (!u.got.includes(idx)) u.got.push(idx);
     u.drawn = (u.drawn || 0) + 1;
     if (!isResident) {
@@ -1740,9 +1747,23 @@ Page({
     this.renderSubs();
     this.renderMe();
 
+    if (S.sigFirst) {
+      setTimeout(() => { if (this.data.page === 'draw') this.setData({ 'draw.sigBar': true }); }, 500);
+      setTimeout(() => {
+        if (this.data.page !== 'draw') return;
+        this.setData({ 'draw.sigStamp': true });
+        if (wx.vibrateShort) wx.vibrateShort({ type: 'light' });
+      }, 650);
+      setTimeout(() => {
+        if (this.data.page === 'draw') this.setData({ 'draw.hint': '本集题眼 · 做卡人最想送你的一张' });
+      }, 900);
+      setTimeout(() => { S.sigFirst = false; }, 1100);
+    }
+
     const count = s.count || s.pool.length;
     if (!isResident && (u.got || []).length >= count) {
-      setTimeout(() => this.openDoneView(), 600);
+      const delay = idx === s.signatureIdx ? 2600 : 600;
+      setTimeout(() => this.openDoneView(), delay);
     }
   },
 
@@ -1856,6 +1877,11 @@ Page({
       explain: card.b,
       creator: s.creator,
       title: s.title,
+      sig: idx === s.signatureIdx,
+      signature: idx === s.signatureIdx ? {
+        note: (s.signatureNote || '').trim(),
+        fallback: '做卡人最想送出的一张',
+      } : null,
       stampAnim: false,
       rec: rec ? {
         img: rec.img || '',
@@ -1944,9 +1970,9 @@ Page({
     const cells = s.pool.map((c, i) => {
       if (got.includes(i)) {
         const rec = getRec(u, i);
-        return { dark: false, word: c.w, rar: c.r, idx: i, sid: s.id, badge: rec ? 'rec' : 'cam' };
+        return { dark: false, word: c.w, sig: i === s.signatureIdx, idx: i, sid: s.id, badge: rec ? 'rec' : 'cam' };
       }
-      return { dark: true, word: '?', rar: '', idx: i, sid: s.id, badge: '' };
+      return { dark: true, word: '?', sig: i === s.signatureIdx, idx: i, sid: s.id, badge: '' };
     });
     this.setData({
       mapV: {
@@ -1962,7 +1988,11 @@ Page({
     const d = e.currentTarget.dataset;
     const idx = Number(d && d.idx);
     const cell = (this.data.mapV.cells || [])[idx];
-    if (!cell || cell.dark) return;
+    if (!cell) return;
+    if (cell.dark) {
+      if (cell.sig) this.toast('题眼还在路上 · 抽到那天你会知道');
+      return;
+    }
     this.showBigCard(Number(cell.sid), idx);
   },
 
@@ -1979,8 +2009,7 @@ Page({
       bigCard: {
         show: true,
         flipped: !!opts.flipped,
-        rar: c.r,
-        rarColor: RARC[c.r] || RARC.N,
+        sig: idx === s.signatureIdx,
         no: `No.${pad2(idx + 1)} / ${s.pool.length}`,
         word: c.w,
         wordCls: bwCls(c.w),
@@ -2367,7 +2396,8 @@ Page({
     const d = {
       id: ++S.seq, title: '', intro: '', type: 'collect', cat: 'create', price: 0, trial: 0, status: 'draft',
       coverImage: '',
-      pool: ['N', 'N', 'N', 'R', 'R', 'N', 'SR', 'SSR'].map(r => ({ w: '', r, b: '' })),
+      signatureIdx: -1, signatureNote: '', signaturePublic: false,
+      pool: Array.from({ length: 8 }, () => ({ w: '', b: '' })),
     };
     S.craft.drafts.push(d);
     this.openEdit(d.id);
@@ -2389,17 +2419,16 @@ Page({
     const d = S.ed;
     if (!d) return;
     const complete = d.pool.filter(cardDone).length;
-    const rarStat = this.rarStatText(d.pool);
     const cards = d.pool.map((c, i) => ({
       index: i,
-      badge: c.r || '？',
-      rar: c.r || '',
+      badge: '',
       w: c.w || '',
       b: c.b || '',
       label: (c.w || '').trim() || '未命名',
       blank: !(c.w || '').trim(),
       cnt: ((c.w || '').trim() ? 1 : 0) + ((c.b || '').trim() ? 1 : 0),
       open: S.edOpen === i,
+      isSig: i === (d.signatureIdx != null ? d.signatureIdx : -1),
     }));
     this.setData({
       edit: {
@@ -2413,22 +2442,14 @@ Page({
         price: d.price,
         cats: HM_CATS.map(c => ({ key: c.key, chip: c.chip })),
         prices: [0, 6, 12, 19],
-        rarKeys: RAR_KEYS.slice(),
         complete,
         countText: `卡 · ${complete} 张完整`,
-        rarStat,
         cards,
+        signatureOn: (d.signatureIdx != null ? d.signatureIdx : -1) >= 0,
+        signatureNote: d.signatureNote || '',
         footerTitle: (d.title || '').trim() || '未命名',
       },
     });
-  },
-
-  rarStatText(pool) {
-    const rs = RAR_KEYS.map(k => {
-      const n = pool.filter(c => cardDone(c) && c.r === k).length;
-      return n ? `${k} ${n}` : '';
-    }).filter(Boolean).join(' · ');
-    return rs || '还没有完整的卡';
   },
 
   onEditTitle(e) {
@@ -2510,7 +2531,6 @@ Page({
       [`edit.cards[${i}].cnt`]: ((c.w || '').trim() ? 1 : 0) + ((c.b || '').trim() ? 1 : 0),
       'edit.complete': complete,
       'edit.countText': `卡 · ${complete} 张完整`,
-      'edit.rarStat': this.rarStatText(S.ed.pool),
     };
     this.setData(patch);
   },
@@ -2542,17 +2562,42 @@ Page({
     this.renderEdit();
   },
 
-  edCardRar(e) {
+  edToggleSignature(e) {
     const S = this.S;
+    if (!S.ed) return;
     const i = Number(e.currentTarget.dataset.index);
-    const r = e.currentTarget.dataset.rar;
-    S.ed.pool[i].r = r;
+    const on = (e.detail && e.detail.value != null)
+      ? !!e.detail.value
+      : e.currentTarget.dataset.on === 'true';
+    const prev = S.ed.signatureIdx;
+    if (!on) {
+      if (prev === i) {
+        S.ed.signatureIdx = -1;
+        S.ed.signatureNote = '';
+        this.renderEdit();
+      }
+      return;
+    }
+    if (prev >= 0 && prev !== i) {
+      const prevWord = (S.ed.pool[prev] && S.ed.pool[prev].w) || '上一张';
+      this.toast(`题眼已从「${prevWord}」移到这张`);
+    }
+    S.ed.signatureIdx = i;
+    S.ed.signatureNudgeSkipped = false;
     this.renderEdit();
+  },
+
+  onSignatureNote(e) {
+    const S = this.S;
+    if (!S.ed) return;
+    const v = (e.detail.value || '').slice(0, 30);
+    S.ed.signatureNote = v;
+    this.setData({ 'edit.signatureNote': v });
   },
 
   edAddCard() {
     const S = this.S;
-    S.ed.pool.push({ w: '', r: '', b: '' });
+    S.ed.pool.push({ w: '', b: '' });
     S.edOpen = S.ed.pool.length - 1;
     this.renderEdit();
   },
@@ -2560,7 +2605,16 @@ Page({
   edDelCard(e) {
     const S = this.S;
     const i = Number(e.currentTarget.dataset.index);
+    const wasSig = S.ed.signatureIdx === i;
     S.ed.pool.splice(i, 1);
+    if (wasSig) {
+      S.ed.signatureIdx = -1;
+      S.ed.signatureNote = '';
+      S.ed.signatureNudgeSkipped = false;
+      this.toast('这张卡是题眼，删除后题眼将取消');
+    } else if (S.ed.signatureIdx > i) {
+      S.ed.signatureIdx -= 1;
+    }
     S.edOpen = null;
     this.renderEdit();
   },
@@ -2571,7 +2625,7 @@ Page({
     if (!(d.intro || '').trim() || d.intro.trim().length < 10) errs.push('简介：至少 10 个字，给抽卡人一个预期');
     if (!d.coverImage) errs.push('封面：请上传一张 3:4 的卡集封面');
     const complete = d.pool.filter(cardDone);
-    if (complete.length < 8) errs.push(`完整的卡：至少 8 张，现在 ${complete.length} 张（词、稀有度、解释都齐才算完整）`);
+    if (complete.length < 8) errs.push(`完整的卡：至少 8 张，现在 ${complete.length} 张（词、解释都齐才算完整）`);
     const long = d.pool.filter(c => (c.w || '').trim().length > 8);
     if (long.length) errs.push(`有 ${long.length} 张卡的词超过 8 个字`);
     if (d.price > 0 && d.trial !== 1) errs.push('定价卡集：需要 1 张免费试抽');
@@ -2586,6 +2640,10 @@ Page({
       this.setData({ check: { show: true, list: errs } });
       return;
     }
+    if (S.ed.signatureIdx < 0 && !S.ed.signatureNudgeSkipped) {
+      this.setData({ nudge: { show: true } });
+      return;
+    }
     const complete = S.ed.pool.filter(cardDone);
     this.setData({
       pub: {
@@ -2594,6 +2652,24 @@ Page({
         meta: `${complete.length} 张 · ${S.ed.type === 'collect' ? '收藏集' : '常驻集'} · ${S.ed.price > 0 ? `¥${S.ed.price}（前 ${S.ed.trial} 张免费试抽）` : '免费'}`,
       },
     });
+  },
+
+  skipSignatureNudge() {
+    const S = this.S;
+    if (!S.ed) return;
+    S.ed.signatureNudgeSkipped = true;
+    this.setData({ 'nudge.show': false });
+    this.tryPublish();
+  },
+
+  goSignatureNudge() {
+    const S = this.S;
+    if (!S.ed) return;
+    this.setData({ 'nudge.show': false });
+    S.edOpen = 0;
+    this.renderEdit();
+    this.toast('在卡片里打开「设为本集题眼」');
+    wx.pageScrollTo({ selector: '.ed-card', duration: 220 });
   },
 
   closeCheck() {
@@ -2635,7 +2711,6 @@ Page({
     const d = S.rv;
     if (!d) return;
     const complete = d.pool.filter(cardDone);
-    const rarStat = RAR_KEYS.map(k => `${k} ${complete.filter(c => c.r === k).length}`).join(' · ');
     this.setData({
       edit: {
         mode: 'review',
@@ -2644,8 +2719,9 @@ Page({
         intro: d.intro,
         submitted: d.submitted || '',
         meta: `${d.type === 'collect' ? '收藏集' : '常驻集'} · ${catChipOf(d.cat)} · ${complete.length} 张 · ${d.price > 0 ? `¥${d.price}（前 ${d.trial} 张免费试抽）` : '免费'}`,
-        rarStat,
-        cards: complete.map(c => ({ badge: c.r, w: c.w, b: c.b })),
+        signatureOn: d.signatureIdx >= 0,
+        cards: d.pool.map((c, i) => ({ c, i })).filter(x => cardDone(x.c))
+          .map(x => ({ badge: '', w: x.c.w, b: x.c.b, isSig: x.i === d.signatureIdx })),
         count: complete.length,
       },
     });
@@ -2669,9 +2745,9 @@ Page({
 
   buildPublic(d) {
     const S = this.S;
-    const pool = d.pool.filter(cardDone).map(c => ({ w: c.w.trim(), r: c.r, b: c.b.trim() }));
-    const rar = { N: 0, R: 0, SR: 0, SSR: 0 };
-    pool.forEach(c => { if (rar[c.r] != null) rar[c.r]++; });
+    const kept = d.pool.map((c, i) => ({ c, i })).filter(x => cardDone(x.c));
+    const pool = kept.map(x => ({ w: x.c.w.trim(), b: x.c.b.trim() }));
+    const sigPos = kept.findIndex(x => x.i === d.signatureIdx);
     const id = ++S.seq;
     return {
       id,
@@ -2682,7 +2758,10 @@ Page({
       coverImage: d.coverImage || '',
       cat: d.cat, type: d.type, price: d.price, trial: d.price > 0 ? 1 : 0,
       count: pool.length, creator: ME, heat: 0, date: todayMD(),
-      intro: d.intro.trim(), rar, pool, user: null,
+      intro: d.intro.trim(), pool, user: null,
+      signatureIdx: sigPos,
+      signatureNote: sigPos >= 0 ? (d.signatureNote || '') : '',
+      signaturePublic: !!d.signaturePublic,
       totalDrawn: 0, buyers: 0, earn: 0,
     };
   },
@@ -3194,7 +3273,7 @@ Page({
 
     const cards = win.map(l => {
       const c = s.pool[l.idx] || { w: '', r: 'N' };
-      return { idx: l.idx, word: c.w, rar: c.r, wordCls: bwCls(c.w) };
+      return { idx: l.idx, word: c.w, sig: l.idx === s.signatureIdx, wordCls: bwCls(c.w) };
     });
     const stamps = win.map(l => ({
       k: `${l.ts}-${l.idx}`,
@@ -3461,7 +3540,7 @@ Page({
     const u = s.user || {};
     const got = u.got || [];
     const stN = stampedCount(s);
-    const ssrGot = got.filter(i => s.pool[i] && s.pool[i].r === 'SSR').length;
+    const sigLit = s.signatureIdx >= 0 && got.includes(s.signatureIdx);
     const miss = Math.max(0, got.length - stN);
     let firstD = '';
     let lastD = '';
@@ -3470,13 +3549,13 @@ Page({
       if (r && r.date) { if (!firstD) firstD = r.date; lastD = r.date; }
     });
     const sections = got.map((idx, n) => {
-      const c = s.pool[idx] || { w: '', b: '', r: 'N' };
+      const c = s.pool[idx] || { w: '', b: '' };
       const rec = getRec(u, idx);
       return {
         idx,
         n,
         tilt: n % 2 ? 'tilt-r' : 'tilt-l',
-        rar: c.r,
+        sig: idx === s.signatureIdx,
         word: c.w,
         explain: c.b,
         rec: rec ? {
@@ -3499,7 +3578,7 @@ Page({
         count: s.count,
         stN,
         gotCount: got.length,
-        ssrGot,
+        sigLit,
         miss,
         firstD,
         lastD,
@@ -3509,19 +3588,15 @@ Page({
     });
   },
 
-  openPosterDemo(e) {
+  openPosterDemo() {
     const S = this.S;
     S.posterType = 'demo';
     S.posterCtx = null;
-    const rarity = e.currentTarget.dataset.rarity || 'SSR';
-    const demo = {
-      N: { w: '浇水', b: '给窗台的绿萝浇水，看水慢慢渗进土壤。' },
-      R: { w: '黄昏', b: '拍下黄昏的云，天空被染成温柔的橘色。' },
-      SR: { w: '咖啡', b: '今天喝到了一杯好咖啡，香气在房间里慢慢散开。' },
-      SSR: { w: '晚霞', b: '遇见一场鎏金晚霞，像是天空送给今天的礼物。' },
-    }[rarity] || { w: '浇水', b: '给窗台的绿萝浇水，看水慢慢渗进土壤。' };
-    const c = { w: demo.w, b: demo.b, r: rarity };
-    const s = { title: '生活中的微小确幸', covT: '生活中的微小确幸', creator: '小鱼', count: 12, pool: [], user: null };
+    const c = { w: '晚霞', b: '遇见一场鎏金晚霞，像是天空送给今天的礼物。' };
+    const s = {
+      title: '生活中的微小确幸', covT: '生活中的微小确幸', creator: '小鱼',
+      count: 12, pool: [c], signatureIdx: 0, signatureNote: '这是我最想送你的一张。', user: null,
+    };
     const data = this.buildHighlight(c, s, { no: 'No. 003 / 012', slogan: '「做点小事，慢慢收集。」' });
     S.posterExport = data;
     this.setData({ poster: Object.assign({ show: true, booklet: false, ratio: '34' }, data) });

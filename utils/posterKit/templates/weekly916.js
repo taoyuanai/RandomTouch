@@ -135,7 +135,7 @@ function drawCard(ctx, card, x, y) {
   ctx.save();                               // 稀有度顶条裁剪在卡形内
   H.roundRect(ctx, x, y, CARD_W, CARD_H, 8);
   ctx.clip();
-  ctx.fillStyle = P.rar[card.rarity] || P.rar.N;
+  ctx.fillStyle = card.sig ? P.gold.deep : P.gray300;
   ctx.fillRect(x, y, CARD_W, 4);
   ctx.restore();
   drawCardWord(ctx, card.word, x + CARD_W / 2, y + CARD_H / 2 + 2);

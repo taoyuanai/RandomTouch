@@ -17,9 +17,9 @@
                     节点 r5 描边 3px（末节点实心）
                     日期 11px 基线 y-4 / caption 13px 基线 y+18
                     （末节点 14 bold 金深）；文字左起 x116
-   引言    444–520  有 SSR：「word」衬线 24 金渐变 基线468
+   引言    444–520  有题眼：「word」衬线 24 金渐变 基线468
                       + 解签 13/21 × 2 行（top 486）
-                    无 SSR：集齐钢戳 72×24 居中 y458 + 一行 基线508
+                    无题眼：集齐钢戳 72×24 居中 y458 + 一行 基线508
    底部    虚线 2px @536 / QR 60 @（276,548）+8 白衬圈
                     CTA 15 bold @570 / slogan 12 @598
    ══════════════════════════════════════════════════════════ */
@@ -103,7 +103,7 @@ function drawStats(ctx, data) {
     { n: data.stats.cards, l: '张' },
     { n: data.stats.days, l: '天' },
     { n: data.stats.third, l: data.stats.thirdLabel,
-      gold: data.stats.thirdLabel === 'SSR' && data.stats.third > 0 },
+      gold: data.stats.thirdLabel === '题眼' && data.stats.third > 0 },
   ];
   ctx.strokeStyle = P.line;
   ctx.lineWidth = 2;                          // 规则①
@@ -176,7 +176,7 @@ function drawTimelineV(ctx, data) {
 
 function drawQuote(ctx, data) {
   ctx.textAlign = 'center';
-  if (data.ssrQuote) {
+  if (data.sigQuote) {
     ctx.textBaseline = 'alphabetic';
     ctx.font = H.serifFont(24, 700);
     const g = ctx.createLinearGradient(0, 444, 0, 474);
@@ -184,11 +184,11 @@ function drawQuote(ctx, data) {
     g.addColorStop(0.55, P.gold.mid);
     g.addColorStop(1, P.gold.deep);
     ctx.fillStyle = g;
-    ctx.fillText(`「${H.ellipsisText(ctx, data.ssrQuote.word, 240)}」`, W / 2, 468);
+    ctx.fillText(`「${H.ellipsisText(ctx, data.sigQuote.word, 240)}」`, W / 2, 468);
     ctx.fillStyle = P.ink2;
     ctx.font = H.serifFont(13, 400);
     ctx.textBaseline = 'top';
-    const lines = H.clampLines(ctx, data.ssrQuote.text, W - M * 2 - 32, 2);
+    const lines = H.clampLines(ctx, data.sigQuote.text, W - M * 2 - 32, 2);
     lines.forEach((ln, i) => ctx.fillText(ln, W / 2, 486 + i * 21));
     ctx.textBaseline = 'alphabetic';
   } else {

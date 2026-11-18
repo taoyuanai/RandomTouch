@@ -4839,3 +4839,61 @@ page{
 .rec-card.is-fallback .rec-meta{color:var(--ink-3)}
 .rec-card.is-fallback .rec-hot{background:rgba(0,0,0,.08);color:var(--ink-3)}
 .rec-card.is-fallback .rec-fallback-char{opacity:.22}
+
+/* ═══ 题眼 · 金色签名（作者偏爱） ═══ */
+.dw-bar.sig{background:linear-gradient(90deg,#F0CF7E,#B78413);opacity:0;transition:opacity .3s ease}
+.dw-bar.sig.show{opacity:1}
+.dw-sig-stamp{position:absolute;top:18px;right:16px;z-index:4;
+  width:58px;height:20px;border:1.5px solid #B78413;border-radius:2px;
+  box-shadow:inset 0 0 0 2px #FFF,inset 0 0 0 3px #B78413;
+  color:#7A5410;font-size:10px;font-weight:600;letter-spacing:1px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.55);transform:rotate(-4deg) scale(1.8);opacity:0}
+.dw-sig-stamp.show{opacity:.92;animation:sigStampIn .62s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes sigStampIn{
+  0%{transform:rotate(-4deg) scale(1.8);opacity:0}
+  55%{transform:rotate(-4deg) scale(.94);opacity:.95}
+  75%{transform:rotate(-4deg) scale(1.04);opacity:.9}
+  100%{transform:rotate(-4deg) scale(1);opacity:.9}
+}
+.bigcard-sig{position:absolute;top:14px;right:14px;z-index:4;
+  padding:2px 7px;border:1.5px solid #B78413;border-radius:2px;
+  color:#7A5410;font-size:9px;font-weight:600;letter-spacing:1px;
+  background:rgba(255,255,255,.65);transform:rotate(-4deg)}
+.collection-tail-note{margin:var(--space-3) 0;text-align:center;
+  font-size:var(--text-xs);color:var(--text-tertiary);letter-spacing:.5px}
+.map-cell.sig{border-color:#B78413 !important;box-shadow:0 0 0 1px #B78413 inset}
+.map-sig-mark{position:absolute;top:5px;right:6px;color:#B78413;font-size:12px;line-height:1}
+.rdot.gold{background:#B78413 !important;border-color:#B78413 !important}
+.ed-sig-mark{flex:none;width:22px;height:22px;border-radius:50%;
+  border:1px solid #B78413;color:#7A5410;font-family:var(--font-serif);
+  font-size:11px;display:flex;align-items:center;justify-content:center;
+  transform:rotate(8deg)}
+.sig-editor{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.sig-editor-txt{flex:1;min-width:0}
+.sig-editor-txt .t-label{margin-bottom:2px}
+.sig-note-wrap{margin-top:12px;padding-top:12px;border-top:1px dashed var(--hairline)}
+.sig-block{margin:0 0 var(--space-3);padding:12px 0;border-top:1px dashed #E8D2A8}
+.sig-block.compact{margin:8px 0 0;padding:8px 0;border-top:none}
+.sig-mark{font-size:10px;letter-spacing:2px;color:#7A5410;font-weight:600}
+.sig-hair{width:40px;height:1px;margin:8px 0 10px;
+  background:linear-gradient(90deg,transparent,#B78413,transparent)}
+.sig-note{font-family:var(--font-serif);font-size:14px;line-height:1.8;
+  color:var(--ink-2);letter-spacing:.5px}
+.poster-sig-stamp{position:absolute;top:54px;right:24px;padding:2px 8px;
+  border:1.5px solid #B78413;border-radius:2px;color:#7A5410;
+  font-size:10px;font-weight:600;letter-spacing:1px;
+  background:rgba(255,255,255,.7);transform:rotate(-4deg)}
+.poster-sig-note{margin:14px 22px 0;text-align:center;font-family:var(--font-serif);
+  font-size:14px;line-height:1.7;color:var(--ink-2)}
+.h916-sig{padding:2px 6px;border:1px solid #B78413;border-radius:2px;
+  color:#7A5410;font-size:9px;font-weight:600;letter-spacing:1px}
+.weekly-card.sig{box-shadow:inset 0 3px 0 #B78413}
+.sig-switch{width:44px;height:26px;flex:none;border-radius:999px;background:var(--gray-200);
+  position:relative;transition:background .18s ease}
+.sig-switch.on{background:#B78413}
+.sig-switch-knob{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;
+  background:#FFF;box-shadow:0 1px 3px rgba(0,0,0,.18);transition:transform .18s ease}
+.sig-switch.on .sig-switch-knob{transform:translateX(18px)}
+.poster-card.sig{box-shadow:0 8px 32px rgba(183,132,19,.16)}
+.h916-bar.sig{background:linear-gradient(90deg,#F0CF7E,#B78413)}
