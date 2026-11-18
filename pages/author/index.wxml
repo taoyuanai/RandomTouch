@@ -1,0 +1,44 @@
+<view class="phone" style="--statusbar:0px;--navtop:0px">
+  <view class="screen">
+<view class="page" id="page-author">
+  <view class="hm-empty" wx:if="{{bootError}}" style="padding:64px 24px 20px">
+    <view class="hm-empty-text">内容加载失败，检查一下网络</view>
+    <button class="hm-empty-btn" hover-class="hm-press" bindtap="retryBoot">重新加载</button>
+  </view>
+
+      <view id="authorBody">
+        <view class="panel" style="text-align:center;padding:26px 18px 22px">
+          <view class="avatar" style="margin:0 auto 12px">{{author.avatar}}</view>
+          <view class="t-b" style="font-size:17px;font-weight:600;letter-spacing:.5px">@{{author.name}}</view>
+          <view class="t-p" style="font-size:12px;color:var(--ink-soft);margin-top:6px;letter-spacing:1px">做卡人</view>
+          <view class="stats" style="margin:18px 0 0">
+            <view class="stat"><view class="t-b">{{author.worksN}}</view><text class="t-span">作品</text></view>
+            <view class="stat"><view class="t-b">{{author.drawnText}}</view><text class="t-span">被抽</text></view>
+            <view class="stat"><view class="t-b">{{author.fansText}}</view><text class="t-span">关注者</text></view>
+          </view>
+        </view>
+
+        <view class="au-followbar">
+          <button wx:if="{{author.own}}" class="cta solid" bindtap="backToCreate">去创作中心</button>
+          <button wx:else size="mini" class="follow {{author.followed ? 'on' : ''}}" bindtap="toggleFollowPage">{{author.followed ? '已关注 · 每日更新' : '+ 关注'}}</button>
+        </view>
+
+        <view class="group-head"><view class="t-b">{{author.own ? '我的卡集' : 'TA 的卡集'}}</view><text class="t-span">{{author.worksN}} 个</text></view>
+        <view class="card-row" wx:for="{{author.works}}" wx:key="id" bindtap="openSet" data-id="{{item.id}}" data-from="author">
+          <view class="cover-sm {{item.cover}}"><text class="t-span">{{item.covT2}}</text></view>
+          <view class="w">{{item.title}}</view>
+          <view class="s"><view class="t-span">{{item.meta1}}</view><view class="t-span">{{item.meta2}}</view></view>
+        </view>
+        <view class="t-p tiny" wx:if="{{!author.own}}">关注后，TA 的新卡集会出现在你的订阅流。</view>
+      </view>
+    </view>
+
+      </view>
+
+<!-- ═══════════════════ 轻提示 ═══════════════════ -->
+  <view class="toast {{toastShow ? 'show' : (toastHide ? 'hide' : '')}}" wx:if="{{toastMsg}}">
+    <text>{{toastMsg}}</text>
+    <view class="toast-progress" wx:if="{{toastShow}}"><view class="t-i"></view></view>
+  </view>
+
+</view>

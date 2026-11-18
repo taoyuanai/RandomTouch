@@ -75,7 +75,7 @@ services/api.js                   页面唯一数据出口（mock / real 切换�
 services/mock/*                   影子后端（seed / store / index）
 pages/home|cards|create|me/*      4 个原生 tab 页
 pages/set|draw/*                  卡集详情 / 抽卡独立页
-pages/index/*                     hub 子页（map/edit/income/author/demo）
+pages/map|edit|income|author|demo/*  全图 / 编辑审核 / 收益 / 创作者 / 组件总览
 data.js                           原型演示数据（D3 过渡，逐步迁 services）
 assets/icons/*.png                tabBar / 搜索 / 相机 / 火漆等图标
 preview/今日做点小事-预览.html    首页单文件视觉预览（D4 起不再承载子页）
@@ -83,11 +83,11 @@ preview/今日做点小事-预览.html    首页单文件视觉预览（D4 起�
 
 ## 和网页原型的差异
 
-- 4 个 tab 页使用原生导航 + 原生 tabBar；hub 子页保留自定义导航（胶囊安全区）。
+- 4 个 tab 页使用原生导航 + 原生 tabBar；set 用原生导航，draw 用沉浸式 custom 导航。
 - 页面由 `.screen` 内部滚动改为小程序页面滚动；吸底 CTA、底部 tabbar、弹层改为 `position: fixed`。
 - 原生 `button` 做了样式重置；`input / textarea` 使用小程序原生组件；拍照使用 `wx.chooseMedia`。
 - 内联 SVG 图标改为本地 PNG 图标；印戳日期由 CSS `attr(data-date)` 改为真实文本。
-- 数据仍在内存里（与原型一致，刷新/重启恢复初始状态），不调用后端。
+- 业务数据走 mock 内存（重启恢复初始）；创作草稿单独持久化到本地 storage。
 - 「保存到相册」与原网页原型一样是演示提示；真正保存图片需要接 Canvas / 服务端出图。
 - 仓库里上一版「拾笺」服务端抽卡（`geo/`、`templates/gacha.html`）在当前系统中标记为遗留模块，未移植。
 - 远程仓库的 Flask 服务、`.env`、日志等不参与小程序运行。

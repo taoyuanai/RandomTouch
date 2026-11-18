@@ -1,0 +1,184 @@
+<view class="phone" style="--statusbar:0px;--navtop:0px">
+  <view class="screen">
+<view class="page" id="page-edit">
+
+      <view id="editBody">
+        <block wx:if="{{edit.mode === 'edit'}}">
+          <view class="panel">
+            <view class="t-label">卡集封面</view>
+            <view class="cover-edit">
+              <view class="cover-edit-box {{edit.coverImage ? 'has' : ''}}" bindtap="chooseCover">
+                <image wx:if="{{edit.coverImage}}" class="cover-edit-img" src="{{edit.coverImage}}" mode="aspectFill" />
+                <view wx:else class="cover-edit-empty">
+                  <view class="cover-edit-plus">＋</view>
+                  <text class="t-span">上传封面</text>
+                </view>
+              </view>
+              <view class="cover-edit-side">
+                <view class="cover-edit-tip">3:4 竖版 · 建议 900×1200</view>
+                <view class="cover-edit-sub">主体居中；右上角会叠加价格/试抽标签，重要内容不要贴边。</view>
+                <view class="cover-edit-actions">
+                  <button class="mini-cta" bindtap="chooseCover">{{edit.coverImage ? '更换封面' : '选择图片'}}</button>
+                  <button class="cover-edit-del" wx:if="{{edit.coverImage}}" bindtap="clearCover">删除</button>
+                </view>
+              </view>
+            </view>
+          </view>
+
+          <view class="panel" style="margin-top:12px">
+            <view class="form-row">
+              <view class="t-label">标题</view>
+              <input class="fi" value="{{edit.title}}" bindinput="onEditTitle" placeholder="给卡集起个名字（至少 2 个字）" />
+            </view>
+            <view class="form-row">
+              <view class="t-label">简介</view>
+              <textarea class="fi" value="{{edit.intro}}" bindinput="onEditIntro" maxlength="-1" placeholder="抽卡人最先读到的一段话（至少 10 个字）"></textarea>
+            </view>
+            <view class="form-row">
+              <view class="t-label">类型</view>
+              <view class="seg">
+                <button class="{{edit.type === 'collect' ? 'on' : ''}}" bindtap="edType" data-type="collect">收藏集 · 抽完即空</button>
+                <button class="{{edit.type === 'resident' ? 'on' : ''}}" bindtap="edType" data-type="resident">常驻集 · 天天可抽</button>
+              </view>
+            </view>
+            <view class="form-row">
+              <view class="t-label">分类</view>
+              <view class="chips" style="padding:2px 0 0">
+                <view class="chip {{edit.cat === item.key ? 'on' : ''}}" wx:for="{{edit.cats}}" wx:key="key" bindtap="edCat" data-cat="{{item.key}}">{{item.chip}}</view>
+              </view>
+            </view>
+            <view class="form-row" style="margin-bottom:0">
+              <view class="t-label">定价</view>
+              <view class="seg price-grid">
+                <button wx:for="{{edit.prices}}" wx:key="*this" class="{{edit.price === item ? 'on' : ''}}" bindtap="edPrice" data-price="{{item}}">{{item === 0 ? '免费' : '¥' + item}}</button>
+              </view>
+              <view class="t-p trial-label" wx:if="{{edit.price > 0}}" style="margin-top:10px">付费卡集自动含 1 张免费试抽，试抽不占每日额度。</view>
+            </view>
+          </view>
+
+          <view class="panel" style="margin-top:12px">
+            <view class="panel-head"><text class="t-b">{{edit.countText}}</text><text class="t-span">{{edit.signatureOn ? '已设题眼' : ''}}</text></view>
+            <view class="ed-card {{item.open ? 'open' : ''}}" wx:for="{{edit.cards}}" wx:key="index">
+              <view class="ed-head" bindtap="edToggle" data-index="{{index}}">
+                <view class="ed-sig-mark" wx:if="{{item.isSig}}">题</view>
+                <view class="t-b {{item.blank ? 'blank' : ''}}">{{item.label}}</view>
+                <text class="t-span cnt">{{item.cnt}}/2</text>
+                <text class="t-span arr">›</text>
+              </view>
+              <view class="ed-body">
+                <view class="form-row">
+                  <view class="t-label">词 · 印在卡面（不超过 8 个字）</view>
+                  <input class="fi" value="{{item.w}}" data-index="{{index}}" data-key="w" bindinput="onEditCardInput" placeholder="一个词，或一句短话" />
+                </view>
+                <view class="form-row">
+                  <view class="t-label">解释 · 印在卡背</view>
+                  <textarea class="fi" value="{{item.b}}" data-index="{{index}}" data-key="b" bindinput="onEditCardInput" maxlength="-1" placeholder="翻过卡面看到的话"></textarea>
+                </view>
+                <view class="form-row">
+                  <view class="sig-editor">
+                    <view class="sig-editor-txt">
+                      <view class="t-label">✦ 设为本集题眼</view>
+                      <view class="t-p tiny">全套卡里，你最想送到的那一张</view>
+                    </view>
+                    <view class="sig-switch {{item.isSig ? 'on' : ''}}" bindtap="edToggleSignature"
+                          data-index="{{index}}" data-on="{{item.isSig ? 'false' : 'true'}}">
+                      <view class="sig-switch-knob"></view>
+                    </view>
+                  </view>
+                  <view class="sig-note-wrap" wx:if="{{item.isSig}}">
+                    <view class="t-label">附言 · 选填</view>
+                    <textarea class="fi" maxlength="30" value="{{edit.signatureNote}}" bindinput="onSignatureNote" placeholder="为什么最想送这张？会印在卡背上（30 字内）"></textarea>
+                  </view>
+                </view>
+                <button size="mini" class="ed-del" bindtap="edDelCard" data-index="{{index}}">删除这张</button>
+              </view>
+            </view>
+            <button class="ed-add" bindtap="edAddCard">＋ 添加一张卡</button>
+            <view class="t-p tiny">上架前至少 8 张完整。上架后，卡池与定价一起锁死。</view>
+          </view>
+
+          <view style="margin-top:16px">
+            <button class="cta solid" bindtap="tryPublish">提交上架</button>
+            <view class="t-p tiny">改动即时存入草稿 · {{edit.footerTitle}}</view>
+          </view>
+        </block>
+
+        <block wx:else>
+          <view class="panel">
+            <view class="panel-head"><text class="t-b">{{edit.title}}</text><text class="t-span">审核中 · {{edit.submitted}}</text></view>
+            <view class="t-p intro">{{edit.intro}}</view>
+            <view class="t-p bc-meta" style="margin:10px 0 0">{{edit.meta}}</view>
+            <view class="t-p tiny" style="text-align:left;margin:12px 0 0">{{edit.signatureOn ? '已设题眼' : '未设题眼'}}</view>
+            <view class="t-p tiny" style="text-align:left">提交后内容已锁定，审核通过即上架。</view>
+          </view>
+          <view class="panel" style="margin-top:12px">
+            <view class="panel-head"><text class="t-b">卡池 · 只读</text><text class="t-span">{{edit.count}} 张</text></view>
+            <view class="ed-card open" wx:for="{{edit.cards}}" wx:key="index">
+              <view class="ed-head" style="cursor:default">
+                <view class="ed-sig-mark" wx:if="{{item.isSig}}">题</view>
+                <view class="t-b">{{item.w}}</view>
+              </view>
+              <view class="ed-body"><view class="t-p intro" style="margin:0">{{item.b}}</view></view>
+            </view>
+          </view>
+          <view style="margin-top:16px">
+            <button class="ghost" bindtap="passReview">（演示）通过审核，立即上架</button>
+            <view class="t-p tiny">真实环境里，这一步由平台审核完成。</view>
+          </view>
+        </block>
+      </view>
+    </view>
+
+    <!-- ═══════════════════ 收益看板 ═══════════════════ -->
+      </view>
+
+<!-- ═══════════════════ 上架校验 ═══════════════════ -->
+  <view class="modal {{nudge.show ? 'show' : ''}}" id="nudgeModal">
+    <view class="sheet bottom-sheet">
+      <view class="modal-kind">题 眼</view>
+      <view class="modal-title">这套卡还没有题眼</view>
+      <view class="modal-body">要选一张你最想送出的吗？</view>
+      <view class="modal-actions">
+        <button class="cta solid" bindtap="goSignatureNudge">去选</button>
+        <button class="ghost" bindtap="skipSignatureNudge">跳过</button>
+      </view>
+    </view>
+  </view>
+
+  <view class="modal {{check.show ? 'show' : ''}}" id="checkModal">
+    <view class="sheet bottom-sheet">
+      <view class="modal-kind">还 差 一 点</view>
+      <view class="modal-title">上架前，先补齐这些</view>
+      <view class="check-list">
+        <view class="t-li" wx:for="{{check.list}}" wx:key="*this">{{item}}</view>
+      </view>
+      <view class="modal-actions">
+        <button class="cta solid" bindtap="closeCheck">回去改</button>
+      </view>
+    </view>
+  </view>
+
+  
+<!-- ═══════════════════ 提交上架 ═══════════════════ -->
+  <view class="modal {{pub.show ? 'show' : ''}}" id="pubModal">
+    <view class="sheet bottom-sheet">
+      <view class="modal-kind">提 交 上 架</view>
+      <view class="modal-title">{{pub.title}}</view>
+      <view class="t-p modal-line">{{pub.meta}}</view>
+      <view class="t-p modal-body">上架后，卡池与定价同时锁定，不能再改。</view>
+      <view class="t-p modal-body">审核通过后，它会出现在「发现」，被所有人抽到。</view>
+      <view class="modal-actions">
+        <button class="cta solid" disabled="{{pub.publishing}}" bindtap="doPublish">{{pub.publishing ? '提交中…' : '确认，提交审核'}}</button>
+        <button class="ghost" bindtap="closePub">再想想</button>
+      </view>
+    </view>
+  </view>
+
+  
+<!-- ═══════════════════ 轻提示 ═══════════════════ -->
+  <view class="toast {{toastShow ? 'show' : (toastHide ? 'hide' : '')}}" wx:if="{{toastMsg}}">
+    <text>{{toastMsg}}</text>
+    <view class="toast-progress" wx:if="{{toastShow}}"><view class="t-i"></view></view>
+  </view>
+
+</view>

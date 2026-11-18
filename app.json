@@ -6,7 +6,11 @@
     "pages/me/index",
     "pages/set/index",
     "pages/draw/index",
-    "pages/index/index"
+    "pages/map/index",
+    "pages/edit/index",
+    "pages/income/index",
+    "pages/author/index",
+    "pages/demo/index"
   ],
   "window": {
     "navigationBarBackgroundColor": "#FFFFFF",

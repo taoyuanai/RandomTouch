@@ -5,8 +5,8 @@
 「今日做点小事」微信小程序：每日抽卡 + 盖邮戳记录 + 集齐装订。
 当前 Phase 1：前端先行，后端冻结。一切数据走 services/api.js → mock。
 
-> 架构提示：本项目是**单 Page SPA**（`pages/index` + view 切换），
-> 「逐页接入」在 D2 指逐 view / 逐方法接入，不是逐文件。
+> 架构提示：D5 起为**多页原生小程序**（4 tab + set/draw/map/edit/income/author/demo），
+> S 由 lib/core.js 全局单例共享；页面只保留生命周期与极少量私有方法。
 
 ## 铁律（违反任何一条 = 返工，无例外）
 
@@ -28,7 +28,11 @@
 9. 新页面四件套 checklist：① json 判断是否 custom 导航 ② wxml 顶部
    <import src="/templates/common.wxml"/> ③ js 第一行 this.S = core.getS()
    ④ onUnload 清理本页定时器/观察器
-10. 页面逻辑中禁止用 data.page 判断当前页面（仅 hub 例外）——一律用 this.__page
+10. 页面逻辑中禁止用 data.page 判断当前页面（hub 已删除，无例外）——一律用 this.__page
+
+11. S.fans / S.social / S.comments / S.follow 是「显示缓存」：只允许由 api 响应
+    写入（applySetPayload / refreshSetMeta / renderAuthor / toggleLike 等），
+    禁止再从 seed 初始化或本地推算
 
 ## 过渡期规则（D2-D6）
 

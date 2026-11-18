@@ -246,6 +246,26 @@ async function markWeekly({ setId, weekNo } = {}) {
   return { ok: true };
 }
 
+async function getAuthor({ name } = {}) {
+  await gate();
+  const works = store.state.sets.filter(s => s.creator === name);
+  return {
+    name: name || '',
+    own: name === store.ME,
+    fans: store.state.fans[name] || 0,
+    followed: !!store.state.follow[name],
+    works: works.map(setPayload),
+  };
+}
+
+async function toggleFollow({ name } = {}) {
+  await gate();
+  store.state.follow[name] = !store.state.follow[name];
+  store.state.fans[name] = Math.max(0, (store.state.fans[name] || 0) + (store.state.follow[name] ? 1 : -1));
+  store.persist();
+  return { followed: store.state.follow[name], fans: store.state.fans[name] };
+}
+
 /* getFeed — 订阅页聚合（生产为服务端逻辑） */
 function ensureDrawnLog(s) {
   const u = s && s.user;
@@ -353,14 +373,25 @@ async function getMyCraft() {
   return {
     published: store.state.sets.filter(s => s.creator === store.ME).map(setPayload),
     reviewing: store.state.reviewing.map(d => ({
-      id: d.id, title: (d.title || '').trim() || '未命名',
-      complete: d.pool.filter(cardDone).length,
+      id: d.id,
+      title: d.title || '',
+      intro: d.intro || '',
+      type: d.type, cat: d.cat, price: d.price, trial: d.trial,
+      coverImage: d.coverImage || '',
+      signatureIdx: d.signatureIdx != null ? d.signatureIdx : -1,
+      signatureNote: d.signatureNote || '',
+      submitted: d.submitted || '',
+      pool: d.pool || [],
     })),
   };
 }
 
 async function submitCraft({ draft } = {}) {
   await gate();
+  if (_debug._rejectSubmit) {
+    _debug._rejectSubmit = false;
+    throw { code: 'SEC_REJECTED', message: '内容暂时无法公开展示', retryable: false };
+  }
   const d = JSON.parse(JSON.stringify(draft));
   d.status = 'reviewing';
   d.submitted = todayMD();
@@ -439,6 +470,7 @@ const _debug = {
     store.state.weeklyMade[`${setId}:${weekNo}`] = true;
     store.persist();
   },
+  rejectNextSubmit() { _debug._rejectSubmit = true; return '下一次 submitCraft 返回 SEC_REJECTED'; },
   arrive() { // 演示：pending → withdrawn（真实环境由支付回调驱动）
     store.state.income.withdrawn += store.state.income.pending;
     store.state.income.pending = 0;
@@ -470,7 +502,7 @@ const _debug = {
 
 module.exports = {
   auth, listSets, getSet, draw, saveStamp, unlock,
-  getComments, addComment, toggleLike, markWeekly, getFeed,
+  getComments, addComment, toggleLike, markWeekly, getAuthor, toggleFollow, getFeed,
   getMyCraft, submitCraft, getIncome, withdraw,
   uploadImage, reportRemindAuth, track,
   _debug,

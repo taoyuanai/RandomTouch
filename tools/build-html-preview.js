@@ -152,6 +152,7 @@ function bundleServices() {
     'services/mock/index.js': read(path.join(ROOT, 'services/mock/index.js')),
     'services/real/index.js': read(path.join(ROOT, 'services/real/index.js')),
   };
+  files['lib/craftStore.js'] = read(path.join(ROOT, 'lib/craftStore.js'));
   let coreSrc = read(path.join(ROOT, 'lib/core.js'));
   coreSrc = coreSrc.replace("const posterKit = require('../utils/posterKit/export.js');", 'const posterKit = window.__POSTER_KIT__;');
   coreSrc = coreSrc.replace("const Security = require('../utils/security.js');", 'const Security = window.__SECURITY__;');

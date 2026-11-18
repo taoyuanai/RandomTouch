@@ -103,6 +103,13 @@ withdraw 将 avail 计入 pending，返回新 getIncome 快照。
 ### markWeekly({ setId, weekNo })
 标记某集某周周记已生成（getFeed 据此不再提示）。返回 `{ ok }`。
 
+### getAuthor({ name })
+创作者主页。返回 `{ name, own, fans, followed, works: SetPayload[] }`。
+own = 是否本人。未知创作者返回空 works（不报错）。
+
+### toggleFollow({ name })
+关注/取关创作者。返回 `{ followed, fans }`。
+
 ## 2. SetPayload（全接口通用）
 ```
 { id, title, covT, covS, cover, coverImage, cat, type, price, trial,
@@ -112,12 +119,18 @@ withdraw 将 avail 计入 pending，返回新 getIncome 快照。
               unlocked, trialUsed, drawnLog[{idx,ts}], recs{} } }
 ```
 
+DraftPayload = { id, title, intro, type, cat, price, trial, coverImage,
+                 signatureIdx, signatureNote, submitted, pool: [{w,b}] }
+
 ## 修订记录
 | 日期 | 变更 | 说明 |
 |---|---|---|
 | D3 | SetPayload 新增可选 `likes?: number, liked?: boolean` | 列表/抽卡响应直出心动数，免去逐集 getSet；容差条款① |
 | D3 | 新增 markWeekly 接口 | 周记"已生成"须服务端记录；页面保留本地缓存做即时反馈 |
 | D4 | 无接口变更。备注：pending→withdrawn 由支付回调驱动，客户端不提供接口 | doArrive 仅存在于 mock 调试后门 |
+| D5 | getMyCraft.reviewing 升级为完整 DraftPayload（原仅 {id,title,complete}） | 审核中详情页需完整字段渲染 |
+| D5 | 新增 getAuthor / toggleFollow | fans 与关注状态服务端权威 |
+| D5 | SetPayload 的 totalDrawn/earn/buyers（D2 曾可选）转正 | 收益看板与作者页数据源 |
 | D2 | draw 响应新增可选 `weekGoal?: {done, total, full, justFull}`；SetPayload 新增可选 `totalDrawn? / earn? / buyers?`（own 集统计） | 本周目标只有服务端能跨集聚合判定；justFull=本周刚达成，驱动一次性 toast。符合容差条款①，后端可返回 null/省略 |
 | D2 | SetPayload 新增可选 `subscribed?: boolean` | 区分「未订阅集」：progress 默认对象不应被当成订阅，否则首页/订阅页会把全部卡集算作订阅。符合容差条款① |
 | D2 | draw 失败重试复用同一 requestId | 覆盖「服务端已处理但响应丢失」：重放返回同一张卡，不丢不重 |
