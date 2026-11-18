@@ -439,6 +439,12 @@ const _debug = {
     store.state.weeklyMade[`${setId}:${weekNo}`] = true;
     store.persist();
   },
+  arrive() { // 演示：pending → withdrawn（真实环境由支付回调驱动）
+    store.state.income.withdrawn += store.state.income.pending;
+    store.state.income.pending = 0;
+    store.persist();
+    return 'ok';
+  },
   rig(setId, idx) {
     _debug._rig = { setId: Number(setId), idx: Number(idx) };
     return `下一次抽卡固定为 idx=${idx}`;

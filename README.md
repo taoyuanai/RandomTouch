@@ -74,10 +74,11 @@ lib/shared.js                     共享方法层（createPage，D3 过渡期单
 services/api.js                   页面唯一数据出口（mock / real 切换）
 services/mock/*                   影子后端（seed / store / index）
 pages/home|cards|create|me/*      4 个原生 tab 页
-pages/index/*                     hub 子页（set/draw/map/edit/income/author/demo）
+pages/set|draw/*                  卡集详情 / 抽卡独立页
+pages/index/*                     hub 子页（map/edit/income/author/demo）
 data.js                           原型演示数据（D3 过渡，逐步迁 services）
 assets/icons/*.png                tabBar / 搜索 / 相机 / 火漆等图标
-preview/今日做点小事-预览.html    hub 单文件视觉预览（D3 起只保留子页）
+preview/今日做点小事-预览.html    首页单文件视觉预览（D4 起不再承载子页）
 ```
 
 ## 和网页原型的差异

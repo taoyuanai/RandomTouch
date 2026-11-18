@@ -25,6 +25,11 @@
 8. 页面 js 文件只允许：require shared/core、生命周期 hooks、极少量页面私有方法；
    业务方法一律落在 lib/shared.js（改方法 = 改 shared，不是改页面）
 
+9. 新页面四件套 checklist：① json 判断是否 custom 导航 ② wxml 顶部
+   <import src="/templates/common.wxml"/> ③ js 第一行 this.S = core.getS()
+   ④ onUnload 清理本页定时器/观察器
+10. 页面逻辑中禁止用 data.page 判断当前页面（仅 hub 例外）——一律用 this.__page
+
 ## 过渡期规则（D2-D6）
 
 - 存量 seed 直引（CATS/CRAFT/FANS/SOCIAL_SEED/COMMENTS_SEED/PLATFORM_INCOME/TXN_SEED）

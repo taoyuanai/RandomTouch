@@ -24,7 +24,7 @@ const path = require('path');
 const { parseWXML, collectTemplates, annotateLoops } = require('./lib/wxml');
 
 const ROOT = path.resolve(__dirname, '..');
-const pagesDir = path.join(ROOT, 'pages/index');
+const pagesDir = path.join(ROOT, 'pages/home');
 const outDir = path.join(ROOT, 'preview');
 const outFile = path.join(outDir, '今日做点小事-预览.html');
 

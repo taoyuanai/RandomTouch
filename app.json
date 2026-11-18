@@ -4,6 +4,8 @@
     "pages/cards/index",
     "pages/create/index",
     "pages/me/index",
+    "pages/set/index",
+    "pages/draw/index",
     "pages/index/index"
   ],
   "window": {
@@ -19,10 +21,30 @@
     "backgroundColor": "#FFFFFF",
     "borderStyle": "white",
     "list": [
-      { "pagePath": "pages/home/index",   "text": "发现", "iconPath": "assets/icons/tab-home.png",   "selectedIconPath": "assets/icons/tab-home-on.png" },
-      { "pagePath": "pages/cards/index",  "text": "订阅", "iconPath": "assets/icons/tab-cards.png",  "selectedIconPath": "assets/icons/tab-cards-on.png" },
-      { "pagePath": "pages/create/index", "text": "创作", "iconPath": "assets/icons/tab-create.png", "selectedIconPath": "assets/icons/tab-create-on.png" },
-      { "pagePath": "pages/me/index",     "text": "我的", "iconPath": "assets/icons/tab-me.png",     "selectedIconPath": "assets/icons/tab-me-on.png" }
+      {
+        "pagePath": "pages/home/index",
+        "text": "发现",
+        "iconPath": "assets/icons/tab-home.png",
+        "selectedIconPath": "assets/icons/tab-home-on.png"
+      },
+      {
+        "pagePath": "pages/cards/index",
+        "text": "订阅",
+        "iconPath": "assets/icons/tab-cards.png",
+        "selectedIconPath": "assets/icons/tab-cards-on.png"
+      },
+      {
+        "pagePath": "pages/create/index",
+        "text": "创作",
+        "iconPath": "assets/icons/tab-create.png",
+        "selectedIconPath": "assets/icons/tab-create-on.png"
+      },
+      {
+        "pagePath": "pages/me/index",
+        "text": "我的",
+        "iconPath": "assets/icons/tab-me.png",
+        "selectedIconPath": "assets/icons/tab-me-on.png"
+      }
     ]
   },
   "style": "v2",

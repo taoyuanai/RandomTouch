@@ -13,7 +13,7 @@ Object.assign(page, {
     if (!this.S) return;
     this.S.lastActive = Date.now();
     if (!this.S.booted) return;
-    core.syncOnShow().then(() => this.renderCraft());
+    Promise.all([core.syncOnShow(), this.refreshIncome()]).then(() => this.renderCraft());
   },
   onShareAppMessage() {
     return { title: '万物皆可抽一签 · 今日做点小事', path: '/pages/create/index' };

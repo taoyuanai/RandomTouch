@@ -23,23 +23,15 @@ Object.assign(page, {
       wx.switchTab({ url: '/pages/cards/index' });
       return;
     }
-    let entry = q.page || 'set';
-    core.ensureBoot().then(() => {
-      if (q.sid) {
-        this.S.shareSid = Number(q.sid);
-        this.S.cameFrom = 'home';
-        this.S.cur = Number(q.sid);
-        this._setRecTab = 'related';
-        entry = 'set';
-      }
-      if (entry === 'set' && this.S.cur == null && this.S.sets.length) {
-        this.S.cur = this.S.sets[0].id;
-      }
-      this.__enter(entry);
-    }).catch(() => {
-      this.toast('内容加载失败，检查一下网络');
-      this.__enter(entry);
-    });
+    // 兼容旧分享链接：/pages/index/index?sid=N → 直达独立 set 页
+    if (q.sid) {
+      wx.redirectTo({ url: '/pages/set/index?sid=' + Number(q.sid) });
+      return;
+    }
+    const entry = q.page;
+    if (!entry) { wx.switchTab({ url: '/pages/home/index' }); return; }
+    core.ensureBoot().then(() => this.__enter(entry))
+      .catch(() => { this.toast('内容加载失败，检查一下网络'); this.__enter(entry); });
   },
 
   onShow() {
@@ -57,33 +49,10 @@ Object.assign(page, {
   },
 
   onShareAppMessage() {
-    const sp = this.data.setPage;
-    if (this.data.page === 'set' && sp && sp.exists && sp.id) {
-      const s = this.S.sets.find(x => x.id === sp.id);
-      if (s) {
-        return {
-          title: `《${s.title}》 · 今天来抽一签`,
-          path: `/pages/index/index?sid=${s.id}&from=share`,
-        };
-      }
-    }
-    return {
-      title: '万物皆可抽一签 · 今日做点小事',
-      path: '/pages/index/index',
-    };
+    return { title: '万物皆可抽一签 · 今日做点小事', path: '/pages/index/index' };
   },
 
   onShareTimeline() {
-    const sp = this.data.setPage;
-    if (this.data.page === 'set' && sp && sp.exists && sp.id) {
-      const s = this.S.sets.find(x => x.id === sp.id);
-      if (s) {
-        return {
-          title: `《${s.title}》 · 今天来抽一签`,
-          query: `sid=${s.id}&from=timeline`,
-        };
-      }
-    }
     return { title: '万物皆可抽一签 · 今日做点小事' };
   },
 });

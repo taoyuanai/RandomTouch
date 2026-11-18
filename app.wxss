@@ -4914,3 +4914,9 @@ font-size:13px;color:var(--ink-2);letter-spacing:1px}
 
 /* D3 · 原生 tab 页：底部留给原生 tabBar，不再用 110px 自定义 tabbar 间距 */
 #page-home, #page-cards, #page-create, #page-me { padding-bottom: 24px; }
+
+/* D4 · 详情页分享按钮（随 subhead 移除迁入心动行） */
+.sp-share{display:inline-flex;align-items:center;height:38px;padding:0 14px;
+border-radius:999px;border:1px solid var(--orange-200);background:var(--orange-50);
+color:var(--orange-600);font-size:12px;font-weight:600;letter-spacing:.5px}
+.sp-share::after{border:none}
