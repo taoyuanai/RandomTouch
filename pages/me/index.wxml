@@ -37,7 +37,7 @@
         </view>
         <view class="panel" style="padding:6px 18px">
           <view class="li" bindtap="meWallet">钱包<text class="t-span">›</text></view>
-          <view class="li" style="border:none" bindtap="meSettings">设置<text class="t-span li-val">{{me.remindText}}</text><text class="t-span">›</text></view>
+          <view class="li" style="border:none" bindtap="meSettings">提醒我明天的卡<text class="t-span li-val">{{me.remindText}}</text><text class="t-span">›</text></view>
         </view>
 
       </view>
@@ -74,14 +74,14 @@
   </view>
 
   
-<!-- ═══════════════════ 每日提醒 · 订阅消息 ═══════════════════ -->
-  <view class="modal {{remindSheet.show ? 'show' : ''}}" id="remindModal">
+<!-- ═══════════════════ 订阅消息 · 提醒我明天的卡 ═══════════════════ -->
+  <view class="modal {{remind.show ? 'show' : ''}}" id="remindModal">
     <view class="sheet rules-sheet remind-sheet">
-      <button class="close-btn rules-close" bindtap="closeRemindSheet">✕</button>
-      <view class="rules-kicker">订 阅 消 息</view>
-      <view class="rules-title">每日提醒</view>
-      <view class="remind-desc">新卡到的时候，轻轻叫你一声。每天最多一条，缺席不损失，随时可以在这里关掉。</view>
-      <view class="remind-time {{item.on ? 'on' : ''}}" wx:for="{{remindSheet.times}}" wx:key="key"
+      <button class="close-btn rules-close" bindtap="closeRemind">✕</button>
+      <view class="rules-kicker">提 醒 我 明 天 的 卡</view>
+      <view class="rules-title">提醒我明天的卡</view>
+      <view class="remind-desc">每天 0 点，新的卡到。选个时间，授权一次，明天这个时间提醒你。</view>
+      <view class="remind-time {{item.on ? 'on' : ''}}" wx:for="{{remind.times}}" wx:key="key"
             bindtap="pickRemindTime" data-key="{{item.key}}" hover-class="sb2-press">
         <view class="remind-time-l">
           <text class="remind-time-t">{{item.label}}</text>
@@ -89,8 +89,8 @@
         </view>
         <view class="remind-radio"></view>
       </view>
-      <button class="cta solid remind-btn" bindtap="toggleRemind">{{remindSheet.btn}}</button>
-      <view class="modal-meta">{{remindSheet.meta}}</view>
+      <button class="cta solid remind-btn" bindtap="enableRemind">开启提醒</button>
+      <view class="remind-off" wx:if="{{remind.enabled}}" bindtap="disableRemind">关闭提醒</view>
     </view>
   </view>
 

@@ -28,6 +28,7 @@ App({
       if (core) core.initS();
       if (api && typeof api.auth === 'function') api.auth().catch(() => {});
       if (core) core.ensureBoot().catch(() => {}); // 预热；各页 await 同一 promise
+      try { require('./lib/track.js').flush(); } catch (e) {}
     } catch (e) {
       console.error('[core] init failed', e);
     }

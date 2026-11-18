@@ -75,6 +75,15 @@
                     bindtap="tapDrawCta" data-act="cta">{{draw.cta.text}}</button>
           </view>
 
+          <!-- D8 · 明天提醒我（常驻勾选，勾选才授权） -->
+          <view class="dw-remind" wx:if="{{draw.stage === 'after'}}">
+            <view class="dw-remind-check {{draw.remindChecked ? 'on' : ''}}"
+                  hover-class="dw-remind-press" bindtap="tapRemindCheck">
+              <view class="dw-remind-box">{{draw.remindChecked ? '✓' : ''}}</view>
+              <text class="dw-remind-text">{{draw.remindChecked ? '明天见' : '明天提醒我'}}</text>
+            </view>
+          </view>
+
           <!-- 再抽抽看：只推荐今天还能抽的卡集 -->
           <view class="draw-rec" wx:if="{{draw.stage === 'after'}}">
             <block wx:if="{{draw.recs && draw.recs.items.length}}">
@@ -103,4 +112,36 @@
 
 <include src="/templates/m-flow.wxml"/>
 <include src="/templates/m-set.wxml"/>
+
+<!-- D8 · 首抽引导屏（一次性） -->
+<view class="ob-mask" wx:if="{{onboard.show}}" catchtap="noop">
+  <view class="ob-card" catchtap="noop">
+    <view class="ob-kicker">今日做点小事</view>
+    <view class="ob-title">这样玩</view>
+    <view class="ob-steps">
+      <view class="ob-step">
+        <view class="ob-no">1</view>
+        <view class="ob-txt">
+          <view class="ob-st">每天一张</view>
+          <view class="ob-sb">每天 0 点，新的卡准时到</view>
+        </view>
+      </view>
+      <view class="ob-step">
+        <view class="ob-no">2</view>
+        <view class="ob-txt">
+          <view class="ob-st">盖邮戳</view>
+          <view class="ob-sb">一句话、一张照片，给今天盖个戳</view>
+        </view>
+      </view>
+      <view class="ob-step">
+        <view class="ob-no">3</view>
+        <view class="ob-txt">
+          <view class="ob-st">集齐装订</view>
+          <view class="ob-sb">集齐一整集，装订成你的小册子</view>
+        </view>
+      </view>
+    </view>
+    <view class="ob-cta" hover-class="ob-cta-press" bindtap="closeOnboard">知道了，开始收集</view>
+  </view>
+</view>
 </view>

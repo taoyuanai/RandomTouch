@@ -68,3 +68,6 @@
 
 14. UI 日的 diff 纪律：字号/对比度只动 wxss；需要动 wxml 结构的仅限任务卡
     明列的块；发现表外问题时记入 decisions「待查」，不顺手扩大 diff
+
+15. 订阅相关：requestSubscribeMessage 只允许出现在两个入口（draw 勾选 tapRemindCheck /
+    设置页 enableRemind），必须在用户 tap 上下文内调用；TMPL_IDS 为空时走兜底 toast，不许报错

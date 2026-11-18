@@ -46,3 +46,8 @@
 | D042 | D7 | 信封动画：本机首抽 920ms 完整，此后 fast 档 400ms + 轻触跳过；标记 dsm_env_seen | 仪式感保留一次，日常不罚老用户 |
 | D043 | D7 | HM_SHOW_DAILY=false | daily 内容未就位，空分类是负体验；运营就位后置 true |
 | D044 | D7 | renderSetPage 死数据清扫；sp v2.8 残留样式删除 | cells 保留——tapSetCell 依赖它索引；.sub-tail 例外保留；.rec-meta/.dp-next .rec-title/.stamp/.sp-pick-stamp/.weekly-916 .wc-word/.rules-n 等表外小字尺寸待查，未扩 diff |
+| D045 | D8 | 首抽引导屏一次性（dsm_onboarded）；题眼首抽延迟到金色链播完再弹 | 仪式感不叠加 |
+| D046 | D8 | 订阅改勾选式：draw 完成区常驻「明天提醒我」+ 设置页「提醒我明天的卡」；勾选/开启即在 tap 上下文调 requestSubscribeMessage | 一次性订阅的诚实 UI；替代 2 次硬弹 |
+| D047 | D8 | dsm_remind_ts 记授权当日，跨天勾选复位；draw 勾选不可撤回（toast），设置页「关闭提醒」可停发（清 ts） | 授权即消耗；发送侧由 enabled 门槛控制（Phase 2 服务端） |
+| D048 | D8 | _maybeAskRemind / dsm_has_drawn / remind.asked 退场 | 引导职责移交勾选式 UI |
+| D049 | D8 | track 封装（预支 D9，可顺延）：失败本地排队 ≤50，onLaunch flush | 埋点丢失率最小化，契约不变 |

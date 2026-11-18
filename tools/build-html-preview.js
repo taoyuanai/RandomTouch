@@ -156,6 +156,7 @@ function bundleServices() {
     'services/real/index.js': read(path.join(ROOT, 'services/real/index.js')),
   };
   files['lib/craftStore.js'] = read(path.join(ROOT, 'lib/craftStore.js'));
+  files['lib/track.js'] = read(path.join(ROOT, 'lib/track.js'));
   let coreSrc = read(path.join(ROOT, 'lib/core.js'));
   coreSrc = coreSrc.replace("const posterKit = require('../utils/posterKit/export.js');", 'const posterKit = window.__POSTER_KIT__;');
   let sharedSrc = read(path.join(ROOT, 'lib/shared.js'));
