@@ -476,6 +476,30 @@
       </view>
 
       <view class="sb2-body">
+        <!-- 久别问候卡 -->
+        <view class="sb2-greet" wx:if="{{subs.greeting}}" hover-class="sb2-press" bindtap="tapGreeting">
+          <view class="sb2-greet-head">
+            <view class="sb2-greet-title">好久不见</view>
+            <view class="sb2-greet-days">{{subs.greeting.days}} 天没见</view>
+          </view>
+          <view class="sb2-greet-sub">{{subs.greeting.sub}}</view>
+          <view class="sb2-greet-cta">{{subs.greeting.cta}} ›</view>
+        </view>
+
+        <!-- 本周目标卡 -->
+        <view class="sb2-week-goal {{subs.weekGoal.full ? 'full' : ''}}" wx:if="{{subs.weekGoal}}" hover-class="sb2-press" bindtap="tapWeekGoal">
+          <view class="swg-head">
+            <view class="swg-title">{{subs.weekGoal.title}}</view>
+            <view class="swg-count">{{subs.weekGoal.done}} / {{subs.weekGoal.total}}</view>
+          </view>
+          <view class="swg-dots">
+            <view class="swg-dot {{item.cls}}" wx:for="{{subs.weekGoal.dots}}" wx:key="index">
+              <text class="swg-dot-l">{{item.label}}</text>
+            </view>
+          </view>
+          <view class="swg-sub">{{subs.weekGoal.sub}}</view>
+        </view>
+
         <!-- ① 行动提醒卡 -->
         <view class="sb2-remind" wx:if="{{subs.remindDraw}}" hover-class="sb2-press" bindtap="tapRemindDraw">
           <view class="sb2-remind-deco"></view>
@@ -500,7 +524,7 @@
         <!-- ② 统计 -->
         <view class="sb2-stats" wx:if="{{subs.total}}">
           <view class="sb2-stat"><view class="sb2-stat-n orange">{{subs.statCan}}</view><text class="sb2-stat-l">今日可抽</text></view>
-          <view class="sb2-stat"><view class="sb2-stat-n">{{subs.statCards}}</view><text class="sb2-stat-l">已抽的卡</text></view>
+          <view class="sb2-stat"><view class="sb2-stat-n">{{subs.statCards}}</view><text class="sb2-stat-l">累计抽卡</text></view>
           <view class="sb2-stat"><view class="sb2-stat-n">{{subs.statEmpty}}</view><text class="sb2-stat-l">已抽空</text></view>
         </view>
 
@@ -874,7 +898,7 @@
         </view>
 
         <view class="stats">
-          <view class="stat"><view class="t-b">{{me.cardN}}</view><text class="t-span">已集的卡</text></view>
+          <view class="stat"><view class="t-b">{{me.cardN}}</view><text class="t-span">点亮图鉴</text></view>
           <view class="stat"><view class="t-b orange">{{me.stampN}}</view><text class="t-span">已盖邮戳</text></view>
           <view class="stat"><view class="t-b">{{me.emptied}}</view><text class="t-span">已抽空</text></view>
         </view>
@@ -897,7 +921,7 @@
         </view>
         <view class="panel" style="padding:6px 18px">
           <view class="li" bindtap="meWallet">钱包<text class="t-span">›</text></view>
-          <view class="li" style="border:none" bindtap="meSettings">设置<text class="t-span">›</text></view>
+          <view class="li" style="border:none" bindtap="meSettings">设置<text class="t-span li-val">{{me.remindText}}</text><text class="t-span">›</text></view>
         </view>
 
       </view>
@@ -1097,6 +1121,26 @@
         <button class="ghost" bindtap="closeRecord">暂时不记</button>
       </view>
       <view class="modal-meta">只给自己看 · 不记录也不影响任何功能</view>
+    </view>
+  </view>
+
+  <!-- ═══════════════════ 每日提醒 · 订阅消息 ═══════════════════ -->
+  <view class="modal {{remindSheet.show ? 'show' : ''}}" id="remindModal">
+    <view class="sheet rules-sheet remind-sheet">
+      <button class="close-btn rules-close" bindtap="closeRemindSheet">✕</button>
+      <view class="rules-kicker">订 阅 消 息</view>
+      <view class="rules-title">每日提醒</view>
+      <view class="remind-desc">新卡到的时候，轻轻叫你一声。每天最多一条，缺席不损失，随时可以在这里关掉。</view>
+      <view class="remind-time {{item.on ? 'on' : ''}}" wx:for="{{remindSheet.times}}" wx:key="key"
+            bindtap="pickRemindTime" data-key="{{item.key}}" hover-class="sb2-press">
+        <view class="remind-time-l">
+          <text class="remind-time-t">{{item.label}}</text>
+          <text class="remind-time-s">{{item.sub}}</text>
+        </view>
+        <view class="remind-radio"></view>
+      </view>
+      <button class="cta solid remind-btn" bindtap="toggleRemind">{{remindSheet.btn}}</button>
+      <view class="modal-meta">{{remindSheet.meta}}</view>
     </view>
   </view>
 

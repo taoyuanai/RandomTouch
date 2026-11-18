@@ -264,6 +264,16 @@
       };
     },
     getSystemInfoSync: function () { return window.wx.getWindowInfo(); },
+    /* ── 订阅消息：预览环境自动视为同意（真实小程序里弹系统授权框） ── */
+    requestSubscribeMessage: function (opts) {
+      opts = opts || {};
+      setTimeout(function () {
+        var res = {};
+        (opts.tmplIds || []).forEach(function (id) { res[id] = 'accept'; });
+        if (opts.success) opts.success(res);
+        if (opts.complete) opts.complete(res);
+      }, 350);
+    },
     pageScrollTo: function (o) {
       o = o || {};
       try {

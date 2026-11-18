@@ -31,12 +31,6 @@ function pad2(n) {
   return String(n).padStart(2, '0');
 }
 
-function getTodayStr() {
-  const now = new Date();
-  const days = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
-  return `${now.getFullYear()}.${pad2(now.getMonth() + 1)}.${pad2(now.getDate())} · ${days[now.getDay()]}`;
-}
-
 function getTodayShort() {
   const n = new Date();
   return `${n.getMonth() + 1}月${n.getDate()}日`;
@@ -218,6 +212,78 @@ function stampedCount(s) {
   return Object.keys(u.recs).filter(k => got.includes(Number(k))).length;
 }
 
+/* ═══ 留存体系 · 日期地基（一律按北京时间 UTC+8 计算"天"） ═══ */
+const BK_OFFSET_MS = 8 * 3600000;
+
+function _bkDate(ts) {
+  return new Date((ts == null ? Date.now() : ts) + BK_OFFSET_MS);
+}
+
+/* 时间戳 → 北京日期键 'YYYY-MM-DD'，字符串可直接比较先后 */
+function dateKeyOf(ts) {
+  const d = _bkDate(ts);
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
+}
+
+function todayKey() {
+  return dateKeyOf(Date.now());
+}
+
+/* 本周周一（北京时间）的日期键 */
+function weekMondayKey(ts) {
+  const d = _bkDate(ts == null ? Date.now() : ts);
+  const dow = (d.getUTCDay() + 6) % 7; // 周一=0 … 周日=6
+  d.setUTCDate(d.getUTCDate() - dow);
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
+}
+
+/* 日期键加 n 天（在 UTC 刻度内运算，避免时区误差） */
+function _keyPlus(key, n) {
+  const t = Date.parse(key + 'T00:00:00Z') + n * 86400000;
+  const d = new Date(t);
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
+}
+
+/* 本周抽卡进度：以全局活动流水 S.activity 为准，按"天"去重
+   返回 { done, total:7, left, full, today } —— 阶段 2 周目标卡用 */
+function weekProgress(S) {
+  const tk = todayKey();
+  const mk = weekMondayKey();
+  const days = new Set();
+  (S.activity || []).forEach(a => {
+    if (!a || !a.ts) return;
+    const k = dateKeyOf(a.ts);
+    if (k >= mk && k <= tk) days.add(k);
+  });
+  const done = days.size;
+  return { done, total: 7, left: Math.max(0, 7 - done), full: done >= 7, today: days.has(tk) };
+}
+
+/* 距上次抽卡缺席了几天（新用户返回 null）—— 阶段 4 久别召回用 */
+function daysAbsent(S) {
+  const acts = (S && S.activity) || [];
+  if (!acts.length) return null;
+  const last = acts.reduce((m, a) => Math.max(m, a.ts || 0), 0);
+  if (!last) return null;
+  const dayMs = 86400000;
+  const a = Date.parse(todayKey() + 'T00:00:00Z');
+  const b = Date.parse(dateKeyOf(last) + 'T00:00:00Z');
+  return Math.max(0, Math.round((a - b) / dayMs));
+}
+
+/* ═══ 订阅消息 · 模板与时段（上线前替换为微信公众平台申请的真实模板 ID） ═══ */
+const TMPL_IDS = {
+  daily: 'TMPL_DAILY_DRAW',        // 每日新签提醒：「《卡集名》今天的一张，在等你拆」
+  weekly: 'TMPL_WEEKLY_BOOK',      // 周记生成通知：「你这周的 7 天，装订好了」
+  milestone: 'TMPL_SET_MILESTONE', // 集齐里程碑：「再抽 N 张，就能装订纪念册了」
+};
+
+const REMIND_TIMES = [
+  { key: '08:00', label: '早上 8:00',  sub: '开工前，抽一张定调子' },
+  { key: '12:30', label: '中午 12:30', sub: '午休时，喘口气' },
+  { key: '21:00', label: '晚上 21:00', sub: '睡前，给今天收个尾' },
+];
+
 /* ═══ 首页 v2.2 · 整页滚动 + 我的订阅前置 + 分类体系 ═══
    字体策略：新文案走系统字体（未进宋体子集也不方框）；
    serif 只用于品牌/集名/封面字；mono 只用于纯数字。 */
@@ -302,10 +368,11 @@ Page({
     record: { show: false, note: '', img: '', hasImg: false, count: 0 },
     commentsSheet: { show: false, sid: null, title: '', items: [], count: 0, canComment: false, draft: '', draftLen: 0 },
     rulesSheet: { show: false },
+    remindSheet: { show: false, enabled: false, time: '21:00', times: [], btn: '', meta: '' },
     poster: { show: false, kind: 'highlight', ratio: '34' },
     floatCta: { show: false },
     donePage: { show: false, ctaShow: false },
-    subs: { waiting: [], ongoing: [], done: [], total: 0, weekly: null },
+    subs: { waiting: [], ongoing: [], done: [], total: 0, weekly: null, weekGoal: null, greeting: null },
     mine: { empty: true, days: 0, lit: 0, stamps: 0, done: [], ongoingCount: 0, notes: [] },
     bigCard: { show: false, flipped: false, back: { sid: '', idx: 0, rec: null } },
   },
@@ -363,10 +430,14 @@ Page({
       envelopeTimers: [],
       unlockTimer: null,
       weeklyMade: {},      // key = `${setId}:${weekNo}`
+      activity: [],        // 全局抽卡流水：{ts, sid, idx, trial?}，周目标与召回的统一数据源
+      lastActive: 0,       // 最近一次 onShow 的时间戳
+      remind: { enabled: false, time: '21:00', asked: 0 }, // 订阅消息：授权状态 / 提醒时段 / 已主动询问次数
       posterExport: null,  // 当前海报的导出数据（与 WXML 预览同源）
     };
 
     this.resetMode('rich');
+    this._rolloverIfNewDay();
     this.renderHome();
     this.renderSubs();
     this.renderMe();
@@ -379,10 +450,29 @@ Page({
   /* 分享 / 二维码进入：统一解析并直达卡集 */
   onShow(options) {
     if (!this.S) return;
+    this._rolloverIfNewDay();
+    this.S.lastActive = Date.now();
     this.handleLaunchOptions(options);
   },
 
   handleLaunchOptions(options) {
+    /* 预览环境：支持从 URL query 读取启动参数（?from=remind / ?sid=12） */
+    if (!options && typeof location !== 'undefined' && location.search) {
+      const query = {};
+      location.search.slice(1).split('&').forEach(kv => {
+        const p = kv.split('=');
+        if (p[0]) query[decodeURIComponent(p[0])] = decodeURIComponent(p[1] || '');
+      });
+      options = { query };
+    }
+    const q = (options && (options.query || options)) || {};
+    /* 订阅消息回流：直达订阅页「今日待抽」。只路由一次，不劫持后续导航 */
+    if (q.from === 'remind' && !this._remindRouted) {
+      this._remindRouted = true;
+      this.go('cards');
+      setTimeout(() => this.toast('欢迎回来 · 今天的卡到了'), 400);
+      return;
+    }
     const sid = this._shareSidOf(options);
     if (!sid) return;
     const key = String(sid);
@@ -475,6 +565,65 @@ Page({
   /* ──────────────────────────────────────────────────────────
      模式 / 数据工具
      ────────────────────────────────────────────────────────── */
+  /* 跨天重置：0 点（北京时间）过后，清掉所有卡集的"今日已抽/今日试抽"标记 */
+  _rolloverIfNewDay() {
+    const S = this.S;
+    if (!S) return;
+    const tk = todayKey();
+    let changed = false;
+    S.sets.forEach(s => {
+      const u = s.user;
+      if (!u) return;
+      if (u.todayDrawn || u.trialToday) {
+        if (!u.lastDrawDate) {
+          u.lastDrawDate = tk;      // 旧数据没有日期记录：补记为今天，明天起正常跨天
+          return;
+        }
+        if (u.lastDrawDate !== tk) {
+          u.todayDrawn = false;
+          u.trialToday = false;
+          u.todayIdx = null;
+          changed = true;
+        }
+      }
+    });
+    if (changed) {
+      this.renderHome();
+      this.renderSubs();
+      this.renderMe();
+      if (S.cur != null && this.data.page === 'set') this.renderSetPage();
+    }
+  },
+
+  /* 重建全局活动流水：优先用真实 drawnLog；演示模式下为"有进度"的卡集合成了最近几天的记录 */
+  _seedActivity() {
+    const S = this.S;
+    S.activity = [];
+    if (S.mode !== 'rich') return;
+    const now = Date.now();
+    const DAY = 86400000;
+    S.sets.forEach(s => {
+      const u = s.user;
+      if (!u || !(u.drawn > 0)) return;
+      if (u.drawnLog && u.drawnLog.length) {
+        u.drawnLog.forEach(e => {
+          if (e && e.ts) S.activity.push({ ts: e.ts, sid: s.id, idx: e.idx });
+        });
+        return;
+      }
+      /* 种子数据没有 drawnLog：合成最近 min(drawn,3) 天，每天一条；
+         todayDrawn 的集含今天，否则止于昨天（避免与"今日已抽"标记矛盾） */
+      const n = Math.min(u.drawn, 3);
+      const endOffset = u.todayDrawn ? 0 : 1;
+      for (let i = 0; i < n; i++) {
+        S.activity.push({
+          ts: now - (n - 1 - i + endOffset) * DAY,
+          sid: s.id, idx: (u.got || [])[i] || 0, demo: true,
+        });
+      }
+    });
+  },
+
   resetMode(m) {
     const S = this.S;
     S.mode = m;
@@ -499,6 +648,9 @@ Page({
       S.craft.reviewing = S.craftBackup.reviewing.concat(S.craft.reviewing);
       S.craftBackup = null;
     }
+    this._seedActivity();
+    S.lastActive = Date.now();
+    S.remind = { enabled: false, time: '21:00', asked: 0 };
     this.setData({ demo: { mode: m } });
   },
 
@@ -554,11 +706,6 @@ Page({
     this.go(id);
   },
 
-  goSet() {
-    this.renderSetPage();
-    this.go('set');
-  },
-
   goBackSet() {
     this.S.shareSid = null;
     this.renderSetPage();
@@ -576,10 +723,6 @@ Page({
   },
 
   backToHome() {
-    this.go('home');
-  },
-
-  goHome() {
     this.go('home');
   },
 
@@ -740,20 +883,6 @@ Page({
     wx.pageScrollTo({ selector: '.chips', duration: 200 });
   },
 
-  pickCat(e) {
-    this._hmCat = e.currentTarget.dataset.key || 'all';
-    this._hmDim = '';
-    this.setData({ 'home.catSheet': false });
-    this.renderHome();
-    wx.pageScrollTo({ scrollTop: 0, duration: 200 });
-  },
-
-  closeCatSheet() {
-    this.setData({ 'home.catSheet': false });
-  },
-
-  noop() {},
-
   /* 三宫格：热门活动 → 最热榜单 */
   tapQuickHot() {
     this.S.sort = 'hot';
@@ -769,32 +898,9 @@ Page({
     this.go('create');
   },
 
-  /* 维度宫格 */
-  pickDim(e) {
-    const key = e.currentTarget.dataset.key;
-    if (key === 'love') {
-      wx.pageScrollTo({ selector: '#hm-love', duration: 240 });
-      return;
-    }
-    this._hmDim = (this._hmDim === key) ? '' : key;
-    this._hmCat = 'all';
-    this.renderHome();
-    wx.pageScrollTo({ scrollTop: 0, duration: 200 });
-  },
-
-  clearDim() {
-    this._hmDim = '';
-    this.renderHome();
-  },
-
   clearCat() {
     this._hmCat = 'all';
     this.renderHome();
-  },
-
-  /* TA们喜欢卡片 → 大卡 */
-  tapLoveCard(e) {
-    this.showBigCard(Number(e.currentTarget.dataset.sid), Number(e.currentTarget.dataset.idx));
   },
 
   setSort(e) {
@@ -802,8 +908,6 @@ Page({
     this.renderHome();
   },
 
-  /* chips 已收进分类入口，吸顶观察器不再需要；保留空实现兼容旧调用 */
-  initHomeObserver() {},
   teardownHomeObserver() {},
 
   openDemo() {
@@ -1423,15 +1527,6 @@ Page({
     }
   },
 
-  toggleFollow(e) {
-    const creator = e.currentTarget.dataset.creator;
-    const S = this.S;
-    S.follow[creator] = !S.follow[creator];
-    this.toast(S.follow[creator] ? `已关注 @${creator}。` : '已取消关注。');
-    this.renderSetPage();
-    if (this.data.page === 'author') this.renderAuthor();
-  },
-
   mainAct() {
     const S = this.S;
     const s = S.sets.find(x => x.id === S.cur);
@@ -1619,6 +1714,7 @@ Page({
       u.todayDrawn = true;
     }
     u.todayIdx = idx;
+    u.lastDrawDate = todayKey();
     if (!u.got) u.got = [];
     if (!u.got.includes(idx)) u.got.push(idx);
     u.drawn = (u.drawn || 0) + 1;
@@ -1627,6 +1723,17 @@ Page({
       u.drawnLog.push({ idx, date: todayMD(), ts: Date.now() });
     }
     if (s.creator === ME) s.totalDrawn = (s.totalDrawn || 0) + 1;
+    if (!S.activity) S.activity = [];
+    const _wpBefore = weekProgress(S).done;
+    S.activity.push({ ts: Date.now(), sid: s.id, idx, trial: !!trial });
+    const _wpAfter = weekProgress(S);
+    if (_wpAfter.full && _wpBefore < 7) {
+      setTimeout(() => this.toast('本周 7 天集齐 · 可以装订本周周记了'), 1800);
+    }
+    /* 首次抽卡揭示后，顺势请求订阅消息授权（情绪最高点；全生命周期最多主动问 2 次） */
+    if ((S.activity || []).length === 1) {
+      setTimeout(() => this._maybeAskRemind('draw'), 2600);
+    }
 
     this.renderDraw();
     this.renderHome();
@@ -1678,109 +1785,6 @@ Page({
     if (id != null) this.S.cur = id;
     this.renderSetPage();
     this.go('set');
-  },
-
-  setupDrawPage(s) {
-    const S = this.S;
-    const D = S.draw;
-    const collect = s.type === 'collect';
-    const card = D.card;
-    const trialText = D.trial ? `${s.title} · 今日免费试抽` : `${s.title} · 每日一签`;
-    this.setData({
-      draw: {
-        head: collect ? '今天的卡' : '今天的签',
-        topL: collect ? `第 ${D.next} 张` : '今天的签',
-        topR: trialText,
-        settle: s.title,
-        no: `No.${pad2(D.idx + 1)} / ${s.pool.length}`,
-        rar: card.r,
-        rarColor: RARC[card.r] || RARC.N,
-        word: card.w,
-        wordCls: bwCls(card.w),
-        lit: s.cat === 'reading',
-        collect,
-        envFrom: `@${s.creator} 寄`,
-        hint: '轻触火漆 · 开启今天',
-        stageClass: '',
-        sealBroken: false,
-        flipped: false,
-        actionsShow: false,
-        tail: collect ? '拆开信封，看看今天是哪一张。' : '抽到什么，就是什么。\n今天的纠结，到此为止。',
-        back: this.buildCardBack(s, D.idx, 'draw'),
-        // V2.5 · 动作区占位（信封开启后由 computeDrawActions 定稿）
-        primaryText: '盖个邮戳 · 记录今天',
-        primaryKind: 'stamp',
-        showShareBtn: true,
-        weeklyReady: false,
-      },
-    });
-  },
-
-  openEnvelope() {
-    const S = this.S;
-    if (!S.draw || S.mailOpening) return;
-    S.mailOpening = true;
-    const D = S.draw;
-    const s = S.sets.find(x => x.id === D.sid);
-    if (!s) return;
-
-    this.setData({
-      'draw.sealBroken': true,
-      'draw.hint': '轻触火漆 · 开启今天',
-    });
-    const timers = S.envelopeTimers = [];
-    timers.push(setTimeout(() => {
-      if (this.data.page !== 'draw') return;
-      this.setData({ 'draw.stageClass': 'flap-open' });
-    }, 180));
-    timers.push(setTimeout(() => {
-      if (this.data.page !== 'draw') return;
-      this.setData({ 'draw.stageClass': 'flap-open revealed' });
-    }, 500));
-    timers.push(setTimeout(() => {
-      if (this.data.page !== 'draw') return;
-      this.setData({
-        'draw.stageClass': 'flap-open revealed done',
-        'draw.hint': '轻触卡面 · 翻过来看看',
-        'draw.actionsShow': true,
-      });
-      this.computeDrawActions();        // ← 改动：动作区在此定稿（状态已同步落库）
-      S.mailOpening = false;
-    }, 920));
-
-    // 业务状态：与原型一致，开启信封即记账
-    if (!s.user) {
-      s.user = { drawn: 0, trialUsed: 0, unlocked: s.price === 0 || s.creator === ME, todayDrawn: false, got: [] };
-    }
-    const u = s.user;
-    if (D.trial) {
-      u.trialUsed = (u.trialUsed || 0) + 1;
-      u.trialToday = true;
-    } else {
-      u.todayDrawn = true;
-      u.todayIdx = D.idx;
-    }
-    if (s.type === 'collect') {
-      u.drawn++;
-      if (!u.got) u.got = [];
-      if (!u.got.includes(D.idx)) {
-        u.got.push(D.idx);
-        // V2.5 · 周记数据：collect 每次抽卡追加一条，服务周记/streak
-        (u.drawnLog = u.drawnLog || []).push({ idx: D.idx, date: todayMD(), ts: Date.now() });
-      }
-    }
-    if (s.creator === ME) s.totalDrawn = (s.totalDrawn || 0) + 1;
-
-    // V2.5 · tail 与主行动统一由 computeDrawActions 计算（920ms 定稿时调用）
-    this.renderHome();
-    this.renderSubs();
-    this.renderMe();
-    this.renderSetPage();
-  },
-
-  flipCard() {
-    if (!this.S.draw) return;
-    this.setData({ 'draw.flipped': !this.data.draw.flipped });
   },
 
   /* ── V2.5 动作区状态机：信封开启后 / 盖章后调用 ──
@@ -1837,26 +1841,6 @@ Page({
       'draw.tail': tail,
       'draw.weeklyReady': !!this.weeklyForSet(s),
     });
-  },
-
-  drawPrimaryAction() {
-    const S = this.S;
-    const D = S.draw;
-    if (!D) return;
-    const s = S.sets.find(x => x.id === D.sid);
-    if (!s) return;
-    const kind = this.data.draw.primaryKind;
-    if (kind === 'stamp') {
-      this.openRecordAt(s.id, D.idx, 'draw');
-    } else if (kind === 'share') {
-      this.openPoster();                 // 无参调用，openPoster 内部默认 type='draw'
-    } else if (kind === 'trial') {
-      this.startDraw(s.id);              // 直接重抽，信封完整重播，不再绕详情页
-    } else if (kind === 'unlock') {
-      this.openPay(s);                   // 解锁成功后既有逻辑会送一张并重进抽卡
-    } else if (kind === 'memorial') {
-      this.openDone(s.id);
-    }
   },
 
   /* ──────────────────────────────────────────────────────────
@@ -1974,25 +1958,12 @@ Page({
     });
   },
 
-  openBigCard(e) {
-    const d = e.currentTarget.dataset;
-    const sid = Number(d.sid);
-    const idx = Number(d.idx);
-    this.showBigCard(sid, idx);
-  },
-
   mapCellTap(e) {
     const d = e.currentTarget.dataset;
     const idx = Number(d && d.idx);
     const cell = (this.data.mapV.cells || [])[idx];
     if (!cell || cell.dark) return;
     this.showBigCard(Number(cell.sid), idx);
-  },
-
-  setMapTap(e) {
-    const d = e.currentTarget.dataset;
-    if (d && String(d.dark) === 'true') return;
-    this.showBigCard(Number(d.sid), Number(d.idx));
   },
 
   showBigCard(sid, idx, opts = {}) {
@@ -2104,13 +2075,6 @@ Page({
     }
   },
 
-  /* ══════════════ 订阅页 · 纸面直排 ══════════════ */
-  _subHasRec(u, idx) {
-    if (!u || !u.recs || idx == null || !(idx in u.recs)) return false;
-    const r = u.recs[idx];
-    return Array.isArray(r) ? r.length > 0 : !!r;
-  },
-
   /* ──────────────────────────────────────────────────────────
      订阅页 v2：行动提醒卡 + 统计 + 三组卡片
      ────────────────────────────────────────────────────────── */
@@ -2173,6 +2137,56 @@ Page({
       if (w) weekly = { sid: s.id, title: s.title, weekNo: w.weekNo };
     });
 
+    /* ═══ 本周目标卡：固定 7 天装订周记（每周一重置，缺勤不罚） ═══ */
+    let weekGoal = null;
+    const acts = this.S.activity || [];
+    if (acts.length) {
+      const wp = weekProgress(this.S);
+      const mk = weekMondayKey();
+      const tk = todayKey();
+      const daySet = new Set();
+      acts.forEach(a => {
+        if (!a || !a.ts) return;
+        const k = dateKeyOf(a.ts);
+        if (k >= mk && k <= tk) daySet.add(k);
+      });
+      const wlabels = ['一', '二', '三', '四', '五', '六', '日'];
+      const dots = [];
+      for (let i = 0; i < 7; i++) {
+        const k = _keyPlus(mk, i);
+        let cls = 'future';
+        if (k < tk) cls = daySet.has(k) ? 'on' : 'miss';
+        else if (k === tk) cls = daySet.has(k) ? 'on today' : 'today';
+        dots.push({ cls, label: wlabels[i] });
+      }
+      let title, sub;
+      if (wp.full) {
+        title = '本周 7 天集齐';
+        sub = '点这里，把这一周装订成周记 ✦';
+      } else if (wp.done === 0) {
+        title = '这周，还没开张';
+        sub = '抽一张，为这周开个头';
+      } else {
+        title = `本周已抽 ${wp.done} 天`;
+        sub = `再抽 ${wp.left} 天，装订本周周记`;
+      }
+      weekGoal = { done: wp.done, total: 7, left: wp.left, full: wp.full, title, sub, dots };
+    }
+
+    /* ═══ 久别问候卡：≥3 天没抽，回来看看（只讲等待，不讲损失） ═══ */
+    let greeting = null;
+    const absent = daysAbsent(this.S);
+    if (absent != null && absent >= 3) {
+      greeting = {
+        days: absent,
+        sid: firstDraw ? firstDraw.id : null,
+        sub: `你不在的 ${absent} 天，卡都好好收着，一张也没少`,
+        cta: firstDraw
+          ? (today.length > 1 ? `今天有 ${today.length} 个卡集可抽` : '今天有 1 个卡集可抽')
+          : '今天没有新卡，随便看看',
+      };
+    }
+
     this.setData({ subs: {
       date: (now.getMonth() + 1) + '月' + now.getDate() + '日 · ' + wd,
       total: subs.length,
@@ -2183,6 +2197,8 @@ Page({
       statEmpty: emptied,
       today, subscribed, done: doneRows,
       weekly,
+      weekGoal,
+      greeting,
     }});
   },
 
@@ -2197,6 +2213,39 @@ Page({
     if (!r) return;
     this.S.cur = r.sid;
     this.openRecordAt(r.sid, r.idx, 'cards');
+  },
+
+  /* 本周目标卡：未满 → 直达今日第一件待办；集满 → 装订本周周记 */
+  tapWeekGoal() {
+    const wg = this.data.subs.weekGoal;
+    if (!wg) return;
+    if (wg.full) {
+      let target = null;
+      for (const s of this.S.sets) {
+        if (!s.user) continue;
+        const w = this.weeklyState(s);
+        if (w && w.ready) { target = s; break; }
+      }
+      if (target) {
+        this.openWeekly({ currentTarget: { dataset: { id: target.id } } });
+      } else {
+        this.toast('周记按卡集装订：同一卡集抽满 7 张即可生成');
+      }
+      return;
+    }
+    const rd = this.data.subs.remindDraw;
+    if (rd) { this.goSubsDraw(rd.sid, 'cards'); return; }
+    const rs = this.data.subs.remindStamp;
+    if (rs) { this.S.cur = rs.sid; this.openRecordAt(rs.sid, rs.idx, 'cards'); return; }
+    this.toast('今天都完成啦 · 明天 0 点（北京时间）新卡到');
+  },
+
+  /* 久别问候卡：直达今日第一件可抽 */
+  tapGreeting() {
+    const g = this.data.subs.greeting;
+    if (!g) return;
+    if (g.sid) { this.goSubsDraw(g.sid, 'cards'); return; }
+    this.toast('今天没有新卡 · 去「发现」看看有没有新卡集');
   },
 
   tapSubsRow(e) {
@@ -2239,97 +2288,6 @@ Page({
     this.go('home');
   },
 
-  /* ══════════════ 我的 · 收藏册 ══════════════ */
-  renderMine() {
-    const sets = this.S.sets || [];
-    let lit = 0, stamps = 0, subCount = 0;
-    const doneCovers = [], notes = [];
-    const recDates = {};
-    sets.forEach(s => {
-      const u = s.user;
-      if (!u) return;
-      subCount++;
-      const pool = s.pool || [];
-      const count = s.count || pool.length;
-      const got = u.got || [];
-      lit += got.length;
-      const isDone = s.type !== 'resident' && count > 0 && got.length >= count;
-      if (isDone) {
-        const log = u.drawnLog || [];
-        const days = log.length >= 2
-          ? Math.max(1, Math.round((log[log.length - 1].ts - log[0].ts) / 86400000) + 1)
-          : Math.max(1, got.length);
-        doneCovers.push({
-          id: s.id, title: s.title || '',
-          coverChar: (s.covT || s.title || '·').slice(0, 1),
-          meta: `${count} 张 · ${days} 天`,
-        });
-      }
-      const recs = u.recs || {};
-      Object.keys(recs).forEach(k => {
-        const r = recs[k];
-        const arr = Array.isArray(r) ? r : (r ? [r] : []);
-        arr.forEach((rec, ri) => {
-          if (!rec) return;
-          if (rec.note || rec.img) {
-            stamps++;
-            if (rec.date) recDates[rec.date] = 1;
-          }
-          if (rec.note && rec.note.trim() && pool[k]) {
-            notes.push({
-              key: s.id + ':' + k + ':' + ri,
-              sid: s.id, idx: Number(k),
-              setTitle: s.title || '',
-              word: (pool[k] || {}).w || '·',
-              note: rec.note.trim(),
-              date: rec.date || '',
-              len: rec.note.trim().length,
-            });
-          }
-        });
-      });
-    });
-
-    let days = Object.keys(recDates).length;
-    if (!days) {
-      const dl = {};
-      sets.forEach(s => {
-        ((s.user && s.user.drawnLog) || []).forEach(e => {
-          if (e && e.ts) dl[new Date(e.ts).toDateString()] = 1;
-        });
-      });
-      days = Object.keys(dl).length;
-    }
-    if (!days && (lit || stamps)) days = 1;
-
-    notes.sort((a, b) => b.len - a.len);
-    notes.splice(2);
-
-    this.setData({
-      mine: {
-        empty: !subCount,
-        days, lit, stamps,
-        done: doneCovers,
-        ongoingCount: subCount - doneCovers.length,
-        notes,
-      },
-    });
-  },
-
-  tapMineCover(e) {
-    const sid = Number(e.currentTarget.dataset.sid);
-    this.openPoster({ currentTarget: { dataset: { type: 'memorial', sid } } });
-  },
-
-  tapMineNote(e) {
-    const d = e.currentTarget.dataset;
-    this.showBigCard(Number(d.sid), Number(d.idx));
-  },
-
-  tapMineBrowse() {
-    this.go('home');
-  },
-
   browseBooklet(e) {
     const variant = e.currentTarget.dataset.variant;
     this.openBooklet(variant);
@@ -2337,112 +2295,6 @@ Page({
 
   /* ──────────────────────────────────────────────────────────
      订阅页
-     ────────────────────────────────────────────────────────── */
-  renderCards() {
-    const S = this.S;
-    if (S.mode === 'new') {
-      this.setData({ cards: { isNew: true, date: getTodayStr(), groups: [] } });
-      return;
-    }
-    const mine = S.sets.filter(s => s.user);
-    const collectMine = mine.filter(s => s.type === 'collect');
-    const drawn = collectMine.reduce((a, s) => a + (s.user.drawn || 0), 0);
-    const todayCan = S.sets.filter(s => setVM(s).act === 'draw').length;
-    const emptied = collectMine.filter(s => s.user.drawn >= s.count).length;
-    const pending = mine.filter(s => !s.user.todayDrawn && setVM(s).act === 'draw').length;
-
-    const recPend = [];
-    S.sets.forEach(s => {
-      if (s.user && hasRecPending(s)) recPend.push({ sid: s.id, ridx: todayIdxOf(s) });
-    });
-
-    const readyCards = mine.filter(s => {
-      const v = setVM(s);
-      return !s.user.todayDrawn && v.act === 'draw';
-    });
-    const doneCards = mine.filter(s => s.type === 'collect' && s.user.drawn >= s.count);
-    const waitCards = mine.filter(s => {
-      const v = setVM(s);
-      return s.user.todayDrawn || (s.type === 'collect' && s.user.drawn < s.count && v.act !== 'draw');
-    }).filter(s => !doneCards.includes(s));
-
-    const groups = [];
-    if (readyCards.length > 0) {
-      groups.push({
-        name: '今日可抽', count: readyCards.length, showDot: true,
-        cards: readyCards.map(s => this.buildSubCard(s, true, false)),
-      });
-    }
-    if (waitCards.length > 0) {
-      groups.push({
-        name: '已订阅', count: waitCards.length, showDot: false,
-        cards: waitCards.map(s => this.buildSubCard(s, false, false)),
-      });
-    }
-    if (doneCards.length > 0) {
-      groups.push({
-        name: '已抽空', count: doneCards.length, showDot: false,
-        cards: doneCards.map(s => this.buildSubCard(s, false, true)),
-      });
-    }
-
-    let weeklyEntry = null;
-    S.sets.forEach(s => {
-      if (weeklyEntry || !s.user) return;
-      const w = this.weeklyForSet(s);
-      if (w) weeklyEntry = { sid: s.id, title: s.title, weekNo: w.weekNo };
-    });
-
-    this.setData({
-      cards: {
-        isNew: false,
-        date: getTodayStr(),
-        todayCan,
-        drawn,
-        emptied,
-        pending,
-        recPend,
-        recFirst: recPend[0] || null,
-        weeklyEntry,
-        groups,
-      },
-    });
-  },
-
-  buildSubCard(s, isReady, isDone) {
-    const v = setVM(s);
-    const st = stampedCount(s);
-    const progress = s.type === 'collect' && s.user
-      ? `${s.user.drawn}/${s.count} 张${st > 0 ? ` · 已盖 ${st}` : ''}`
-      : '常驻集 · 天天可抽';
-    let statusText;
-    if (isDone) statusText = '已抽空 · 查看纪念';
-    else if (isReady) statusText = '今日可抽';
-    else if (s.user.todayDrawn) {
-      statusText = hasRecPending(s) ? '今日已抽 · 等你回信' : '今日已抽 · 0点再来';
-    } else statusText = v.text;
-    return {
-      id: s.id,
-      title: s.title,
-      cover: s.cover,
-      covT2: s.covT.slice(0, 2),
-      statusText,
-      statusDot: isDone ? 'done' : (isReady ? 'ready' : 'wait'),
-      progress,
-      isReady,
-      isDone,
-    };
-  },
-
-  openPendingDraw() {
-    this.go('home');
-  },
-
-  openPendingRecord() {
-    const c = this.data.cards.recFirst;
-    if (c) this.openRecordAt(c.sid, c.ridx, 'cards');
-  },
-
   /* ──────────────────────────────────────────────────────────
      创作中心
      ────────────────────────────────────────────────────────── */
@@ -2989,6 +2841,7 @@ Page({
         todayLine,
         craftN,
         availText: `可提现 ¥${avail.toFixed(2)}`,
+        remindText: (S.remind && S.remind.enabled) ? `每日提醒 · ${S.remind.time}` : '提醒未开启',
       },
     });
   },
@@ -3005,7 +2858,89 @@ Page({
   },
 
   meSettings() {
-    this.toast('设置，正在路上。');
+    this.openRemindSheet();
+  },
+
+  /* ── 订阅消息 · 每日提醒 ── */
+
+  /* 请求订阅消息授权；cb(ok)。真实小程序弹系统授权框，预览环境由桩自动同意 */
+  _askRemindAuth(cb) {
+    if (typeof wx === 'undefined' || !wx.requestSubscribeMessage) { if (cb) cb(true); return; }
+    wx.requestSubscribeMessage({
+      tmplIds: [TMPL_IDS.daily, TMPL_IDS.weekly, TMPL_IDS.milestone],
+      success: (res) => {
+        const ok = !res || res[TMPL_IDS.daily] !== 'reject';
+        if (cb) cb(ok, res);
+      },
+      fail: () => { if (cb) cb(false); },
+    });
+  },
+
+  /* 主动询问（全生命周期最多 2 次）：首次抽卡揭示后、首次盖戳后 */
+  _maybeAskRemind(source) {
+    const S = this.S;
+    if (!S.remind) return;
+    if (S.remind.enabled || S.remind.asked >= 2) return;
+    S.remind.asked++;
+    this._askRemindAuth((ok) => {
+      if (ok) {
+        S.remind.enabled = true;
+        this.toast(`每日提醒已开启 · 默认 ${S.remind.time}，可在「我的 · 设置」调整`);
+      } else {
+        this.toast('没关系，想在「我的 · 设置」里随时可以打开');
+      }
+      this.renderMe();
+    });
+  },
+
+  /* 弹层数据：按当前 S.remind 生成（文案在 JS 侧预计算，模板不做字符串拼接） */
+  _remindSheetData() {
+    const r = this.S.remind || { enabled: false, time: '21:00' };
+    return {
+      show: true,
+      enabled: !!r.enabled,
+      time: r.time || '21:00',
+      times: REMIND_TIMES.map(t => ({ key: t.key, label: t.label, sub: t.sub, on: t.key === (r.time || '21:00') })),
+      btn: r.enabled ? '关闭每日提醒' : '开启每日提醒',
+      meta: r.enabled ? `已开启 · 每天 ${r.time} 提醒一次` : '开启后可在微信「服务通知」里管理',
+    };
+  },
+
+  openRemindSheet() {
+    this.setData({ remindSheet: this._remindSheetData() });
+  },
+
+  closeRemindSheet() {
+    this.setData({ 'remindSheet.show': false });
+  },
+
+  pickRemindTime(e) {
+    const k = e.currentTarget.dataset.key;
+    if (!k) return;
+    this.S.remind.time = k;
+    this.setData({ remindSheet: this._remindSheetData() });
+    if (this.S.remind.enabled) {
+      this.toast(`提醒时间已改为 ${k}`);
+      this.renderMe();
+    }
+  },
+
+  toggleRemind() {
+    const S = this.S;
+    if (!S.remind.enabled) {
+      this._askRemindAuth((ok) => {
+        if (!ok) { this.toast('没有拿到通知授权，可到微信系统设置里开启'); return; }
+        S.remind.enabled = true;
+        this.setData({ remindSheet: this._remindSheetData() });
+        this.toast(`每日提醒已开启 · ${S.remind.time}`);
+        this.renderMe();
+      });
+    } else {
+      S.remind.enabled = false;
+      this.setData({ remindSheet: this._remindSheetData() });
+      this.toast('每日提醒已关闭 · 卡会等你，不催你');
+      this.renderMe();
+    }
   },
 
   /* ──────────────────────────────────────────────────────────
@@ -3133,6 +3068,8 @@ Page({
     if (weeklyFresh) this.toast('本周集齐 7 张 · 可以生成周记了');
     else if (rc.from === 'draw') this.toast('已盖上今天的邮戳');
     else this.toast('已盖上邮戳，可以分享这张明信片了');
+    /* 首次盖戳后补一次授权请求（投入时刻；受 asked>=2 上限约束，不会反复打扰） */
+    setTimeout(() => this._maybeAskRemind('stamp'), 1600);
 
     if (rc.from === 'draw') {
       /* 抽卡页：无论盖章前在正面还是背面，盖章后停在背面，
@@ -3679,7 +3616,4 @@ Page({
     this.openDone(s.id);
   },
 
-  demoBackHome() {
-    this.go('home');
-  },
 });
