@@ -264,6 +264,11 @@
       };
     },
     getSystemInfoSync: function () { return window.wx.getWindowInfo(); },
+    /* 多页导航：单文件预览只承载 hub，tab 跳转仅记录，不报错 */
+    switchTab: function (o) { if (window.console) console.log('[preview] switchTab', o && o.url); },
+    navigateTo: function (o) { if (window.console) console.log('[preview] navigateTo', o && o.url); },
+    redirectTo: function (o) { if (window.console) console.log('[preview] redirectTo', o && o.url); },
+    reLaunch: function (o) { if (window.console) console.log('[preview] reLaunch', o && o.url); },
     /* ── 订阅消息：预览环境自动视为同意（真实小程序里弹系统授权框） ── */
     requestSubscribeMessage: function (opts) {
       opts = opts || {};

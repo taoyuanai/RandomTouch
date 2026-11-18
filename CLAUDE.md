@@ -12,14 +12,18 @@
 
 1. 页面/组件只允许 `const api = require('../../services/api.js')`。
    禁止：wx.request、wx.cloud.callFunction、直接 require mock/store
-   **过渡例外**：D2 已完成 首页/抽卡/解锁 的 api 迁移；其余 view 仍暂直连 `data.js`，
-   按 D3-D6 逐 view 迁移，迁移完成的 view 必须只走 api；D6 前删除本例外。
+   **过渡例外**：D2-D3 已完成 首页/订阅/创作/我的 + 抽卡/解锁/点赞/留言 的 api 迁移；
+   其余 view（set 页的 seed 社交/粉丝、edit/income/author/demo）暂直连 `data.js`，
+   按 D4-D6 逐 view 迁移，迁移完成的 view 必须只走 api；D6 前删除本例外。
 2. 迁移页面时**类名一个不改**（全部样式挂在类名上）
 3. 事件绑定名与原实现保持一致（bindtap="openSet" 等）
 4. posterKit/ 只调用，不修改内部
 5. 「今天是否已抽」等时间判断**禁止在页面用本地时间计算**，一律信 api 返回
 6. 一次会话只做一张任务卡，小 diff；输出前自查：事件绑定还在吗、类名变了吗、wx:if 链对吗
 7. 每日收工：commit 一个可运行状态 + 跑烟测清单
+
+8. 页面 js 文件只允许：require shared/core、生命周期 hooks、极少量页面私有方法；
+   业务方法一律落在 lib/shared.js（改方法 = 改 shared，不是改页面）
 
 ## 过渡期规则（D2-D6）
 

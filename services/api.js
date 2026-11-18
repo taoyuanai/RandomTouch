@@ -21,6 +21,7 @@ module.exports = {
   getComments: impl.getComments,
   addComment: impl.addComment,
   toggleLike: impl.toggleLike,
+  markWeekly: impl.markWeekly,
   getFeed: impl.getFeed,
   getMyCraft: impl.getMyCraft,
   submitCraft: impl.submitCraft,

@@ -1,0 +1,64 @@
+<view class="phone" style="--statusbar:0px;--navtop:0px">
+<view class="page" id="page-create">
+      <view class="hm-empty" wx:if="{{bootError}}" style="padding:64px 24px 20px">
+        <view class="hm-empty-text">内容加载失败，检查一下网络</view>
+        <button class="hm-empty-btn" hover-class="hm-press" bindtap="retryBoot">重新加载</button>
+      </view>
+
+      <view id="craftBody">
+        <view class="empty" wx:if="{{craft.empty}}">
+          <view class="empty-icon">✨</view>
+          <view class="t-h3">把你喜欢的东西，做成一个卡集</view>
+          <view class="t-p empty-examples">书里触动你的点滴、城市里用脚丈量的好去处、打工人必备的摸鱼小技巧、冬日暖心的美食合集，所有你想分享的，都可以整合成集。</view>
+          <view class="t-p empty-emphasis">有人打开，有人看见，有人为此欢喜</view>
+          <view class="t-p">八张起步，审核通过就能上架。可以免费，也可以定价。</view>
+          <button class="cta solid" bindtap="newCraft">新建卡集</button>
+        </view>
+
+        <block wx:else>
+          <view class="stats">
+            <view class="stat"><view class="t-b orange">{{craft.pubN}}</view><text class="t-span">上架中</text></view>
+            <view class="stat"><view class="t-b">{{craft.fansText}}</view><text class="t-span">关注者</text></view>
+            <view class="stat"><view class="t-b">{{craft.likeText}}</view><text class="t-span">获赞</text></view>
+          </view>
+
+          <view class="income-entry" wx:if="{{craft.earn > 0}}" bindtap="goIncome">
+            <view class="ie-icon">💰</view>
+            <view class="ie-text">
+              <view class="t-b">收益看板</view>
+              <text class="t-span">明细与提现</text>
+            </view>
+            <view class="ie-val">{{craft.incomeText}}</view>
+            <view class="ie-arrow">›</view>
+          </view>
+
+          <button class="newcraft-btn" bindtap="newCraft"><text class="t-span">＋ 新建卡集</text></button>
+
+          <view class="craft-group" wx:for="{{craft.groups}}" wx:for-item="group" wx:key="name">
+            <view class="craft-group-head">
+              <view class="t-b"><view class="cg-status {{group.status}}"></view>{{group.name}}</view>
+              <text class="t-span cg-count">{{group.count}}</text>
+            </view>
+            <view class="work-row" wx:for="{{group.rows}}" wx:key="id" bindtap="craftRowTap" data-kind="{{group.kind}}" data-id="{{item.id}}">
+              <view class="wr-info">
+                <view class="t-b">{{item.title}}<text class="wr-badge {{item.badge}}">{{item.badgeText}}</text></view>
+                <text class="t-span">{{item.meta}}</text>
+              </view>
+              <text class="go">›</text>
+            </view>
+          </view>
+
+          <view class="t-p sub-tail">收益来自定价卡集解锁分成与免费卡集平台激励，明细见收益看板</view>
+        </block>
+      </view>
+    </view>
+
+    
+
+<!-- ═══════════════════ 轻提示 ═══════════════════ -->
+  <view class="toast {{toastShow ? 'show' : (toastHide ? 'hide' : '')}}" wx:if="{{toastMsg}}">
+    <text>{{toastMsg}}</text>
+    <view class="toast-progress" wx:if="{{toastShow}}"><view class="t-i"></view></view>
+  </view>
+
+</view>

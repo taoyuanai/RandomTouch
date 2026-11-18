@@ -68,18 +68,21 @@
 ## 文件结构
 
 ```
-app.js / app.json / app.wxss      小程序入口；自定义导航、白色背景
-data.js                           从原型 DEMO / CRAFT / FANS / TXN_SEED 移植的演示数据
-assets/icons/*.png                由原型内联 SVG 栅格化得到的图标（tabbar / 搜索 / 相机 / 火漆等）
-pages/index/index.js              全部产品状态机与页面逻辑
-pages/index/index.wxml            所有页面、弹层、模板（单页 SPA）
-pages/index/index.wxss            V1「白底多彩」设计系统原样移植 + 小程序适配层（暖纸覆盖层已中和回 V1）
-project.private.config.json       Skyline 关闭，使用 WebView 渲染以兼容这套 CSS
+app.js / app.json / app.wxss      小程序入口；原生 tabBar、全局样式
+lib/core.js                       常量 / 纯函数 / S 单例 / api 同步层
+lib/shared.js                     共享方法层（createPage，D3 过渡期单一来源）
+services/api.js                   页面唯一数据出口（mock / real 切换）
+services/mock/*                   影子后端（seed / store / index）
+pages/home|cards|create|me/*      4 个原生 tab 页
+pages/index/*                     hub 子页（set/draw/map/edit/income/author/demo）
+data.js                           原型演示数据（D3 过渡，逐步迁 services）
+assets/icons/*.png                tabBar / 搜索 / 相机 / 火漆等图标
+preview/今日做点小事-预览.html    hub 单文件视觉预览（D3 起只保留子页）
 ```
 
 ## 和网页原型的差异
 
-- 网页原型的 `.phone` 手机壳改为全屏小程序页面；顶部为自定义导航，已按胶囊按钮位置预留安全区。
+- 4 个 tab 页使用原生导航 + 原生 tabBar；hub 子页保留自定义导航（胶囊安全区）。
 - 页面由 `.screen` 内部滚动改为小程序页面滚动；吸底 CTA、底部 tabbar、弹层改为 `position: fixed`。
 - 原生 `button` 做了样式重置；`input / textarea` 使用小程序原生组件；拍照使用 `wx.chooseMedia`。
 - 内联 SVG 图标改为本地 PNG 图标；印戳日期由 CSS `attr(data-date)` 改为真实文本。

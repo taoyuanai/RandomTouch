@@ -1,12 +1,21 @@
 // app.js
 const posterKit = require('./utils/posterKit/export.js');
 const Security = require('./utils/security.js');
+
+let core = null;
+let api = null;
+try {
+  core = require('./lib/core.js');
+  api = require('./services/api.js');
+} catch (e) {
+  // 防御：数据层异常不应拖垮整个小程序
+  console.error('[core] load failed', e);
+}
+
 // 部署衬线字体子集后填入 CDN 地址（需加入 downloadFile 合法域名）。
-// 留空则整体回退系统衬线（iOS 宋体 / 安卓默认），不阻塞海报生成。
 const POSTER_FONT_URL = '';
 if (POSTER_FONT_URL) {
   posterKit.setPosterFontSource(POSTER_FONT_URL);
-  // 站内与海报共用同一份宋体子集，加载后截屏即海报
   posterKit.ensureFonts();
 }
 
@@ -14,16 +23,16 @@ App({
   globalData: { openid: '' },
 
   onLaunch() {
-    // D1 验收入口：getApp().__api / __apiDebug
-    // 延迟到 onLaunch 加载，避免 app 注册阶段任何 services 异常导致白屏
+    this.__api = api;
+    this.__apiDebug = api && api.__debug;
     try {
-      const api = require('./services/api.js');
-      this.__api = api;
-      this.__apiDebug = api.__debug;
-      if (typeof api.auth === 'function') api.auth().catch(() => {});
+      if (core) core.initS();
+      if (api && typeof api.auth === 'function') api.auth().catch(() => {});
+      if (core) core.ensureBoot().catch(() => {}); // 预热；各页 await 同一 promise
     } catch (e) {
-      console.error('[services] load failed', e);
+      console.error('[core] init failed', e);
     }
+
     if (!Security.cloudReady()) return;
     try {
       wx.cloud.init({ env: Security.CLOUD_ENV, traceUser: true });

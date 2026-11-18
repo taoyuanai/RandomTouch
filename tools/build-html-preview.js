@@ -57,7 +57,7 @@ function convertWxss(css) {
   return out;
 }
 
-const wxss = convertWxss(read(path.join(pagesDir, 'index.wxss')));
+const wxss = convertWxss(read(path.join(ROOT, 'app.wxss')) + '\n' + read(path.join(pagesDir, 'index.wxss')));
 const previewCss = read(path.join(__dirname, 'lib/preview.css'));
 
 /* ---------- 3. 图标内嵌 ---------- */
@@ -81,10 +81,8 @@ const seedBundle =
   '\nwindow.__SEED = module.exports;\n})();';
 
 let pageSrc = read(path.join(pagesDir, 'index.js'));
-if (!pageSrc.includes("require('../../data.js')")) {
-  throw new Error('index.js 中的 require 语句变了，请同步更新 build-html-preview.js');
-}
-pageSrc = pageSrc.replace("const seed = require('../../data.js');", 'const seed = window.__SEED;');
+pageSrc = pageSrc.replace("const { createPage } = require('../../lib/shared.js');", 'const { createPage } = window.__SHARED__;');
+pageSrc = pageSrc.replace("const core = require('../../lib/core.js');", 'const core = window.__CORE__;');
 pageSrc = pageSrc.replace(
   "const posterKit = require('../../utils/posterKit/export.js');",
   'const posterKit = window.__POSTER_KIT__;'
@@ -154,6 +152,14 @@ function bundleServices() {
     'services/mock/index.js': read(path.join(ROOT, 'services/mock/index.js')),
     'services/real/index.js': read(path.join(ROOT, 'services/real/index.js')),
   };
+  let coreSrc = read(path.join(ROOT, 'lib/core.js'));
+  coreSrc = coreSrc.replace("const posterKit = require('../utils/posterKit/export.js');", 'const posterKit = window.__POSTER_KIT__;');
+  coreSrc = coreSrc.replace("const Security = require('../utils/security.js');", 'const Security = window.__SECURITY__;');
+  let sharedSrc = read(path.join(ROOT, 'lib/shared.js'));
+  sharedSrc = sharedSrc.replace("const posterKit = require('../utils/posterKit/export.js');", 'const posterKit = window.__POSTER_KIT__;');
+  sharedSrc = sharedSrc.replace("const Security = require('../utils/security.js');", 'const Security = window.__SECURITY__;');
+  files['lib/core.js'] = coreSrc;
+  files['lib/shared.js'] = sharedSrc;
   const body = Object.entries(files).map(([name, src]) =>
     `__define(${JSON.stringify(name)}, function(module, exports, require){\n${src}\n});`
   ).join('\n\n');
@@ -178,6 +184,8 @@ function bundleServices() {
   }
 ${body}
   window.__SERVICES_API__ = __requireFrom('', 'services/api.js');
+  window.__CORE__ = __requireFrom('', 'lib/core.js');
+  window.__SHARED__ = __requireFrom('', 'lib/shared.js');
 })();`;
 }
 

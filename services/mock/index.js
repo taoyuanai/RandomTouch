@@ -47,6 +47,7 @@ function progressOf(s) {
   };
 }
 function setPayload(s) {
+  const soc = store.socialOf(s);
   return {
     id: s.id, title: s.title, covT: s.covT, covS: s.covS,
     cover: s.cover, coverImage: s.coverImage || '',
@@ -59,6 +60,8 @@ function setPayload(s) {
     totalDrawn: s.totalDrawn || 0,
     earn: s.earn || 0,
     buyers: s.buyers || 0,
+    likes: soc.likes,
+    liked: !!soc.liked,
     progress: progressOf(s),
   };
 }
@@ -234,6 +237,13 @@ async function toggleLike({ setId } = {}) {
   soc.likes = Math.max(0, (soc.likes || 0) + (soc.liked ? 1 : -1));
   store.persist();
   return { liked: soc.liked, likes: soc.likes };
+}
+
+async function markWeekly({ setId, weekNo } = {}) {
+  await gate();
+  store.state.weeklyMade[`${Number(setId)}:${Number(weekNo)}`] = true;
+  store.persist();
+  return { ok: true };
 }
 
 /* getFeed — 订阅页聚合（生产为服务端逻辑） */
@@ -454,7 +464,7 @@ const _debug = {
 
 module.exports = {
   auth, listSets, getSet, draw, saveStamp, unlock,
-  getComments, addComment, toggleLike, getFeed,
+  getComments, addComment, toggleLike, markWeekly, getFeed,
   getMyCraft, submitCraft, getIncome, withdraw,
   uploadImage, reportRemindAuth, track,
   _debug,

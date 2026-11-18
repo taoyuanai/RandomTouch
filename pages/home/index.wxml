@@ -1,0 +1,99 @@
+<view class="phone" style="--statusbar:0px;--navtop:0px">
+<!-- ═══════════════════ 发现 ═══════════════════ -->
+    <view class="page" id="page-home">
+      <view class="page-head">
+        <view class="search-bar" bindtap="toastSearch" bindlongpress="openDemo">
+          <image class="t-svg" src="/assets/icons/search.png" mode="aspectFit" />
+          <text class="t-span">搜索卡集、做卡人…</text>
+          <image class="t-svg scan-icon" src="/assets/icons/scan.png" mode="aspectFit" />
+        </view>
+        <view class="quick-row">
+          <view class="quick-card white" hover-class="hm-press" bindtap="tapQuickCat">
+            <view class="qc-icon">⊞</view>
+            <view>
+              <view class="qc-label">分类</view>
+              <view class="qc-sub">按主题找卡集</view>
+            </view>
+          </view>
+          <view class="quick-card highlight" hover-class="hm-press" bindtap="tapQuickHot">
+            <view class="qc-icon">✦</view>
+            <view>
+              <view class="qc-label">热门活动</view>
+              <view class="qc-sub">本周精选</view>
+            </view>
+          </view>
+          <view class="quick-card cream" hover-class="hm-press" bindtap="tapQuickNew">
+            <view class="qc-icon">★</view>
+            <view>
+              <view class="qc-label">新建卡片</view>
+              <view class="qc-sub">做一套自己的</view>
+            </view>
+          </view>
+        </view>
+        <view class="shelf-slogan">今天对这个世界做出<text class="accent">一点点</text>探索</view>
+        <view class="tagline">万物皆可抽一签。</view>
+        <view class="chips">
+          <view class="chip {{item.color}} {{item.on ? 'on' : ''}}"
+                wx:for="{{home.chips}}" wx:key="key"
+                hover-class="hm-press" data-key="{{item.key}}" bindtap="setCat">{{item.chip}}</view>
+        </view>
+        <view class="list-head">
+          <text class="count">{{home.rows.length}} 个卡集</text>
+          <view class="sortseg">
+            <button id="sort-hot" size="mini" class="{{home.sort === 'hot' ? 'on' : ''}}" bindtap="setSort" data-sort="hot">热门</button>
+            <button id="sort-new" size="mini" class="{{home.sort === 'new' ? 'on' : ''}}" bindtap="setSort" data-sort="new">最新</button>
+          </view>
+        </view>
+      </view>
+
+      <!-- 冷启动失败兜底 -->
+      <view class="hm-empty" wx:if="{{bootError}}" style="padding:64px 24px 20px">
+        <view class="hm-empty-text">内容加载失败，检查一下网络</view>
+        <button class="hm-empty-btn" hover-class="hm-press" bindtap="retryBoot">重新加载</button>
+      </view>
+
+      <!-- 卡集列表：浮起的方框卡 -->
+      <view id="squareList">
+        <view class="book-card" wx:for="{{home.rows}}" wx:key="id" bindtap="openSet" data-id="{{item.id}}" data-from="home">
+          <view class="cover {{item.cover}}" style="position:relative">
+            <image wx:if="{{item.coverImage}}" class="cover-img" src="{{item.coverImage}}" mode="aspectFill" />
+            <block wx:else>
+              <text class="t-span">{{item.covT4}}</text><text class="t-i">{{item.covS8}}</text>
+            </block>
+            <view class="cover-price" wx:if="{{item.price > 0}}">¥{{item.price}}</view>
+            <view class="cover-trial" wx:if="{{item.trial > 0}}">试{{item.trial}}张</view>
+          </view>
+          <view class="bc-info">
+            <view class="t-h3">{{item.title}}</view>
+            <view class="t-p bc-meta">{{item.meta}}</view>
+            <view class="t-p bc-status {{item.faint ? 'faint' : ''}}"><view class="t-i dot {{item.faint ? 'faint' : ''}}"></view>{{item.vmText}}</view>
+            <view class="bc-tagrow">
+              <view class="bc-status-tag {{item.tagCls}}">{{item.tagText}}</view>
+              <view class="bc-like {{item.liked ? 'on' : ''}}">
+                <text class="bc-heart">{{item.liked ? '♥' : '♡'}}</text>
+                <text class="bc-like-n">{{item.likeText}}</text>
+              </view>
+            </view>
+          </view>
+          <view class="bc-sticker">{{item.sticker}}</view>
+        </view>
+      </view>
+
+      <!-- 筛选空态 -->
+      <view class="hm-empty" style="padding:48px 0 20px" wx:if="{{home.emptyText}}">
+        <view class="hm-empty-text">{{home.emptyText}}</view>
+        <button class="hm-empty-btn" hover-class="hm-press" bindtap="clearCat">看全部卡集</button>
+      </view>
+
+      <view class="shelf-tail"><text class="t-span">更多卡集，正在上架</text></view>
+    </view>
+
+    
+
+<!-- ═══════════════════ 轻提示 ═══════════════════ -->
+  <view class="toast {{toastShow ? 'show' : (toastHide ? 'hide' : '')}}" wx:if="{{toastMsg}}">
+    <text>{{toastMsg}}</text>
+    <view class="toast-progress" wx:if="{{toastShow}}"><view class="t-i"></view></view>
+  </view>
+
+</view>
