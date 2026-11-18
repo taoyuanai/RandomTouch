@@ -32,6 +32,7 @@ Object.assign(page, {
   onUnload() {
     clearTimeout(this._drawTimer);
     clearTimeout(this._doneTimer);
+    this._releaseEnv();
   },
 });
 Page(page);

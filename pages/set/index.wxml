@@ -66,9 +66,10 @@
         <view id="sp-intro-end" style="height:1px"></view>
 
         <!-- ③ 简介 + 创作者 -->
-        <view class="panel spv2-panel" wx:if="{{setPage.intro || setPage.creator}}">
-          <view class="set-intro" wx:if="{{setPage.intro}}">{{setPage.intro}}</view>
-          <view class="creator-bar" wx:if="{{setPage.creator}}" bindtap="openAuthorPage" data-name="{{setPage.creator}}" data-from="set">
+        <block wx:if="{{setPage.intro || setPage.creator}}">
+          <view class="set-intro-plain" wx:if="{{setPage.intro}}">{{setPage.intro}}</view>
+          <view class="creator-row" wx:if="{{setPage.creator}}" bindtap="openAuthorPage"
+                data-name="{{setPage.creator}}" data-from="set">
             <view class="cavatar">{{setPage.creatorAvatar}}</view>
             <view class="cinfo">
               <view class="t-b">@{{setPage.creator}}</view>
@@ -77,25 +78,29 @@
             <text class="follow on" wx:if="{{setPage.own}}">你的卡集</text>
             <button class="follow {{setPage.following ? 'on' : ''}}" wx:else hover-class="sb2-press" catchtap="toggleFollowSet">{{setPage.following ? '已关注' : '关注'}}</button>
           </view>
-        </view>
+        </block>
 
         <!-- ③ 收集进度 -->
         <view class="panel spv2-panel" wx:if="{{setPage.prog}}">
-          <view class="panel-head"><view class="t-b">收集进度</view><text class="t-span">{{setPage.kind}}</text></view>
+          <view class="panel-head"><view class="t-b">收集</view><text class="t-span">{{setPage.kind}}</text></view>
           <view class="progress-hero">
             <text class="ph-left">已抽到</text>
             <view class="ph-right"><text>{{setPage.prog.drawn}}</text><text class="t-span" wx:if="{{setPage.prog.count}}"> / {{setPage.prog.count}} 张</text></view>
           </view>
           <view class="progress-big" wx:if="{{setPage.prog.count}}"><view class="t-i" style="width:{{setPage.prog.pct}}%"></view></view>
-          <view class="progress-est" wx:if="{{setPage.prog.est}}">已抽 <text class="t-b">{{setPage.prog.est.drawn}}</text> 张，剩 <text class="t-b">{{setPage.prog.est.rest}}</text> 张，照每天一张，<text class="t-b">{{setPage.prog.est.date}}</text> 抽空它。</view>
+          <view class="progress-est" wx:if="{{setPage.prog.est}}">剩 <text class="t-b">{{setPage.prog.est.rest}}</text> 张 · 每天一张，<text class="t-b">{{setPage.prog.est.date}}</text> 抽空它</view>
           <view class="progress-est" wx:elif="{{setPage.kind === '常驻集'}}">每天一签，抽到什么，就是什么。</view>
-          <view class="stamp-progress" wx:if="{{setPage.stampRow}}">
-            <view class="stamp-track"><view class="t-i" style="width:{{setPage.stampRow.pct}}%"></view></view>
-            <text class="stamp-num">已盖邮戳 {{setPage.stampRow.stN}}/{{setPage.stampRow.gotN}}</text>
-          </view>
-          <view class="trial-progress" wx:if="{{setPage.trialRow}}">
-            <view class="stamp-track"><view class="t-i" style="width:{{setPage.trialRow.pct}}%"></view></view>
-            <text class="stamp-num">免费试抽 {{setPage.trialRow.used}}/{{setPage.trialRow.trial}}</text>
+          <view class="collect-metrics" wx:if="{{setPage.stampRow || setPage.trialRow}}">
+            <view class="cm-item" wx:if="{{setPage.stampRow}}">
+              <text class="cm-label">邮戳</text>
+              <view class="cm-track"><view class="t-i" style="width:{{setPage.stampRow.pct}}%"></view></view>
+              <text class="cm-num">{{setPage.stampRow.stN}}/{{setPage.stampRow.gotN}}</text>
+            </view>
+            <view class="cm-item" wx:if="{{setPage.trialRow}}">
+              <text class="cm-label">试抽</text>
+              <view class="cm-track trial"><view class="t-i" style="width:{{setPage.trialRow.pct}}%"></view></view>
+              <text class="cm-num">{{setPage.trialRow.used}}/{{setPage.trialRow.trial}}</text>
+            </view>
           </view>
           <view class="collection-tail-note">最坏的运气，只是晚几天见到它。</view>
           <button class="ghost" hover-class="sb2-press" bindtap="openMap" data-id="{{setPage.id}}">看全图 · 暗格不剧透 ›</button>

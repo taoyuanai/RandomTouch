@@ -65,3 +65,6 @@
 12. 提审前 checklist：USE_MOCK=false / DEBUG=false / real/index.js 完成 /
     grep 无 demo 残留 / 全量烟测
 13. 弹层新增规则：≥2 页复用 → templates/m-*.wxml；单页 → 留页内
+
+14. UI 日的 diff 纪律：字号/对比度只动 wxss；需要动 wxml 结构的仅限任务卡
+    明列的块；发现表外问题时记入 decisions「待查」，不顺手扩大 diff

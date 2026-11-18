@@ -4,7 +4,7 @@
   <view class="screen">
 <!-- ═══════════════════ 抽卡 ═══════════════════ -->
     <view class="page" id="page-draw" wx:if="{{draw}}">
-      <view class="dw {{draw.stage}}">
+      <view class="dw {{draw.stage}} {{draw.fast ? 'fast' : ''}}">
         <view class="dw-back" bindtap="backToSet">‹</view>
         <view class="dw-stage">
           <!-- 组①：信封（未拆 / 拆信中） -->

@@ -38,3 +38,11 @@
 | D034 | D6 | renderDone 守卫扩至 cards；tapSubsRow 补 booklet 直达 | m-flow 携带 dp 后，cards「已集齐」行路径补全 |
 | D035 | D6 | 草稿首启种子移除，新用户见真实空态 | 生产首跑体验 |
 | D036 | D6 | CSS 清扫 = 确认清单 + 动态类白名单，存疑保留；.sub-tail 在用，例外保留 | hover-class/JS 拼接类易误删，宁可漏删不可错删 |
+| D037 | D7 | 字号 token xs/sm/base 各 +1px；硬编码小字地板：文本 11 / 徽章 10 / 装饰印戳 8 | 原体系按桌面预览标定，真机实测偏小 |
+| D038 | D7 | --ink-3 与基础块 --text-tertiary → #8E8E93；5 处意义承载文案升 secondary | 对齐 AA 精神；--text-disabled 有意保留弱化 |
+| D039 | D7 | posterKit 唯一豁免：colors.js ink3 '#A69C8F'→'#7E7469' | 设计 token 对齐（暖灰加深保色相）；尺寸类仍冻结至 D9 |
+| D040 | D7 | 收集模块重构：est 去重复数字；邮戳/试抽改双列紧凑行；删 stamp-progress/trial-progress | 三条全宽 track 是视觉噪音源 |
+| D041 | D7 | 详情页 intro 去盒子化，creator 独立成卡 | 呼应 V2.7 注释里“阅读页去盒子化”的方向 |
+| D042 | D7 | 信封动画：本机首抽 920ms 完整，此后 fast 档 400ms + 轻触跳过；标记 dsm_env_seen | 仪式感保留一次，日常不罚老用户 |
+| D043 | D7 | HM_SHOW_DAILY=false | daily 内容未就位，空分类是负体验；运营就位后置 true |
+| D044 | D7 | renderSetPage 死数据清扫；sp v2.8 残留样式删除 | cells 保留——tapSetCell 依赖它索引；.sub-tail 例外保留；.rec-meta/.dp-next .rec-title/.stamp/.sp-pick-stamp/.weekly-916 .wc-word/.rules-n 等表外小字尺寸待查，未扩 diff |
