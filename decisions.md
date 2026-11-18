@@ -51,3 +51,9 @@
 | D047 | D8 | dsm_remind_ts 记授权当日，跨天勾选复位；draw 勾选不可撤回（toast），设置页「关闭提醒」可停发（清 ts） | 授权即消耗；发送侧由 enabled 门槛控制（Phase 2 服务端） |
 | D048 | D8 | _maybeAskRemind / dsm_has_drawn / remind.asked 退场 | 引导职责移交勾选式 UI |
 | D049 | D8 | track 封装（预支 D9，可顺延）：失败本地排队 ≤50，onLaunch flush | 埋点丢失率最小化，契约不变 |
+| D050 | D9-R | 画布白：仅页面级背景 #FFFFFF（page/screen/滚动区/下拉露底）；--paper 白化；--paper-card/--surface* 全部保留原值 | 用户修正：白色指大背景，非模块去色 |
+| D051 | D9-R | 撤销“色彩退到字与线”；chips 实心选中、橙底按钮、pastel 动态类、边框暖调均保留 | 模块色彩是产品性格，不随画布白退场 |
+| D052 | D9-R | 撤销海报白化；posterKit colors 底色保持原值 | 海报为导出物，不在“滑动背景”指令范围；纸感是明信片身份 |
+| D053 | D9-R | 仅新增 --paper 画布别名并让 --paper-page 引用；双 token 块全量合并不做，D9 原 D053 暂挂 | 收敛本次 diff 到画布级 |
+| D054 | D9-R | 回滚记录：D9 初版第三步未动工，无模块层回滚；净改动仅 app.json + 画布 token 命名 | 修订可追溯 |
+| D055 | D9-R | D9 原第二步/第四步/第五步（单字体 / iOS visibleSet / TMPL 条件项）暂挂 | 待 D9 原卡；本次只做 D9-R 画布 patch |

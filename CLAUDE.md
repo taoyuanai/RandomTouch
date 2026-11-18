@@ -71,3 +71,7 @@
 
 15. 订阅相关：requestSubscribeMessage 只允许出现在两个入口（draw 勾选 tapRemindCheck /
     设置页 enableRemind），必须在用户 tap 上下文内调用；TMPL_IDS 为空时走兜底 toast，不许报错
+
+17. 页面级画布背景一律 #FFFFFF（page/screen/滚动区/下拉露底）；模块级色块
+    （卡片/弹层/chips/按钮/抽卡舞台/海报）允许彩色，遵循既有设计语言。
+    动任何 background 前先自问：这是画布，还是模块？

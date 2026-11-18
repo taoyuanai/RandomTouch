@@ -15,7 +15,7 @@
     "navigationBarBackgroundColor": "#FFFFFF",
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "今日做点小事",
-    "backgroundColor": "#F5F5F7",
+    "backgroundColor": "#FFFFFF",
     "backgroundTextStyle": "dark"
   },
   "tabBar": {
