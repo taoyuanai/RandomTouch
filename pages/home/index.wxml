@@ -61,26 +61,20 @@
         </view>
       </view>
 <view id="squareList">
-        <view class="book-card" wx:for="{{home.rows}}" wx:key="id" bindtap="openSet" data-id="{{item.id}}" data-from="home">
-          <view class="cover {{item.cover}}" style="position:relative">
-            <image wx:if="{{item.coverImage}}" class="cover-img" src="{{item.coverImage}}" mode="aspectFill" />
-            <block wx:else>
-              <text class="t-span">{{item.covT4}}</text><text class="t-i">{{item.covS8}}</text>
-            </block>
+        <view class="hb-book" wx:for="{{home.rows}}" wx:key="id" bindtap="openSet"
+              data-id="{{item.id}}" data-from="home" hover-class="hb-press">
+          <view class="hb-cover" style="background:{{item.tintStyle}}">
+            <image wx:if="{{item.coverImage}}" class="hb-cover-img" src="{{item.coverImage}}" mode="aspectFill" />
+            <view class="hb-cover-wash" style="background:{{item.tintStyle}}"></view>
+            <text class="hb-no" style="color:{{item.ink}}">{{item.noText}}</text>
+            <view class="hb-label"><text class="hb-label-t">{{item.title}}</text></view>
+            <view class="hb-resident" wx:if="{{item.isResident}}">常驻</view>
+            <view class="hb-done-seal" wx:if="{{item.done}}"><text>完</text></view>
           </view>
-          <view class="bc-info">
-            <view class="t-h3">{{item.title}}</view>
-            <view class="t-p bc-meta">{{item.meta}}</view>
-            <view class="t-p bc-status {{item.faint ? 'faint' : ''}}"><view class="t-i dot {{item.faint ? 'faint' : ''}}"></view>{{item.vmText}}</view>
-            <view class="bc-tagrow">
-              <view class="bc-status-tag {{item.tagCls}}">{{item.tagText}}</view>
-              <view class="bc-like {{item.liked ? 'on' : ''}}">
-                <text class="bc-heart">{{item.liked ? '♥' : '♡'}}</text>
-                <text class="bc-like-n">{{item.likeText}}</text>
-              </view>
-            </view>
+          <view class="hb-meta">
+            <text class="hb-title">{{item.title}}</text>
+            <text class="hb-creator">@{{item.creator}}</text>
           </view>
-          <view class="bc-sticker">{{item.sticker}}</view>
         </view>
       </view>
 

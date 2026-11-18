@@ -10,20 +10,18 @@
           <view class="panel-head"><text class="t-b">全图</text><text class="t-span">{{mapV.drawn}} / {{mapV.count}} 已抽到</text></view>
           <view class="progress"><view class="t-i" style="width:{{mapV.pct}}%"></view></view>
           <view class="t-p tiny" style="text-align:left;padding:0 2px;margin-top:8px">暗格不显示任何字——没抽到之前，它只是空的。</view>
-          <view class="map-grid">
-            <view class="map-cell {{item.dark ? 'dark' : ''}} {{item.sig ? 'sig' : ''}}" wx:for="{{mapV.cells}}" wx:key="idx" bindtap="mapCellTap" data-dark="{{item.dark}}" data-sid="{{item.sid}}" data-idx="{{item.idx}}">
-              <block wx:if="{{!item.dark}}">
-                <view class="t-b">{{item.word}}</view>
-                <view class="t-i rdot {{item.sig ? 'gold' : ''}}"></view>
-                <view class="mc-badge {{item.badge}}" wx:if="{{item.badge === 'cam'}}">
-                  <image class="t-svg" src="/assets/icons/camera-gray.png" mode="aspectFit" />
+          <view class="sheet">
+            <view class="sheet-row" wx:for="{{mapV.rows}}" wx:key="index" wx:for-index="ri">
+              <view class="stamp-cell {{cell.state}}" wx:for="{{item.cells}}" wx:for-item="cell" wx:key="idx"
+                    bindtap="mapCellTap" data-idx="{{cell.idx}}" hover-class="cell-press">
+                <view class="cell-in" style="--cw:105px;--ch:148px;--ink:{{cell.ink}};--ink-line:{{cell.inkLine}};--ink-faint:{{cell.inkFaint}}">
+                  <block wx:if="{{cell.state !== 'blank'}}">
+                    <template is="cardFront" data="{{c: cell.card}}"/>
+                  </block>
+                  <view wx:else class="blank-cell"><text class="blank-no">{{cell.no}}</text></view>
+                  <view class="cell-pmk {{cell.pmkState}}" wx:if="{{cell.pmkState}}"/>
                 </view>
-                <view class="mc-badge rec" wx:elif="{{item.badge === 'rec'}}"></view>
-              </block>
-              <block wx:else>
-                <view class="t-b">?</view>
-                <view class="map-sig-mark" wx:if="{{item.sig}}">✦</view>
-              </block>
+              </view>
             </view>
           </view>
         </view>

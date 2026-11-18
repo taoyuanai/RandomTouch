@@ -15,46 +15,49 @@
         <view class="share-hint" wx:if="{{setPage.fromShare}}">朋友请你来抽一张</view>
 
         <!-- ① Hero：大封面签 + 集名 + meta + 热度 -->
-        <view class="set-hero">
-          <view class="cover-lg {{setPage.cover}}">
-            <image wx:if="{{setPage.coverImage}}" class="cover-lg-img" src="{{setPage.coverImage}}" mode="aspectFill" />
-            <block wx:else>
-              <text class="cov-main">{{setPage.covT}}</text>
-              <text class="cov-sub" wx:if="{{setPage.covS}}">{{setPage.covS}}</text>
-            </block>
-            <view class="cover-price-sticker" wx:if="{{setPage.price > 0}}">¥{{setPage.price}}</view>
-            <view class="cover-trial-lg" wx:if="{{setPage.trial > 0}}">试{{setPage.trial}}张</view>
+        <view class="sp-hero">
+          <view class="sp-hero-cover" style="background:{{setPage.heroTint}};--ink:{{setPage.heroInk}}">
+            <image wx:if="{{setPage.coverImage}}" class="sp-hero-cover-img" src="{{setPage.coverImage}}" mode="aspectFill" />
+            <view class="sp-hero-cover-wash" style="background:{{setPage.heroTint}}"></view>
+            <text class="sp-hero-no" style="color:{{setPage.heroInk}}">{{setPage.heroNo}}</text>
+            <view class="hb-label big"><text class="hb-label-t">{{setPage.heroTitle}}</text></view>
+            <view class="hb-resident" wx:if="{{setPage.isResident}}">常驻</view>
+            <view class="sp-price-sticker" wx:if="{{setPage.priceSticker}}">{{setPage.priceSticker}}</view>
           </view>
-          <view class="spv2-h1">{{setPage.title}}</view>
-          <view class="set-meta">
-            <text>{{setPage.kind}}</text>
-            <view class="dot-sep"></view>
-            <text>{{setPage.count}} 张</text>
-            <view class="dot-sep"></view>
-            <text>{{setPage.catChip}}</text>
-            <block wx:if="{{setPage.signature.on}}">
+          <view class="sp-hero-info">
+            <view class="spv2-h1">{{setPage.title}}</view>
+            <view class="set-meta">
+              <text>{{setPage.kind}}</text>
               <view class="dot-sep"></view>
-              <text>藏有一枚题眼</text>
-            </block>
-          </view>
-          <view class="set-heat" wx:if="{{setPage.heatText}}">
-            <image class="set-heat-ico" src="/assets/icons/flame.png" mode="aspectFit"/>
-            <text>{{setPage.heatText}}</text>
-          </view>
-          <view class="spv2-chip" wx:if="{{setPage.locked}}">🔒 待解锁</view>
-          <!-- 公开互动：心动 / 留言 -->
-          <view class="sp-social">
-            <view class="sp-like {{setPage.social.liked ? 'on' : ''}} {{setPage.likePop ? 'pop' : ''}}"
-                  hover-class="sp-social-press" bindtap="toggleSetLike">
-              <text class="sp-heart">{{setPage.social.liked ? '♥' : '♡'}}</text>
-              <text class="sp-like-n">{{setPage.social.likesText}}</text>
-              <text class="sp-like-l">心动</text>
+              <text>{{setPage.count}} 张</text>
+              <view class="dot-sep"></view>
+              <text>{{setPage.catChip}}</text>
+              <block wx:if="{{setPage.signature.on}}">
+                <view class="dot-sep"></view>
+                <text>藏有一枚题眼</text>
+              </block>
             </view>
-            <view class="sp-comment" hover-class="sp-social-press" bindtap="openComments">
-              <text class="sp-comment-t">{{setPage.social.commentText}}</text>
-              <view class="sp-chev"></view>
+            <view class="set-heat" wx:if="{{setPage.heatText}}">
+              <image class="set-heat-ico" src="/assets/icons/flame.png" mode="aspectFit"/>
+              <text>{{setPage.heatText}}</text>
             </view>
-            <button class="sp-share" open-type="share" hover-class="sp-social-press">分享</button>
+            <view class="spv2-chip" wx:if="{{setPage.locked}}">🔒 待解锁</view>
+            <view class="sp-social">
+              <view class="sp-like {{setPage.social.liked ? 'on' : ''}} {{setPage.likePop ? 'pop' : ''}}"
+                    hover-class="sp-social-press" bindtap="toggleSetLike">
+                <text class="sp-heart">{{setPage.social.liked ? '♥' : '♡'}}</text>
+                <text class="sp-like-n">{{setPage.social.likesText}}</text>
+                <text class="sp-like-l">心动</text>
+              </view>
+              <view class="sp-comment" hover-class="sp-social-press" bindtap="openComments">
+                <text class="sp-comment-t">{{setPage.social.commentText}}</text>
+                <view class="sp-chev"></view>
+              </view>
+              <button class="sp-share" open-type="share" hover-class="sp-social-press">分享</button>
+            </view>
+          </view>
+          <view class="sp-hero-obi" style="background:{{setPage.heroInk}}">
+            <text class="sp-hero-obi-t">{{setPage.obiText}}</text>
           </view>
         </view>
 
