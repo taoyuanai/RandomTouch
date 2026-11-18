@@ -109,6 +109,13 @@ withdraw 将 avail 计入 pending，返回新 getIncome 快照。
               unlocked, trialUsed, drawnLog[{idx,ts}], recs{} } }
 ```
 
+## 修订记录
+| 日期 | 变更 | 说明 |
+|---|---|---|
+| D2 | draw 响应新增可选 `weekGoal?: {done, total, full, justFull}`；SetPayload 新增可选 `totalDrawn? / earn? / buyers?`（own 集统计） | 本周目标只有服务端能跨集聚合判定；justFull=本周刚达成，驱动一次性 toast。符合容差条款①，后端可返回 null/省略 |
+| D2 | SetPayload 新增可选 `subscribed?: boolean` | 区分「未订阅集」：progress 默认对象不应被当成订阅，否则首页/订阅页会把全部卡集算作订阅。符合容差条款① |
+| D2 | draw 失败重试复用同一 requestId | 覆盖「服务端已处理但响应丢失」：重放返回同一张卡，不丢不重 |
+
 ## 3. 偏离日志（后端进场后填写）
 | 日期 | 方法 | 偏离内容 | 适配方案（real/index.js） |
 |---|---|---|---|

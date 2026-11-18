@@ -3,6 +3,7 @@
 const seed = require('../../data.js');
 const posterKit = require('../../utils/posterKit/export.js');
 const Security = require('../../utils/security.js');
+const api = require('../../services/api.js');
 
 function getViewport() {
   try {
@@ -332,6 +333,7 @@ function catChipOf(key) {
 Page({
   data: {
     brand: BRAND,
+    bootError: false,
     page: 'home',
     showTabbar: true,
     tabActive: 'home',
@@ -391,27 +393,27 @@ Page({
     this.setData({ statusBarHeight, navTop });
 
     this.S = {
+      booted: false,
       mode: 'rich',
       cat: '全部',
       sort: 'hot',
-      catList: seed.CATS.slice(),
-      sets: clone(seed.DEMO.sets),
-      authored: clone(seed.DEMO.sets),
-      craft: clone(seed.CRAFT),
+      catList: seed.CATS.slice(),                // TODO(D3): 分类面板迁移时收编
+      sets: [],                                  // 只来自 api
+      authored: [],                              // boot 后填充（TODO(D6) 随 demo 删）
+      craft: clone(seed.CRAFT),                  // TODO(D5): 迁 api.getMyCraft / submitCraft
       craftBackup: null,
       craftEmptyView: false,
       follow: {},
-      fans: seed.FANS,
+      fans: seed.FANS,                           // TODO(D4): 并入 getSet/getFeed 响应
       income: { withdrawn: 0, pending: 0, threshold: 100 },
-      platformIncome: seed.PLATFORM_INCOME,
-      txnSeed: seed.TXN_SEED,
-      social: clone(seed.SOCIAL_SEED || {}),
-      comments: clone(seed.COMMENTS_SEED || {}),
+      platformIncome: seed.PLATFORM_INCOME,      // TODO(D4): 迁 api.getIncome
+      txnSeed: seed.TXN_SEED,                    // TODO(D4)
+      social: clone(seed.SOCIAL_SEED || {}),     // TODO(D3): 迁 api.toggleLike
+      comments: clone(seed.COMMENTS_SEED || {}), // TODO(D3): 迁 api.getComments/addComment
       commentDrafts: {},
       cur: null,
       cameFrom: 'home',
       draw: null,
-      mailOpening: false,
       posterCtx: null,
       posterType: '',
       pw: null,
@@ -425,32 +427,33 @@ Page({
       seq: 1000,
       toastTimer: null,
       toastToken: 0,
-      envelopeTimers: [],
-      unlockTimer: null,
-      weeklyMade: {},      // key = `${setId}:${weekNo}`
-      activity: [],        // 全局抽卡流水：{ts, sid, idx, trial?}，周目标与召回的统一数据源
-      lastActive: 0,       // 最近一次 onShow 的时间戳
-      remind: { enabled: false, time: '21:00', asked: 0 }, // 订阅消息：授权状态 / 提醒时段 / 已主动询问次数
-      posterExport: null,  // 当前海报的导出数据（与 WXML 预览同源）
+      weeklyMade: {},
+      activity: [],                              // TODO(D3): 临时缓存，renderSubs 迁 getFeed 后删
+      lastActive: 0,
+      remind: { enabled: false, time: '21:00', asked: 0 },
+      posterExport: null,
     };
 
-    this.resetMode('rich');
-    this._rolloverIfNewDay();
-    this.renderHome();
-    this.renderSubs();
-    this.renderMe();
-    this.renderCraft();
-    this.setData({ demo: { mode: 'rich' } });
+    this.setData({ demo: { mode: 'rich' }, bootError: false });
     this.go('home', true);
-    this.handleLaunchOptions(options);
+
+    this._bootFromApi()
+      .then(() => this.handleLaunchOptions(options))
+      .catch(() => this.setData({ bootError: true }));
   },
 
   /* 分享 / 二维码进入：统一解析并直达卡集 */
   onShow(options) {
     if (!this.S) return;
-    this._rolloverIfNewDay();
     this.S.lastActive = Date.now();
-    this.handleLaunchOptions(options);
+    if (!this.S.booted) return; // 冷启动由 onLoad 的 boot 链收尾
+    api.listSets().then(list => {
+      list.forEach(p => this.applySetPayload(p));
+      this.renderHome();
+      this.renderSubs();
+      this.renderMe();
+      this.handleLaunchOptions(options);
+    }).catch(() => { /* 静默：沿用当前缓存 */ });
   },
 
   handleLaunchOptions(options) {
@@ -525,8 +528,6 @@ Page({
     clearTimeout(this._doneTimer);
     if (!S) return;
     clearTimeout(S.toastTimer);
-    clearTimeout(S.unlockTimer);
-    (S.envelopeTimers || []).forEach(t => clearTimeout(t));
   },
 
   onShareAppMessage() {
@@ -563,36 +564,6 @@ Page({
   /* ──────────────────────────────────────────────────────────
      模式 / 数据工具
      ────────────────────────────────────────────────────────── */
-  /* 跨天重置：0 点（北京时间）过后，清掉所有卡集的"今日已抽/今日试抽"标记 */
-  _rolloverIfNewDay() {
-    const S = this.S;
-    if (!S) return;
-    const tk = todayKey();
-    let changed = false;
-    S.sets.forEach(s => {
-      const u = s.user;
-      if (!u) return;
-      if (u.todayDrawn || u.trialToday) {
-        if (!u.lastDrawDate) {
-          u.lastDrawDate = tk;      // 旧数据没有日期记录：补记为今天，明天起正常跨天
-          return;
-        }
-        if (u.lastDrawDate !== tk) {
-          u.todayDrawn = false;
-          u.trialToday = false;
-          u.todayIdx = null;
-          changed = true;
-        }
-      }
-    });
-    if (changed) {
-      this.renderHome();
-      this.renderSubs();
-      this.renderMe();
-      if (S.cur != null && this.data.page === 'set') this.renderSetPage();
-    }
-  },
-
   /* 重建全局活动流水：优先用真实 drawnLog；演示模式下为"有进度"的卡集合成了最近几天的记录 */
   _seedActivity() {
     const S = this.S;
@@ -675,6 +646,64 @@ Page({
   availEarn() {
     const S = this.S;
     return Math.max(0, this.ownEarn() - S.income.withdrawn - S.income.pending);
+  },
+
+  /* ═══ D2 · api 同步层 ═══ */
+
+  /* SetPayload → 页面内部集对象，upsert 进 S.sets。
+   * 全页面共享的「响应 → 缓存」转换器，D3+ 各页迁移复用。 */
+  applySetPayload(p) {
+    if (!p || !p.id) return null;
+    const S = this.S;
+    let s = S.sets.find(x => x.id === p.id);
+    if (!s) { s = { id: p.id }; S.sets.push(s); }
+    s.title = p.title; s.covT = p.covT; s.covS = p.covS;
+    s.cover = p.cover; s.coverImage = p.coverImage || '';
+    s.cat = p.cat; s.type = p.type; s.price = p.price; s.trial = p.trial;
+    s.count = p.count; s.pool = p.pool; s.intro = p.intro;
+    s.creator = p.creator; s.heat = p.heat; s.date = p.date;
+    s.signatureIdx = p.signatureIdx != null ? p.signatureIdx : -1;
+    s.signatureNote = p.signatureNote || '';
+    s.totalDrawn = p.totalDrawn || 0;
+    s.earn = p.earn || 0;
+    s.buyers = p.buyers || 0;
+    if (p.subscribed) {
+      const pr = p.progress || {};
+      s.user = {
+        drawn: pr.drawn || 0,
+        got: pr.got || [],
+        todayDrawn: !!pr.todayDrawn,
+        trialToday: !!pr.trialToday,
+        todayIdx: pr.todayIdx != null ? pr.todayIdx : null,
+        unlocked: !!pr.unlocked,
+        trialUsed: pr.trialUsed || 0,
+        drawnLog: pr.drawnLog || [],
+        recs: pr.recs || {},
+      };
+    } else {
+      s.user = null;
+    }
+    return s;
+  },
+
+  /* 冷启动装载：S.sets 从此只来自 api（seed 只活在 mock 里） */
+  _bootFromApi() {
+    return api.listSets().then(list => {
+      list.forEach(p => this.applySetPayload(p));
+      this.S.authored = clone(this.S.sets); // TODO(D6): demo 模式专用，随 demo 一起删
+      this.S.booted = true;
+      this.renderHome();
+      this.renderSubs();
+      this.renderMe();
+      this.renderCraft();
+    });
+  },
+
+  retryBoot() {
+    this.setData({ bootError: false });
+    this._bootFromApi()
+      .then(() => this.handleLaunchOptions())
+      .catch(() => this.setData({ bootError: true }));
   },
 
   /* ──────────────────────────────────────────────────────────
@@ -1701,7 +1730,7 @@ Page({
     const s = S.sets.find(x => x.id === S.cur);
     if (!s) return;
     const d = this.data.draw || {};
-    if (d.stage === 'opening') return;
+    if (d.stage === 'opening') return;               // 动画期间防重入
     const u = s.user || {};
     if (u.todayDrawn || u.trialToday) { this.tapCard(); return; }
     const count = s.count || s.pool.length;
@@ -1709,58 +1738,37 @@ Page({
       this.openDoneView();
       return;
     }
-    this.setData({ 'draw.stage': 'opening', 'draw.hint': '' });
-    clearTimeout(this._drawTimer);
-    this._drawTimer = setTimeout(() => this._resolveDrawnCard(s), 920);
+
+    /* 幂等键：失败重试复用同一 requestId。
+     * 覆盖「服务端已处理但响应丢失」——重放返回同一张卡，不丢不重。 */
+    if (!this._pendingDraw || this._pendingDraw.setId !== s.id) {
+      this._pendingDraw = { setId: s.id, requestId: api.reqId() };
+    }
+
+    this.setData({ 'draw.stage': 'opening', 'draw.hint': '', 'draw.error': null });
+
+    const animDelay = new Promise(resolve => setTimeout(resolve, 920)); // 动画时长
+
+    Promise.all([api.draw(this._pendingDraw), animDelay])
+      .then(([res]) => this._afterDrawnApi(res))
+      .catch(err => animDelay.then(() => this._drawFailed(err))); // 等动画走完再复位，避免闪跳
   },
 
-  _resolveDrawnCard(s) {
+  /* 抽卡成功分支：同步缓存 → 重渲染 → 动画链 */
+  _afterDrawnApi(res) {
+    this._pendingDraw = null;
+    const s = this.applySetPayload(res.set);
+    if (!s) return;
     const S = this.S;
-    const u = s.user || (s.user = {
-      drawn: 0, trialUsed: 0, unlocked: s.price === 0 || s.creator === ME,
-      todayDrawn: false, got: [], recs: {},
-    });
-    if (!u.recs) u.recs = {};
-    const isResident = s.type === 'resident';
-    const paid = s.price > 0 && s.creator !== ME;
-    const trial = paid && !u.unlocked && (u.trialUsed || 0) < s.trial;
-    let idx = 0;
-    if (isResident) {
-      idx = Math.floor(Math.random() * s.pool.length);
-    } else {
-      const got = u.got || [];
-      const left = s.pool.map((_, i) => i).filter(i => !got.includes(i));
-      if (!left.length) { this.openDoneView(); return; }
-      idx = left[Math.floor(Math.random() * left.length)];
-    }
-    if (trial) {
-      u.trialUsed = (u.trialUsed || 0) + 1;
-      u.trialToday = true;
-    } else {
-      u.todayDrawn = true;
-    }
-    u.todayIdx = idx;
-    u.lastDrawDate = todayKey();
-    if (!u.got) u.got = [];
-    const sigFirst = idx === s.signatureIdx && !u.got.includes(idx);
-    S.sigFirst = sigFirst;
-    if (!u.got.includes(idx)) u.got.push(idx);
-    u.drawn = (u.drawn || 0) + 1;
-    if (!isResident) {
-      if (!u.drawnLog) u.drawnLog = [];
-      u.drawnLog.push({ idx, date: todayMD(), ts: Date.now() });
-    }
-    if (s.creator === ME) s.totalDrawn = (s.totalDrawn || 0) + 1;
+
+    /* TODO(D3): renderSubs 迁 api.getFeed 后，本行删除 */
     if (!S.activity) S.activity = [];
-    const _wpBefore = weekProgress(S).done;
-    S.activity.push({ ts: Date.now(), sid: s.id, idx, trial: !!trial });
-    const _wpAfter = weekProgress(S);
-    if (_wpAfter.full && _wpBefore < 7) {
-      setTimeout(() => this.toast('本周 7 天集齐 · 可以装订本周周记了'), 1800);
-    }
-    /* 首次抽卡揭示后，顺势请求订阅消息授权（情绪最高点；全生命周期最多主动问 2 次） */
-    if ((S.activity || []).length === 1) {
-      setTimeout(() => this._maybeAskRemind('draw'), 2600);
+    S.activity.push({ ts: Date.now(), sid: s.id, idx: res.idx });
+
+    const firstReveal = !!(res.sig && res.sig.firstReveal);
+    if (firstReveal) {
+      S.sigFirst = true; // renderDraw 据此压住金色条，等定时器放出
+      setTimeout(() => { S.sigFirst = false; }, 1100);
     }
 
     this.renderDraw();
@@ -1768,7 +1776,12 @@ Page({
     this.renderSubs();
     this.renderMe();
 
-    if (S.sigFirst) {
+    if (res.result === 'completed') {
+      setTimeout(() => this.openDoneView(), 400);
+      return;
+    }
+
+    if (firstReveal) {
       setTimeout(() => { if (this.data.page === 'draw') this.setData({ 'draw.sigBar': true }); }, 500);
       setTimeout(() => {
         if (this.data.page !== 'draw') return;
@@ -1778,14 +1791,50 @@ Page({
       setTimeout(() => {
         if (this.data.page === 'draw') this.setData({ 'draw.hint': '本集题眼 · 做卡人最想送你的一张' });
       }, 900);
-      setTimeout(() => { S.sigFirst = false; }, 1100);
     }
 
-    const count = s.count || s.pool.length;
-    if (!isResident && (u.got || []).length >= count) {
-      const delay = idx === s.signatureIdx ? 2600 : 600;
+    if (res.weekGoal && res.weekGoal.justFull) {
+      setTimeout(() => this.toast('本周 7 天集齐 · 可以装订本周周记了'), 1800);
+    }
+
+    /* 首抽订阅引导：本地标记（UI 引导，非权威数据） */
+    let hasDrawn = false;
+    try { hasDrawn = !!wx.getStorageSync('dsm_has_drawn'); } catch (e) { hasDrawn = true; }
+    if (!hasDrawn) {
+      try { wx.setStorageSync('dsm_has_drawn', '1'); } catch (e) { /* noop */ }
+      setTimeout(() => this._maybeAskRemind('draw'), 2600);
+    }
+
+    /* 抽空 → 金色时刻（题眼压轴多留 2 秒） */
+    if (res.done) {
+      const delay = (res.sig && res.sig.isSig) ? 2600 : 600;
       setTimeout(() => this.openDoneView(), delay);
     }
+  },
+
+  /* 抽卡失败分支：错误分类 + 可重试内联态 */
+  _drawFailed(err) {
+    const e = err || {};
+    this.renderDraw(); // 本地缓存仍「今日未抽」→ 信封复位
+
+    if (e.code === 'UNLOCK_REQUIRED') {
+      const s = this.S.sets.find(x => x.id === this.S.cur);
+      if (s) this.openPay(s);
+      return;
+    }
+    if (e.code === 'SET_NOT_FOUND') {
+      this.toast('这个卡集不在了');
+      this.go('home');
+      return;
+    }
+    if (!e.retryable) {
+      this.toast(e.message || '出了点问题');
+      return;
+    }
+    this.setData({
+      'draw.error': { message: e.message || '网络开小差了' },
+      'draw.hint': '',
+    });
   },
 
   tapCard() {
@@ -1938,9 +1987,7 @@ Page({
   },
 
   closePay() {
-    const S = this.S;
-    clearTimeout(S.unlockTimer);
-    S.pw = null;
+    this.S.pw = null;
     this.setData({ 'pay.show': false, 'pay.paying': false });
   },
 
@@ -1949,27 +1996,27 @@ Page({
     if (!S.pw || this.data.pay.paying) return;
     const targetId = S.pw;
     this.setData({ 'pay.paying': true, 'pay.payText': '支付中…' });
-    S.unlockTimer = setTimeout(() => {
-      if (!S.pw || S.pw !== targetId) return;
-      const s = S.sets.find(x => x.id === targetId);
-      if (!s) { this.setData({ 'pay.show': false }); return; }
-      S.pw = null;
-      if (!s.user) {
-        s.user = { drawn: 0, trialUsed: 0, unlocked: true, todayDrawn: false, got: [] };
-      }
-      s.user.unlocked = true;
-      this.setData({ 'pay.show': false, 'pay.paying': false });
-      this.renderHome();
-      this.renderSubs();
-      this.renderMe();
-      this.renderSetPage();
-      if (!s.user.todayDrawn && setVM(s).act === 'draw') {
-        this.toast('解锁成功，这张签送你。');
-        setTimeout(() => this.startDraw(s.id), 260);
-      } else {
-        this.toast('已解锁。今天的卡，明天 0 点到。');
-      }
-    }, 900);
+    api.unlock({ setId: targetId })
+      .then(res => {
+        S.pw = null;
+        this.applySetPayload(res.set);
+        this.setData({ 'pay.show': false, 'pay.paying': false });
+        this.renderHome();
+        this.renderSubs();
+        this.renderMe();
+        this.renderSetPage();
+        const s = S.sets.find(x => x.id === targetId);
+        if (s && s.user && !s.user.todayDrawn && !s.user.trialToday) {
+          this.toast('解锁成功，这张签送你。');
+          setTimeout(() => this.startDraw(s.id), 260);
+        } else {
+          this.toast('已解锁。今天的卡，明天 0 点到。');
+        }
+      })
+      .catch(() => {
+        this.setData({ 'pay.paying': false, 'pay.payText': `解锁 · ¥${this.data.pay.price}` });
+        this.toast('支付未完成，请重试');
+      });
   },
 
   /* ──────────────────────────────────────────────────────────
@@ -3307,7 +3354,14 @@ Page({
           ts: d.getTime(),
         };
       });
+      return;
     }
+    // api 返回的 drawnLog 只有 {idx,ts}，补齐页面周记需要的展示日期
+    u.drawnLog.forEach(e => {
+      if (!e || e.date || !e.ts) return;
+      const d = new Date(e.ts);
+      e.date = `${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+    });
   },
 
   weeklyState(s) {

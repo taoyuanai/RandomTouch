@@ -112,6 +112,12 @@
         </view>
       </view>
 
+      <!-- 冷启动失败兜底 -->
+      <view class="hm-empty" wx:if="{{bootError}}" style="padding:64px 24px 20px">
+        <view class="hm-empty-text">内容加载失败，检查一下网络</view>
+        <button class="hm-empty-btn" hover-class="hm-press" bindtap="retryBoot">重新加载</button>
+      </view>
+
       <!-- 卡集列表：浮起的方框卡 -->
       <view id="squareList">
         <view class="book-card" wx:for="{{home.rows}}" wx:key="id" bindtap="openSet" data-id="{{item.id}}" data-from="home">
@@ -344,6 +350,11 @@
 
           <!-- 组②：一行 mono 提示 -->
           <view class="dw-hint">{{draw.hint}}</view>
+
+          <view class="dw-error" wx:if="{{draw.error}}">
+            <text class="dw-error-msg">{{draw.error.message}}</text>
+            <view class="dw-error-retry" hover-class="dw-btn-press" bindtap="tapEnvelope">再试一次</view>
+          </view>
 
           <!-- 抽卡回响：心动 + 留一句（无记录也可参与） -->
           <view class="dw-echo" wx:if="{{draw.stage === 'after'}}">

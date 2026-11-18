@@ -12,14 +12,21 @@
 
 1. 页面/组件只允许 `const api = require('../../services/api.js')`。
    禁止：wx.request、wx.cloud.callFunction、直接 require mock/store
-   **D1 例外**：现有页面暂直连 `data.js`；D2 起逐 view 迁移到 services/api.js，
-   迁移完成后删除本例外。
+   **过渡例外**：D2 已完成 首页/抽卡/解锁 的 api 迁移；其余 view 仍暂直连 `data.js`，
+   按 D3-D6 逐 view 迁移，迁移完成的 view 必须只走 api；D6 前删除本例外。
 2. 迁移页面时**类名一个不改**（全部样式挂在类名上）
 3. 事件绑定名与原实现保持一致（bindtap="openSet" 等）
 4. posterKit/ 只调用，不修改内部
 5. 「今天是否已抽」等时间判断**禁止在页面用本地时间计算**，一律信 api 返回
 6. 一次会话只做一张任务卡，小 diff；输出前自查：事件绑定还在吗、类名变了吗、wx:if 链对吗
 7. 每日收工：commit 一个可运行状态 + 跑烟测清单
+
+## 过渡期规则（D2-D6）
+
+- 存量 seed 直引（CATS/CRAFT/FANS/SOCIAL_SEED/COMMENTS_SEED/PLATFORM_INCOME/TXN_SEED）
+  在各页迁移日移除；新代码禁止新增任何 seed/mock 直引
+- S.activity 为临时缓存（见 _afterDrawnApi 内 TODO(D3)），renderSubs 迁 getFeed 后删除
+- 预览 html 从 D2 起只作视觉基准，不再维护业务逻辑
 
 ## 烟测清单（每天收工必跑）
 

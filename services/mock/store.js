@@ -29,12 +29,36 @@ function freshState() {
 function load() {
   try {
     const raw = wx.getStorageSync(STORE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) return { state: JSON.parse(raw), fresh: false };
   } catch (e) { /* 预览环境无 storage：走内存 */ }
-  return freshState();
+  return { state: freshState(), fresh: true };
 }
 
-const state = load();
+/* 首次初始化：为演示数据合成活动流水（周目标/召回的数据地基；
+ * 生产环境由真实流水累积，无此函数） */
+function seedActivity(st) {
+  const now = Date.now();
+  const DAY = 86400000;
+  st.sets.forEach(s => {
+    const u = s.user;
+    if (!u || !(u.drawn > 0)) return;
+    if (u.drawnLog && u.drawnLog.length) {
+      u.drawnLog.forEach(e => { if (e && e.ts) st.activity.push({ ts: e.ts, sid: s.id, idx: e.idx }); });
+      return;
+    }
+    const n = Math.min(u.drawn, 3);
+    const endOffset = u.todayDrawn ? 0 : 1;
+    for (let i = 0; i < n; i++) {
+      st.activity.push({ ts: now - (n - 1 - i + endOffset) * DAY, sid: s.id, idx: (u.got || [])[i] || 0, demo: true });
+    }
+  });
+}
+
+const _boot = load();
+const state = _boot.state;
+if (!state.drawCache) state.drawCache = {};
+if (!state.activity) state.activity = [];
+if (_boot.fresh) seedActivity(state);
 
 function persist() {
   try { wx.setStorageSync(STORE_KEY, JSON.stringify(state)); } catch (e) {}
@@ -75,6 +99,7 @@ function commentItems(s) {
 function reset() {
   const fresh = freshState();
   Object.keys(fresh).forEach(k => { state[k] = fresh[k]; });
+  seedActivity(state);
   persist();
 }
 

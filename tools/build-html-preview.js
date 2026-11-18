@@ -93,6 +93,10 @@ pageSrc = pageSrc.replace(
   "const Security = require('../../utils/security.js');",
   'const Security = window.__SECURITY__;'
 );
+pageSrc = pageSrc.replace(
+  "const api = require('../../services/api.js');",
+  'const api = window.__SERVICES_API__;'
+);
 if (/require\s*\(/.test(pageSrc)) {
   throw new Error('index.js 仍包含 require()，无法在浏览器中直接运行');
 }
@@ -139,6 +143,46 @@ ${body}
 }
 
 const posterKitBundle = bundlePosterKit();
+/* 把 services 层打成浏览器可用的包（D2 起页面唯一数据出口） */
+function bundleServices() {
+  const files = {
+    'services/config.js': read(path.join(ROOT, 'services/config.js')),
+    'services/api.js': read(path.join(ROOT, 'services/api.js')),
+    'services/util/bktime.js': read(path.join(ROOT, 'services/util/bktime.js')),
+    'services/mock/seed.js': read(path.join(ROOT, 'services/mock/seed.js')),
+    'services/mock/store.js': read(path.join(ROOT, 'services/mock/store.js')),
+    'services/mock/index.js': read(path.join(ROOT, 'services/mock/index.js')),
+    'services/real/index.js': read(path.join(ROOT, 'services/real/index.js')),
+  };
+  const body = Object.entries(files).map(([name, src]) =>
+    `__define(${JSON.stringify(name)}, function(module, exports, require){\n${src}\n});`
+  ).join('\n\n');
+  return `(function(){
+  var __mods = {}, __cache = {};
+  function __define(name, fn){ __mods[name] = fn; }
+  function __dir(id){ var p = id.split('/'); p.pop(); return p.join('/'); }
+  function __norm(base, id){
+    if (id.charAt(0) !== '.') return id;
+    var parts = (base + '/' + id).split('/'), out = [];
+    parts.forEach(function(p){ if (!p || p === '.') return; if (p === '..') out.pop(); else out.push(p); });
+    return out.join('/');
+  }
+  function __requireFrom(base, id){
+    var key = __norm(base, id);
+    if (__cache[key]) return __cache[key].exports;
+    if (!__mods[key]) throw new Error('services module not found: ' + id + ' from ' + base);
+    var m = { exports: {} };
+    __cache[key] = m;
+    __mods[key](m, m.exports, function(x){ return __requireFrom(__dir(key), x); });
+    return m.exports;
+  }
+${body}
+  window.__SERVICES_API__ = __requireFrom('', 'services/api.js');
+})();`;
+}
+
+const servicesBundle = bundleServices();
+
 
 const morphdomSrc = read(path.join(__dirname, 'vendor/morphdom.min.js'));
 const morphdomLicense = read(path.join(__dirname, 'vendor/morphdom.LICENSE'));
@@ -186,6 +230,20 @@ ${runtimeSrc}
 
 <script>
 ${posterKitBundle}
+</script>
+
+<script>
+/* services 的 mock 需要 wx storage；预览用 localStorage 模拟 */
+(function(){
+  var w = window.wx || {};
+  w.getStorageSync = function(k){ try { return localStorage.getItem('dsm_preview_' + k) || ''; } catch(e){ return ''; } };
+  w.setStorageSync = function(k, v){ try { localStorage.setItem('dsm_preview_' + k, v); } catch(e){} };
+  window.wx = w;
+})();
+</script>
+
+<script>
+${servicesBundle}
 </script>
 
 <script>

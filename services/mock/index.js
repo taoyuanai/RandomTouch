@@ -55,6 +55,10 @@ function setPayload(s) {
     creator: s.creator, heat: s.heat, date: s.date,
     signatureIdx: s.signatureIdx, signatureNote: s.signatureNote,
     own: s.creator === store.ME,
+    subscribed: !!s.user,
+    totalDrawn: s.totalDrawn || 0,
+    earn: s.earn || 0,
+    buyers: s.buyers || 0,
     progress: progressOf(s),
   };
 }
@@ -119,7 +123,10 @@ async function draw({ setId, requestId } = {}) {
   }
 
   let idx;
-  if (isResident) {
+  if (_debug._rig && _debug._rig.setId === Number(setId)) {
+    idx = _debug._rig.idx;          // 调试后门：指定下一张
+    _debug._rig = null;
+  } else if (isResident) {
     idx = Math.floor(Math.random() * s.pool.length);
   } else {
     const got = u.got || [];
@@ -140,13 +147,20 @@ async function draw({ setId, requestId } = {}) {
     u.drawnLog.push({ idx, ts: Date.now() });
   }
   if (isMine) s.totalDrawn = (s.totalDrawn || 0) + 1;
+  const wpBefore = weekProgressLocal();
   store.pushActivity({ ts: Date.now(), sid: s.id, idx, trial: !!trial });
+  const wpAfter = weekProgressLocal();
 
   const done = !isResident && (u.got || []).length >= count;
   const out = {
     result: 'drawn', idx, card: s.pool[idx],
     set: setPayload(s), done,
     sig: { firstReveal: sigFirst, isSig: idx === s.signatureIdx },
+    weekGoal: {
+      done: wpAfter.done, total: wpAfter.total,
+      full: wpAfter.full,
+      justFull: wpAfter.full && !wpBefore.full,
+    },
   };
   if (requestId) {
     store.state.drawCache[requestId] = out;
@@ -185,7 +199,7 @@ async function saveStamp({ setId, idx, note, imgFileID } = {}) {
 }
 
 async function unlock({ setId } = {}) {
-  await new Promise(r => setTimeout(r, 900)); // 模拟支付
+  await Promise.all([gate(), new Promise(r => setTimeout(r, 900))]); // 模拟支付 + 可失败
   const s = findSet(setId);
   if (!s.user) s.user = { drawn: 0, trialUsed: 0, unlocked: true, todayDrawn: false, got: [] };
   s.user.unlocked = true;
@@ -414,6 +428,27 @@ const _debug = {
   markWeeklyMade(setId, weekNo) {
     store.state.weeklyMade[`${setId}:${weekNo}`] = true;
     store.persist();
+  },
+  rig(setId, idx) {
+    _debug._rig = { setId: Number(setId), idx: Number(idx) };
+    return `下一次抽卡固定为 idx=${idx}`;
+  },
+  completeSet(setId, leave = 0) {
+    const s = store.state.sets.find(x => x.id === Number(setId));
+    if (!s) return 'not found';
+    if (!s.user) s.user = { drawn: 0, got: [], recs: {} };
+    const n = Math.max(0, s.pool.length - Number(leave || 0));
+    s.user.got = s.pool.map((_, i) => i).slice(0, n);
+    s.user.drawn = n;
+    const now = Date.now();
+    s.user.drawnLog = s.user.got.map((idx, i) => ({ idx, ts: now - (s.user.got.length - 1 - i) * 86400000 }));
+    s.user.recs = n >= 7 ? {
+      0: { img: '', note: '下班路上真的抬头看了，积云像棉花糖。', date: '11月8日' },
+      3: { img: '', note: '雨云压得很低，带了伞，没用上。', date: '11月11日' },
+      6: { img: '', note: '查了珠母云的图，想亲眼看一次。', date: '11月12日' },
+    } : {};
+    store.persist();
+    return `ok (${n}/${s.pool.length})`;
   },
 };
 
