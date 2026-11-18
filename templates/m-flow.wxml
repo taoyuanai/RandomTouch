@@ -1,37 +1,72 @@
-<import src="/templates/common.wxml"/>
-<view class="phone" style="--statusbar:0px;--navtop:0px">
-  <view class="screen">
-<view class="page" id="page-demo">
-
-      <view class="panel">
-        <view class="panel-head"><view class="t-b">题眼</view><view class="t-span">作者签名</view></view>
-        <view class="t-p">金色只属于作者最想送出的那一张。先读到那句话，再发现它被偏爱过。</view>
+<!-- D6 · 流程弹层：record / bigCard / poster / dp（cards/set/draw/map） -->
+<!-- ═══════════════════ 盖邮戳 / 回信 ═══════════════════ -->
+  <view class="modal {{record.show ? 'show' : ''}}" id="recordModal">
+    <view class="sheet bottom-sheet">
+      <view class="modal-kind">盖 上 今 天 的 邮 戳</view>
+      <view class="modal-title">{{record.title}}</view>
+      <view class="t-p modal-body">{{record.sub}}</view>
+      <view class="rc-photo {{record.hasImg ? 'has' : ''}}" bindtap="choosePhoto">
+        <image wx:if="{{record.hasImg}}" class="t-img" src="{{record.img}}" mode="aspectFill" />
+        <view class="rc-photo-del" wx:if="{{record.hasImg}}" catchtap="clearPhoto">×</view>
+        <view class="rc-photo-empty" wx:else>
+          <image class="t-svg" src="/assets/icons/camera-soft.png" mode="aspectFit" />
+          <text class="t-span">拍下今天 · 或从相册选</text>
+        </view>
       </view>
-
-      <view class="panel" style="margin-top:12px">
-        <view class="panel-head"><view class="t-b">动画海报</view><view class="t-span">点击预览</view></view>
-        <button class="cta solid" bindtap="openPosterDemo">题眼 · 鎏金晚霞</button>
+      <view class="rc-crop-tip">照片会按 4:3 比例裁剪 · 可拖动缩放取景</view>
+      <view class="form-row" style="margin-top:var(--space-4)">
+        <textarea class="fi" maxlength="50" value="{{record.note}}" bindinput="onRecordNote" placeholder="也可以只写一句话，不传图"></textarea>
+        <view class="t-p rc-count"><text class="t-b">{{record.count}}</text>/50</view>
       </view>
+      <view class="modal-actions">
+        <button class="cta solid" disabled="{{record.saving}}" bindtap="saveStamp">{{record.saving ? '盖戳中…' : record.saveText}}</button>
+        <button class="ghost" bindtap="closeRecord">暂时不记</button>
+      </view>
+      <view class="modal-meta">只给自己看 · 不记录也不影响任何功能</view>
+    </view>
+  </view>
 
-      <view class="panel" style="margin-top:12px">
-        <view class="panel-head"><view class="t-b">原型控制台</view><view class="t-span">仅开发演示</view></view>
-        <view class="demo-actions">
-          <button size="mini" class="mini-cta demo-action" bindtap="setMode" data-mode="new">新用户 · 空态</button>
-          <button size="mini" class="mini-cta demo-action" bindtap="setMode" data-mode="rich">演示用户 · 有进度</button>
-          <button size="mini" class="mini-cta demo-action" bindtap="toggleCraftEmpty">创作者 · 零作品</button>
-          <button size="mini" class="mini-cta demo-action" bindtap="demoEmptySet">抽空「云的图鉴」</button>
-          <button size="mini" class="mini-cta demo-action" bindtap="demoWeekly">生成周记海报</button>
-          <button size="mini" class="mini-cta demo-action" bindtap="demoWeekly916">生成朋友圈周记</button>
-          <button size="mini" class="mini-cta demo-action" bindtap="demoMemorial">生成纪念海报</button>
+  
+
+<!-- ═══════════════════ 大卡弹层 ═══════════════════ -->
+  <view class="modal centered {{bigCard.show ? 'show' : ''}}" id="cardModal">
+    <view class="sheet" style="padding-top:var(--space-8)">
+      <button class="close-btn" bindtap="closeBigCard" style="position:absolute;top:12px;right:12px;z-index:10">✕</button>
+      <view class="bigcard {{bigCard.flipped ? 'flipped' : ''}} {{bigCard.lit ? 'lit' : ''}}" id="bigcard" bindtap="toggleBigCardFlip">
+        <view class="card-inner">
+          <view class="card-face front">
+            <view class="cf-top">
+              <text class="t-span no">{{bigCard.no}}</text>
+            </view>
+            <view class="bigword serif {{bigCard.wordCls}}">{{bigCard.word}}</view>
+            <view class="bigcard-sig" wx:if="{{bigCard.sig}}">题眼</view>
+            <view class="cf-bottom">
+              <text class="t-span">{{bigCard.settitle}}</text>
+              <view class="t-span flip-hint">
+                <image class="t-svg" src="/assets/icons/rotate.png" mode="aspectFit" />
+                <text>轻触翻面</text>
+              </view>
+            </view>
+          </view>
+          <view class="card-face back" style="padding:0">
+            <template is="cardBack" data="{{back: bigCard.back}}" />
+          </view>
         </view>
       </view>
 
-      <view class="empty" style="margin-top:12px">
-        <view class="empty-icon">✨</view>
-        <view class="t-h3">设计系统总览</view>
-        <view class="t-p">题眼、金色签名、按钮与动画海报集中在这里预览；不影响主流程。</view>
+      <!-- 大卡操作行：回看任意一张卡时都可分享 -->
+      <view class="bigcard-actions">
+        <button class="cta secondary" bindtap="openPoster"
+                data-type="big"
+                data-sid="{{bigCard.back.sid}}"
+                data-idx="{{bigCard.back.idx}}">
+          {{bigCard.back.rec ? '分享这张明信片' : '分享这张卡'}}
+        </button>
       </view>
-    </view>  </view>
+    </view>
+  </view>
+
+  
 
 <!-- ═══════════════════ 分享海报 / 纪念册 ═══════════════════ -->
   <view class="modal centered {{poster.show ? 'show' : ''}}" id="posterModal">
@@ -320,6 +355,7 @@
   </view>
 
   
+
 <!-- ═══════════════════ 抽空页 · 金色时刻 ═══════════════════ -->
   <view class="dp" wx:if="{{donePage.show}}">
     <view class="dp-inner">
@@ -354,10 +390,3 @@
   </view>
 
   
-<!-- ═══════════════════ 轻提示 ═══════════════════ -->
-  <view class="toast {{toastShow ? 'show' : (toastHide ? 'hide' : '')}}" wx:if="{{toastMsg}}">
-    <text>{{toastMsg}}</text>
-    <view class="toast-progress" wx:if="{{toastShow}}"><view class="t-i"></view></view>
-  </view>
-
-</view>

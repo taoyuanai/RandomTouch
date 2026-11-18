@@ -9,8 +9,7 @@
     "pages/map/index",
     "pages/edit/index",
     "pages/income/index",
-    "pages/author/index",
-    "pages/demo/index"
+    "pages/author/index"
   ],
   "window": {
     "navigationBarBackgroundColor": "#FFFFFF",

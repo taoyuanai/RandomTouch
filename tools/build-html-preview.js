@@ -32,8 +32,18 @@ function read(p) {
   return fs.readFileSync(p, 'utf8');
 }
 
+function expandIncludes(src, filePath, seen) {
+  seen = seen || {};
+  return src.replace(/<include\s+src="([^"]+)"\s*\/?>/g, (m, spec) => {
+    const abs = spec.charAt(0) === '/' ? path.join(ROOT, spec.slice(1)) : path.resolve(path.dirname(filePath), spec);
+    if (seen[abs]) return '';
+    seen[abs] = true;
+    return expandIncludes(read(abs), abs, seen);
+  });
+}
+
 /* ---------- 1. WXML ---------- */
-const wxmlSrc = read(path.join(pagesDir, 'index.wxml'));
+const wxmlSrc = expandIncludes(read(path.join(pagesDir, 'index.wxml')), path.join(pagesDir, 'index.wxml'));
 const ast = parseWXML(wxmlSrc);
 const templates = collectTemplates(ast);
 annotateLoops(ast);
@@ -88,10 +98,6 @@ pageSrc = pageSrc.replace(
   'const posterKit = window.__POSTER_KIT__;'
 );
 pageSrc = pageSrc.replace(
-  "const Security = require('../../utils/security.js');",
-  'const Security = window.__SECURITY__;'
-);
-pageSrc = pageSrc.replace(
   "const api = require('../../services/api.js');",
   'const api = window.__SERVICES_API__;'
 );
@@ -99,10 +105,7 @@ if (/require\s*\(/.test(pageSrc)) {
   throw new Error('index.js 仍包含 require()，无法在浏览器中直接运行');
 }
 
-const securityBundle =
-  '(function(){var module = { exports: {} };\n' +
-  read(path.join(ROOT, 'utils/security.js')) +
-  '\nwindow.__SECURITY__ = module.exports;\n})();';
+;
 
 // 把 posterKit 的四个 CommonJS 模块打成一个浏览器可用的包
 function bundlePosterKit() {
@@ -155,10 +158,8 @@ function bundleServices() {
   files['lib/craftStore.js'] = read(path.join(ROOT, 'lib/craftStore.js'));
   let coreSrc = read(path.join(ROOT, 'lib/core.js'));
   coreSrc = coreSrc.replace("const posterKit = require('../utils/posterKit/export.js');", 'const posterKit = window.__POSTER_KIT__;');
-  coreSrc = coreSrc.replace("const Security = require('../utils/security.js');", 'const Security = window.__SECURITY__;');
   let sharedSrc = read(path.join(ROOT, 'lib/shared.js'));
   sharedSrc = sharedSrc.replace("const posterKit = require('../utils/posterKit/export.js');", 'const posterKit = window.__POSTER_KIT__;');
-  sharedSrc = sharedSrc.replace("const Security = require('../utils/security.js');", 'const Security = window.__SECURITY__;');
   files['lib/core.js'] = coreSrc;
   files['lib/shared.js'] = sharedSrc;
   const body = Object.entries(files).map(([name, src]) =>
@@ -227,10 +228,6 @@ window.__AST__ = ${JSON.stringify(ast)};
 
 <script>
 ${seedBundle}
-</script>
-
-<script>
-${securityBundle}
 </script>
 
 <script>

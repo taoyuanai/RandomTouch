@@ -1,8 +1,9 @@
 <view class="phone" style="--statusbar:0px;--navtop:0px">
 <!-- ═══════════════════ 发现 ═══════════════════ -->
     <view class="page" id="page-home">
+<include src="/templates/m-base.wxml"/>
       <view class="page-head">
-        <view class="search-bar" bindtap="toastSearch" bindlongpress="openDemo">
+        <view class="search-bar" bindtap="toastSearch">
           <image class="t-svg" src="/assets/icons/search.png" mode="aspectFit" />
           <text class="t-span">搜索卡集、做卡人…</text>
           <image class="t-svg scan-icon" src="/assets/icons/scan.png" mode="aspectFit" />
@@ -47,13 +48,19 @@
       </view>
 
       <!-- 冷启动失败兜底 -->
-      <view class="hm-empty" wx:if="{{bootError}}" style="padding:64px 24px 20px">
-        <view class="hm-empty-text">内容加载失败，检查一下网络</view>
-        <button class="hm-empty-btn" hover-class="hm-press" bindtap="retryBoot">重新加载</button>
-      </view>
 
       <!-- 卡集列表：浮起的方框卡 -->
-      <view id="squareList">
+            <view class="skel-list" wx:if="{{booting}}">
+        <view class="skel-book" wx:for="{{[1,2,3,4]}}" wx:key="*this">
+          <view class="skel skel-cover"></view>
+          <view class="skel-book-txt">
+            <view class="skel skel-line" style="width:70%"></view>
+            <view class="skel skel-line" style="width:45%"></view>
+            <view class="skel skel-line" style="width:55%"></view>
+          </view>
+        </view>
+      </view>
+<view id="squareList">
         <view class="book-card" wx:for="{{home.rows}}" wx:key="id" bindtap="openSet" data-id="{{item.id}}" data-from="home">
           <view class="cover {{item.cover}}" style="position:relative">
             <image wx:if="{{item.coverImage}}" class="cover-img" src="{{item.coverImage}}" mode="aspectFill" />
@@ -90,10 +97,5 @@
 
     
 
-<!-- ═══════════════════ 轻提示 ═══════════════════ -->
-  <view class="toast {{toastShow ? 'show' : (toastHide ? 'hide' : '')}}" wx:if="{{toastMsg}}">
-    <text>{{toastMsg}}</text>
-    <view class="toast-progress" wx:if="{{toastShow}}"><view class="t-i"></view></view>
-  </view>
 
 </view>

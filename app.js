@@ -1,6 +1,5 @@
 // app.js
 const posterKit = require('./utils/posterKit/export.js');
-const Security = require('./utils/security.js');
 
 let core = null;
 let api = null;
@@ -33,18 +32,5 @@ App({
       console.error('[core] init failed', e);
     }
 
-    if (!Security.cloudReady()) return;
-    try {
-      wx.cloud.init({ env: Security.CLOUD_ENV, traceUser: true });
-      wx.login({
-        success: ({ code }) => {
-          wx.cloud.callFunction({ name: 'auth', data: { code } })
-            .then((r) => {
-              this.globalData.openid = (r && r.result && r.result.openid) || '';
-            })
-            .catch(() => { this.globalData.openid = ''; });
-        },
-      });
-    } catch (e) { /* 云环境未就绪时保持 demo 可用 */ }
   },
 });

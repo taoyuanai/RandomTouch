@@ -49,7 +49,7 @@ function seedActivity(st) {
     const n = Math.min(u.drawn, 3);
     const endOffset = u.todayDrawn ? 0 : 1;
     for (let i = 0; i < n; i++) {
-      st.activity.push({ ts: now - (n - 1 - i + endOffset) * DAY, sid: s.id, idx: (u.got || [])[i] || 0, demo: true });
+      st.activity.push({ ts: now - (n - 1 - i + endOffset) * DAY, sid: s.id, idx: (u.got || [])[i] || 0 });
     }
   });
 }

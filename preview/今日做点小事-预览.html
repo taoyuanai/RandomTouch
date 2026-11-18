@@ -350,19 +350,7 @@ body{
     letter-spacing:1px;
     margin-bottom:var(--space-4);
     font-weight:var(--weight-medium);
-  }.memorial-follow{
-    background:var(--surface-card);
-    border-radius:var(--radius-lg);
-    padding:var(--space-4);
-    display:flex;
-    align-items:center;
-    gap:var(--space-3);
-    box-shadow:var(--shadow-xs);
-    border:1px solid var(--border-default);
-    margin-bottom:var(--space-3);
-    cursor:pointer;
-    transition:all var(--duration-fast) var(--ease-default);
-  }.memorial-follow:hover{box-shadow:var(--shadow-sm);border-color:var(--border-strong)}.cover{
+  }.cover{
     width:72px;
     height:96px;
     border-radius:var(--radius-sm);
@@ -548,24 +536,6 @@ body{
     background:var(--gradient-brand);
     border-radius:var(--radius-full);
     transition:width var(--duration-slow) var(--ease-bounce);
-  }.dist-row{
-    display:flex;
-    align-items:center;
-    gap:var(--space-2);
-    margin-bottom:var(--space-2);
-  }.dist-row .badge{width:36px;justify-content:center;flex:none}.dist-row>.t-span{font-size:var(--text-sm);color:var(--text-tertiary);width:40px;text-align:right;letter-spacing:0.5px;flex:none}.dist-bar{
-    flex:1;
-    height:6px;
-    background:var(--gray-100);
-    border-radius:var(--radius-full);
-    overflow:hidden;
-  }.dist-bar .t-i{
-    display:block;
-    height:100%;
-    background:var(--gradient-brand);
-    border-radius:var(--radius-full);
-    min-width:4px;
-    transition:width var(--duration-slow) var(--ease-bounce);
   }.dot{
     width:6px;
     height:6px;
@@ -701,25 +671,12 @@ body{
     line-height:var(--leading-loose);
     list-style:none;
     letter-spacing:0.5px;
-  }.rules .t-li::before{content:"·";color:var(--orange-500);margin-right:9px;font-weight:var(--weight-bold)}.letter-top .t-b{
-    font-size:var(--text-md);
-    font-weight:var(--weight-medium);
-    letter-spacing:0.5px;
-    color:var(--text-primary);
-  }.letter-top .t-span{
-    font-size:var(--text-sm);
-    color:var(--text-tertiary);
-    letter-spacing:0.5px;
-  }.envelope{position:relative;width:250px;height:170px;cursor:pointer}.envelope.opening .env-flap{transform:rotateX(178deg);opacity:0}.envelope.opening .env-seal{opacity:0;transform:translateX(-50%) scale(0.6)}.letter-card.show{
-    opacity:1;
-    transform:none;
-    pointer-events:auto;
-  }.card-inner{
+  }.rules .t-li::before{content:"·";color:var(--orange-500);margin-right:9px;font-weight:var(--weight-bold)}.card-inner{
     position:relative;
     width:100%;height:100%;
     transform-style:preserve-3d;
     transition:transform var(--duration-slower) var(--ease-bounce);
-  }.letter-card.flipped .card-inner{transform:rotateY(180deg)}.card-face{
+  }.card-face{
     position:absolute;
     inset:0;
     backface-visibility:hidden;
@@ -786,7 +743,7 @@ body{
     background:var(--surface-muted);
     font-family:var(--font-serif);
     font-weight:var(--weight-medium);
-  }.cobrand .t-b{font-size:var(--text-base);display:block;font-weight:var(--weight-normal);letter-spacing:1px}#letterActions{display:none;margin-top:var(--space-4)}#letterActions.show{display:block;animation:fadein var(--duration-slow)}.subhead{
+  }.cobrand .t-b{font-size:var(--text-base);display:block;font-weight:var(--weight-normal);letter-spacing:1px}.subhead{
     display:flex;
     align-items:center;
     gap:var(--space-3);
@@ -890,37 +847,7 @@ body{
     background:var(--gray-50);
     border:1.5px dashed var(--gray-200);
     cursor:default;
-  }.map-cell.dark:hover{transform:none;box-shadow:var(--shadow-xs)}.map-cell.dark .t-b{color:var(--gray-300);font-weight:var(--weight-semibold)}.done-hero{text-align:center;padding:var(--space-5) 0 var(--space-2)}.done-hero .mark{
-    font-family:var(--font-serif);
-    font-size:var(--text-sm);
-    letter-spacing:10px;
-    color:var(--text-brand);
-    margin-bottom:var(--space-4);
-    text-indent:10px;
-  }.done-hero .t-h1{
-    font-family:var(--font-serif);
-    font-size:var(--text-4xl);
-    letter-spacing:1px;
-    font-weight:var(--weight-semibold);
-    margin-bottom:var(--space-3);
-    color:var(--text-primary);
-  }.done-hero .t-p{
-    font-size:var(--text-md);
-    color:var(--text-tertiary);
-    line-height:var(--leading-loose);
-  }.final-quote{
-    font-family:var(--font-serif);
-    margin:var(--space-1) 0 var(--space-4);
-    padding:var(--space-5);
-    background:var(--surface-card);
-    border-radius:var(--radius-lg);
-    text-align:center;
-    font-size:var(--text-lg);
-    line-height:var(--leading-2xl);
-    box-shadow:var(--shadow-sm);
-    border:1px solid var(--border-default);
-    color:var(--text-primary);
-  }.modal{
+  }.map-cell.dark:hover{transform:none;box-shadow:var(--shadow-xs)}.map-cell.dark .t-b{color:var(--gray-300);font-weight:var(--weight-semibold)}.modal{
     position:absolute;
     inset:0;
     background:rgba(0,0,0,0.45);
@@ -1119,12 +1046,7 @@ body{
     white-space:nowrap;
     letter-spacing:0.5px;
     font-weight:var(--weight-medium);
-  }.toast.show{opacity:1;transform:translateX(-50%)}.devbar button.on{
-    background:var(--surface-card);
-    border-color:var(--orange-500);
-    color:var(--orange-500);
-    font-weight:var(--weight-medium);
-  }.count,.today,.cf-top .no,.map-cell,.card-row .s,.bc-meta,.final-quote{font-variant-numeric:tabular-nums}.search-bar{
+  }.toast.show{opacity:1;transform:translateX(-50%)}.search-bar{
     display:flex;
     align-items:center;
     gap:var(--space-2);
@@ -1425,55 +1347,6 @@ body{
     letter-spacing:0.5px;
     padding:var(--space-2) 0;
     text-align:center;
-  }.rarity-panel{padding:var(--space-4) var(--space-4)}.rarity-row{
-    display:flex;
-    align-items:center;
-    gap:var(--space-3);
-    margin-bottom:var(--space-3);
-  }.rarity-row:last-child{margin-bottom:0}.rarity-label{
-    width:36px;
-    flex:none;
-    text-align:center;
-  }.rarity-label .badge{width:100%;justify-content:center}.rarity-track{
-    flex:1;
-    height:8px;
-    background:var(--gray-100);
-    border-radius:var(--radius-full);
-    overflow:hidden;
-    position:relative;
-  }.rarity-track .t-i{
-    display:block;
-    height:100%;
-    border-radius:var(--radius-full);
-    transition:width var(--duration-slow) var(--ease-bounce);
-    position:relative;
-  }.rarity-track .t-i::after{
-    content:"";
-    position:absolute;
-    right:0;
-    top:0;
-    bottom:0;
-    width:20px;
-    background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3));
-    border-radius:0 var(--radius-full) var(--radius-full) 0;
-  }.rarity-row.N .rarity-track .t-i{background:linear-gradient(90deg,var(--mint-200),var(--mint-400))}.rarity-row.R .rarity-track .t-i{background:linear-gradient(90deg,var(--sky-200),var(--sky-400))}.rarity-row.SR .rarity-track .t-i{background:linear-gradient(90deg,var(--honey-200),var(--honey-400))}.rarity-row.SSR .rarity-track .t-i{background:var(--gradient-ssr)}.rarity-count{
-    width:70px;
-    flex:none;
-    text-align:right;
-    font-size:var(--text-sm);
-    color:var(--text-tertiary);
-    letter-spacing:0.5px;
-    font-variant-numeric:tabular-nums;
-  }.rarity-count .t-b{
-    color:var(--text-primary);
-    font-weight:var(--weight-semibold);
-  }.rarity-note{
-    font-size:var(--text-xs);
-    color:var(--text-tertiary);
-    text-align:center;
-    margin-top:var(--space-3);
-    letter-spacing:0.5px;
-    line-height:var(--leading-loose);
   }.progress-hero{
     display:flex;
     align-items:center;
@@ -1519,7 +1392,7 @@ body{
     justify-content:center;
     flex:none;
     margin-top:1px;
-  }.rules-list .t-li .rule-text{flex:1}.trial-dot.used{background:var(--gradient-brand)}.trial-dot.free{background:var(--gray-200)}.trial-label{
+  }.rules-list .t-li .rule-text{flex:1}.trial-label{
     font-size:var(--text-xs);
     color:var(--text-tertiary);
     letter-spacing:0.5px;
@@ -1531,35 +1404,13 @@ body{
     background:var(--surface-page);
     min-height:100%;
     position:relative;
-  }.envelope{
-    position:relative;
-    width:260px;
-    height:176px;
-    cursor:pointer;
-    transition:transform 0.2s var(--ease-default);
-  }.envelope:hover{transform:scale(1.02)}.envelope:active{transform:scale(0.97)}.envelope.opening .env-flap{transform:rotateX(178deg);opacity:0}.envelope.opening .env-seal{opacity:0;transform:translateX(-50%) scale(0.6)}@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}
-  }.envelope.opening ~ .env-sparkle{
-    animation:sparkle 0.8s ease-out forwards;
-  }@keyframes sparkle{0%{opacity:0;transform:translate(-50%,-50%) scale(0.5)}30%{opacity:1;transform:translate(-50%,-50%) scale(1.2)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.5)}
-  }.letter-card.show{
-    opacity:1;
-    transform:none;
-    pointer-events:auto;
-  }.letter-card.show::before{
-    content:"";
-    position:absolute;
-    inset:-20px;
-    background:radial-gradient(ellipse at center,rgba(255,107,53,0.08) 0%,transparent 70%);
-    z-index:-1;
-    pointer-events:none;
-    animation:glowIn 0.6s ease-out;
-  }@keyframes glowIn{from{opacity:0;transform:scale(0.8)}to{opacity:1;transform:scale(1)}
+  }@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}
   }.card-inner{
     position:relative;
     width:100%;height:100%;
     transform-style:preserve-3d;
     transition:transform var(--duration-slower) var(--ease-bounce);
-  }.letter-card.flipped .card-inner{transform:rotateY(180deg)}.card-face{
+  }.card-face{
     position:absolute;
     inset:0;
     backface-visibility:hidden;
@@ -1698,23 +1549,7 @@ body{
     color:var(--text-tertiary);
     letter-spacing:0.5px;
     margin-top:2px;
-  }#letterActions{
-    display:none;
-    padding:0 var(--space-4) var(--space-6);
-  }#letterActions.show{
-    display:block;
-    animation:slideUp var(--duration-slow) var(--ease-out);
-  }.action-grid .cta{flex:1;height:46px;font-size:var(--text-lg)}.action-grid .cta.secondary{
-    background:var(--surface-card);
-    color:var(--orange-500);
-    border:1.5px solid var(--orange-500);
-    box-shadow:none;
-  }.action-grid .cta.secondary:hover{background:var(--surface-hover)}.action-grid .cta.ghost-btn{
-    background:transparent;
-    color:var(--text-tertiary);
-    border:1.5px solid var(--border-default);
-    box-shadow:none;
-  }.action-grid .cta.ghost-btn:hover{border-color:var(--border-strong);color:var(--text-secondary)}.draw-tail{
+  }.draw-tail{
     text-align:center;
     font-size:var(--text-xs);
     color:var(--text-tertiary);
@@ -2085,64 +1920,6 @@ body{
     font-size:var(--text-xs);
     color:var(--text-tertiary);
     letter-spacing:1px;
-  }@keyframes bellSwing{0%,100%{transform:rotate(0)}10%{transform:rotate(8deg)}20%{transform:rotate(-6deg)}30%{transform:rotate(4deg)}40%{transform:rotate(-2deg)}50%{transform:rotate(0)}
-  }.pending-banner .pb-text .t-b{
-    font-size:var(--text-lg);
-    font-weight:var(--weight-semibold);
-    color:var(--text-primary);
-    display:block;
-    letter-spacing:0.5px;
-    margin-bottom:2px;
-  }.pending-banner .pb-text .t-span{
-    font-size:var(--text-sm);
-    color:var(--text-tertiary);
-    letter-spacing:0.5px;
-  }.sub-group-head .t-b{
-    font-size:var(--text-md);
-    font-weight:var(--weight-semibold);
-    letter-spacing:0.5px;
-    color:var(--text-primary);
-    display:flex;
-    align-items:center;
-    gap:var(--space-2);
-  }.sub-card .cover-sm{
-    width:40px;
-    height:54px;
-    border-radius:var(--radius-sm);
-    flex:none;
-    border:1px solid var(--orange-200);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    overflow:hidden;
-    background:var(--surface-card);
-    box-shadow:var(--shadow-xs);
-    transition:transform var(--duration-fast) var(--ease-default);
-  }.sub-card:hover .cover-sm{transform:scale(1.05)}.sub-card .cover-sm .t-span{
-    writing-mode:vertical-rl;
-    font-size:var(--text-xs);
-    color:var(--text-primary);
-    letter-spacing:0;
-    font-weight:var(--weight-medium);
-  }.sub-card .sc-info .t-b{
-    font-size:var(--text-xl);
-    font-weight:var(--weight-semibold);
-    letter-spacing:0.5px;
-    display:block;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-    color:var(--text-primary);
-    margin-bottom:2px;
-  }.sub-card .sc-info .sc-meta .status-dot.ready{background:var(--success)}.sub-card .sc-info .sc-meta .status-dot.done{background:var(--gray-300)}.sub-card .sc-info .sc-meta .status-dot.wait{background:var(--sky-500)}.sub-card.done{
-    opacity:0.75;
-  }.sub-card.done .cover-sm{
-    border-color:var(--gray-200);
-    background:var(--gray-50);
-  }.sub-card.done .cover-sm .t-span{
-    color:var(--text-tertiary);
-  }.sub-card.done .sc-info .t-b{
-    color:var(--text-tertiary);
   }.sub-tail{
     text-align:center;
     font-size:var(--text-xs);
@@ -2478,7 +2255,7 @@ body{
     background:var(--gradient-brand);
     border-radius:var(--radius-full);
     transition:width var(--duration-slow) var(--ease-bounce);
-  }.skeleton-wrap.hide{opacity:0}@keyframes skeletonShimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}
+  }@keyframes skeletonShimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}
   }@keyframes staggerIn{from{opacity:0}to{opacity:1}
   }@keyframes fadeIn{from{opacity:0}to{opacity:1}
   }.cta,.ghost,.pill-btn,.newcraft-btn,.income-entry,.work-row,.square,.card-row,.quick-card{
@@ -2702,10 +2479,6 @@ body{
     -webkit-background-clip:text;
     -webkit-text-fill-color:transparent;
     background-clip:text;
-  }.poster-highlight .ph-rarity .rarity-label{
-    font-size:var(--text-xs);
-    color:var(--text-tertiary);
-    letter-spacing:2px;
   }.poster-highlight .ph-content{
     background:var(--surface-muted);
     border-radius:var(--radius-lg);
@@ -2753,7 +2526,7 @@ body{
     --gold-600:#B78413; --gold-700:#7A5410;
     --gradient-ssr:linear-gradient(135deg,var(--gold-300),var(--gold-500));
     --gradient-ssr-soft:linear-gradient(135deg,var(--gold-200),var(--gold-400));
-  }.badge.SSR{color:var(--gold-700);border-color:var(--gold-400);background:var(--gradient-ssr-soft);font-weight:var(--weight-bold)}.map-cell .t-i.rdot.N{background:var(--mint-300);border-color:var(--mint-500)}.map-cell .t-i.rdot.R{background:var(--sky-300);border-color:var(--sky-500)}.map-cell .t-i.rdot.SR{background:var(--honey-300);border-color:var(--honey-500)}.map-cell .t-i.rdot.SSR{background:var(--gold-300);border-color:var(--gold-600)}.rarity-row.SSR .rarity-track .t-i{background:linear-gradient(90deg,var(--gold-200),var(--gold-500))}.poster-card.SSR::before{background:linear-gradient(90deg,var(--gold-300),var(--gold-600))}.poster-card.SSR{box-shadow:0 8px 32px rgba(217,162,39,0.16),inset 0 0 0 1px rgba(217,162,39,0.16)}.poster-rarity.SSR{color:var(--gold-700);background:var(--gold-50);border:1px solid var(--gold-300)}.rar-watermark.N{color:var(--mint-100)}.rar-watermark.R{color:var(--sky-100)}.rar-watermark.SR{color:var(--honey-100)}.rar-watermark.SSR{color:var(--gold-200);opacity:0.55}.dist-bar .t-i.N{background:linear-gradient(90deg,var(--mint-200),var(--mint-400))}.dist-bar .t-i.R{background:linear-gradient(90deg,var(--sky-200),var(--sky-400))}.dist-bar .t-i.SR{background:linear-gradient(90deg,var(--honey-200),var(--honey-400))}.dist-bar .t-i.SSR{background:var(--gradient-ssr)}.bc-status-tag{animation:badgePop 0.3s var(--ease-bounce) both}.rec-slot{
+  }.badge.SSR{color:var(--gold-700);border-color:var(--gold-400);background:var(--gradient-ssr-soft);font-weight:var(--weight-bold)}.map-cell .t-i.rdot.N{background:var(--mint-300);border-color:var(--mint-500)}.map-cell .t-i.rdot.R{background:var(--sky-300);border-color:var(--sky-500)}.map-cell .t-i.rdot.SR{background:var(--honey-300);border-color:var(--honey-500)}.map-cell .t-i.rdot.SSR{background:var(--gold-300);border-color:var(--gold-600)}.poster-card.SSR::before{background:linear-gradient(90deg,var(--gold-300),var(--gold-600))}.poster-card.SSR{box-shadow:0 8px 32px rgba(217,162,39,0.16),inset 0 0 0 1px rgba(217,162,39,0.16)}.poster-rarity.SSR{color:var(--gold-700);background:var(--gold-50);border:1px solid var(--gold-300)}.rar-watermark.N{color:var(--mint-100)}.rar-watermark.R{color:var(--sky-100)}.rar-watermark.SR{color:var(--honey-100)}.rar-watermark.SSR{color:var(--gold-200);opacity:0.55}.bc-status-tag{animation:badgePop 0.3s var(--ease-bounce) both}.rec-slot{
     position:relative;
     border:1.5px dashed var(--orange-200);
     border-radius:var(--radius-md);
@@ -2849,11 +2622,6 @@ body{
     width:13px;height:13px;border-radius:50%;
     border:1.5px dashed var(--orange-500);
     transform:rotate(12deg);
-  }.pending-banner.rec{
-    background:linear-gradient(135deg,#FFFDF6,var(--orange-50));
-  }.pending-banner.rec .pb-icon{
-    background:var(--gradient-brand-soft);
-    animation:none;
   }.cta.solid.gold{
     background:linear-gradient(135deg,var(--gold-300),var(--gold-600));
     box-shadow:0 2px 8px rgba(217,162,39,0.30);
@@ -3045,7 +2813,6 @@ body{
     background:rgba(255,255,255,0.88);
     backdrop-filter:blur(2px);
     z-index:3;
-  }@keyframes backMorph{0%{opacity:0;transform:scale(0.96)}100%{opacity:1;transform:scale(1)}
   }.pc-back.morph{animation:backMorph var(--duration-slow) var(--ease-bounce)}.bk-section .bk-note{margin-top:var(--space-3)}.bk-postcard .pc-photo{height:auto;aspect-ratio:4/3;flex:none}.bk-blank-page{
     display:flex;align-items:center;justify-content:center;
     min-height:120px;border:1.5px dashed var(--gray-200);
@@ -3054,10 +2821,7 @@ body{
   }.bk-blank-page .bk-blank-text{
     font-size:var(--blank-fs,var(--text-xs));color:var(--gray-400);
     letter-spacing:1px;
-  }.mail-stage.done .card-cradle{
-    transform:translateY(0) scale(1);
-    transition:transform .4s var(--ease-bounce);
-  }@keyframes envIn{from{opacity:0;transform:translateY(-26px)}to{opacity:1;transform:translateY(0)}}@keyframes envFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}.stamp{
+  }.stamp{
     position:absolute;top:14px;right:12px;
     width:auto;min-width:64px;height:24px;
     padding:2px 8px;
@@ -3268,22 +3032,8 @@ input::placeholder, textarea::placeholder{ color: var(--text-tertiary); }
 .poster-sheet.booklet{
   max-height: calc(100vh - var(--navtop, 0px) - 76px);
 }
-.demo-actions{
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  margin-top: var(--space-1);
-}
-.mini-cta.demo-action{
-  flex: 1 1 140px;
-  width: auto;
-  height: auto !important;
-  min-height: 34px;
-  padding: 7px 8px !important;
-  line-height: 1.4 !important;
-  white-space: normal;
-  font-size: 12px;
-}
+
+
 .bottom-sheet{
   max-height: calc(100vh - 40px);
   overflow-y: auto;
@@ -3412,10 +3162,10 @@ input, textarea, .stamp, .stamp-text, .bk-stamp{ -webkit-user-select: auto; user
 /* ══════ V2.5 · 抽卡页动作区：主次分层 ══════ */
 
 
-#letterActions .cta{height:44px;font-size:var(--text-md)}
-#letterActions .cta.draw-primary{height:52px;font-size:var(--text-lg);letter-spacing:1px}
 
-#letterActions .draw-tail{margin-top:var(--space-3)}
+
+
+
 
 /* ══════ V2.6 · 大卡操作行 + 海报层级 ══════ */
 .bigcard-actions{display:flex;justify-content:center;margin-top:var(--space-3)}
@@ -3841,7 +3591,7 @@ body{
 
 /* 阅读页去盒子化：订阅 / 全图（发现列表恢复浮起方框卡） */
 
-#page-cards .pending-banner.rec{border-left-color:var(--gold-mid)}
+
 
 
 
@@ -3859,7 +3609,7 @@ body{
 }
 
 
-#page-cards .sub-card .sc-info .t-b{font-family:var(--font-serif);font-weight:600}
+
 
 
 #page-home .bc-status{font-family:var(--font-mono);font-size:11px}
@@ -4331,7 +4081,7 @@ body{
 /* T2 页面标题 24px/700 */
 
 /* T5 正文：字距归零、行高收敛、中灰 */
-.explain,.sp-pick-note,.final-quote{letter-spacing:0;line-height:1.75;color:var(--ink-2)}
+
 .explain,.sp-pick-note{font-size:15px}
 .dw-bk-explain{letter-spacing:0;line-height:1.7;font-size:14px}
 /* T6 手写便签：黑体 + 保留疏朗行距 */
@@ -4590,14 +4340,13 @@ body{
 
 /* ═══ 分类面板（半屏 sheet）═══ */
 
-.hm-sheet-mask.show{opacity:1;pointer-events:auto}
-
-.hm-sheet.show{transform:translateY(0)}
 
 
 
-.hm-chip2.on{background:var(--gradient-brand);border-color:transparent;
-  color:#FFFFFF;font-weight:600}
+
+
+
+
 
 /* 首页卡集：标签行（热门/价格 + 心动数） */
 .bc-tagrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:var(--space-2)}
@@ -4929,6 +4678,26 @@ border-radius:999px;border:1px solid var(--orange-200);background:var(--orange-5
 color:var(--orange-600);font-size:12px;font-weight:600;letter-spacing:.5px}
 .sp-share::after{border:none}
 
+/* D6 · 骨架屏 */
+.skel{position:relative;overflow:hidden;background:var(--surface-muted);border-radius:var(--radius-md)}
+.skel::after{content:'';position:absolute;inset:0;transform:translateX(-100%);
+background:linear-gradient(90deg,transparent,rgba(255,255,255,.65),transparent);
+animation:skeletonShimmer 1.4s ease-in-out infinite}
+.skel-list{padding:0 4px}
+.skel-book{display:flex;gap:12px;padding:16px 0}
+.skel-cover{width:72px;height:96px;flex:none;border-radius:var(--radius-sm)}
+.skel-book-txt{flex:1;padding-top:6px}
+.skel-line{height:14px;margin-bottom:10px}
+.skel-sub{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+.skel-sign{width:44px;height:60px;flex:none;border-radius:6px}
+.skel-hero{padding:18px 0 8px}
+.skel-hero-cover{width:160px;height:214px;margin:0 auto 16px;border-radius:var(--radius-md)}
+.skel-hero-line{height:20px;margin:0 auto 10px}
+
+/* D6 · 保留的组合规则 */
+.count,.today,.cf-top .no,.map-cell,.card-row .s,.bc-meta{font-variant-numeric:tabular-nums}
+.explain,.sp-pick-note{letter-spacing:0;line-height:1.75;color:var(--ink-2)}
+
 
 
 /* ── 浏览器预览适配 ── */
@@ -5009,7 +4778,7 @@ img[data-mode="heightFix"] { width: auto; }
 <script>
 window.__ASSETS__ = {"/assets/icons/camera-gray.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABsAAAAbCAYAAACN1PRVAAAAAXNSR0IArs4c6QAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAG6ADAAQAAAABAAAAGwAAAADVx3bDAAAC3ElEQVRIDb1W4UtaURw9T55lpVGpRaWRjLYso0YRNIiNVTBG9Gf2Zd/6sC8Ra8VWrGiNWW7EatO0NF0DrRRX7p3b3sus7tOQDui793fP75z73v3dd59S0IAHguWBfISNWo5ZMLiNaPRAo972EBR0drYjEOgzlTI1C4f3sbHxRSoUjyfQ2NiIri6PlCc1y+VyWF1dEwIulxMdHe03xGKxAySTKcFra3Ojtrb2BkcPKCwQDUgkkshkMmBbRzgcwf5+DFaripmZ12hoaNCHjOvJyQnm5t4in/8Lj6dDuzuvMaYoCux2O1pbXWBb0WZfWFh4j6OjpEEqbYyNjaKn51Fp2Ojv7PzAysono1/acLtdmJh4DnVtbcMwqq+vEzO4Il8uvsyIXI6nUr9vFBGf0unpmdCnjzI7+6aQz+cxMvIUfX29Vz5Vam1vf8P6+mdtKaxQaUS0tDRL5dPpNILBkJh9NpuFzWb7X/J+OByOO3N1XfpIq1FXYPkvL3/E+fm5HtIezym4Vru7PzE+/sy07Jlo+gY5Pv6DpaUPwojVODo6jMnJF+LKPifAcfLMYGq2ufkVFxcX2qZ1YHr6FXp7H4v9xiv7jHOcPDNIzSgSjcaExuDggLZha67psc84QR75MkjNstmcIaAvdKmYHqcR+TJIzWpqrEYuC+I2FMeL+bdxpWaqqsLtdoq8ra3QtVcZg9y0jBPkkS+D1IyJgUC/yI/FDrG4uCyqjhXI6mOf8WKe6NzxJ5+KluT1dqK/3y/uIBKJgr9ScJw8M5iaUWB4eEh7wzSJ8k6nM4amw2HH0NAAfL5uIyZrlGVGAZ+vW/xodnaWRV2dTXtN2TlUNlSeM1xonkflgAaVmOi69FGdzhZx0vII4InLYLXAm9jb+yXk6KMcHsYL8/PvjM1bLaNiHYvFgqmplxCfBSzjUOg7Lhf/6rOgOOF+bUU8cr//CZqbmy7N7idUeZbppq5c8u6Mf/K1QFFo+XQ4AAAAAElFTkSuQmCC","/assets/icons/camera-orange.png":"data:image/png;base64,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","/assets/icons/camera-soft.png":"data:image/png;base64,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","/assets/icons/camera-white.png":"data:image/png;base64,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","/assets/icons/flame.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACoAAAAqCAYAAADFw8lbAAAAAXNSR0IArs4c6QAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAKqADAAQAAAABAAAAKgAAAAD30ocxAAAEdElEQVRYCdVYR2hVQRQ9iUFjFI0Nktijxt6xYMOVYAGDG9FgA7EjCiqxbAIWbGBBsYAiKq4VDehGQWwBscQOGjSKJfYSRWxz8hymvPrfT8R/4fNm7szce/6U29J+C0IKUHoKYKyBmDJAM2plR18/A54/At4+B75VOyIzGwHNc4DcfKBl66TVxAf68DpwpRS4fQH4UBUMpGkroNdwYPA4oFO/4Lk+o2kJP6Y7F4GTe4End31EhrDbdQcmzAV6DAuZaA5HB/r5PXBsPXDjnCkhbq/vaGDKKqBxdiQJ0YA+vgPsWx5+xJFUapN4JeZsBtr30JjezfBXf78M2D4veZCTVwADxwBpaQoJ7zZlU0cIBQPlTu5dBnz/FiImwnC3IcCstcAScb9b5KkFlE0d1BVA/kB5J3nctQGyywCgVVsHBl998RGgc38Fizqoizp9yB8oH06Y2fERarAJctY6g4WGjYGFO4CugxSfuqjTh7wfE03Q7iU+SwLYk5YCbQqcCbyL2eKxyJ30Wlb9Edg0A6DDkLRgm6fp8t5R2sk4RJAFA52fftx+srKaANNLzFEf3W6g9DhxjbmpMlovvw8waKyaS93EYJEbKN1iXErXTE8iMsaI49fJA4MbKH13HGIQkpMfZ6UTuHBnJXlgMIOSqqfmS+eD8Iurx86WYoGM+kCfUZHdoVqotej7H910GLQAfGBa1GUCfVGhrRTNqWuA0v3Auxcmn73xc9y8ZDh2VMWwUQNqHj3jSZ26DxWeZA/QLEfn1k1bA1WjwMJiApVBr4TSqKnj7v4FWOrSycJiHr0+ke30v/+Dvplgt4kAQl6DRYPt2d79ekIFA+YicY2CKL1e0CjMHc3MMid/+aD6Emyi1+DnD+DSCaDyvpLl1aKX0olWRCMTaPNcbUg0qyrNflywlPL1synL7tm6mG9pZAJlIqZTxS2957STAeuWpjgV5arNloXFBMqXx6hb0q3zsmV+6wJsuaaLGCwrYAIlnJ4iW5REn2sfiRwj2CnFspfc9+Vj078zY7XIDXSIeKGS6JXOHJI99zejgZsXh2ProJWwyG2e6CGY0soI6vJJYNhEoGNva6noZokAOCrtmO/MpL3sPRIoXOy4XLrNslNKCnXbXkqMuneUS5h3S/r9CziwGqj+JDnqm9fZzH/UiH+LJo9/fpcA+vGNkL3KjCd03ZoUb6AMEJh3S6KRP7DSnT/RSDNhs72KXBf0rbwHbJ4JvH+lZlGnT2HCOxXhUiZaG4rMaKqTSMjmbUVNzqPEA9yl62eB0wed+pM+FrXNl77yqG8E5r2jFM4KBosD9TOVqofXgI3TgAdXFY8t7ujwQqcoZo5E61EHdQVUTfyBUgUrGHO3mGAZJ/JhHC4BaFaSJYKkjpBqif/R6wCCSjr5fUWlbgTQoRdwfGdoIUEXW+NcIpZ0ogGl9JQokunb8N+XHXWwbCdayKVrptfzMOa2aK9+9KP3Wi15TAqZbxml8SxhBUTYWEul8doBKgHX4TfYPNWh4kRFpwzQPxeQVztIag+ZAAAAAElFTkSuQmCC","/assets/icons/rotate.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACoAAAAqCAYAAADFw8lbAAAAAXNSR0IArs4c6QAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAKqADAAQAAAABAAAAKgAAAAD30ocxAAAFDElEQVRYCdVYaWxVVRD+XnlSWqhlF9raCG2KpIJAoa4YFQGh1B/CH4GoCGhKg0tkcUETF1xIjEYJKASIEUw0JCaCWJaGQgi1xQIWSlvZuggVKJSlWCzoc6aH6znnbr1971bp/Lh3Zs6cud89y5w5EwgRoQNQVAfA2AKxwwAN+jKi534HTh4BGk4BVy4DvJpiugE9+wH9U8Q7wg+FD/T4AaBoE1C2SwB0A9K9LzBkNHBXFnDbHW6Wjm2B0PEDIWz5Eug3AMh6FujUCvaKYmDDcqC6zNGpawMDzc4BBo1yNTM3BkKLskNooKljmv4GcHe24M3PSw3At0uAffnmlvDkex4DHn9RLBEPHoL/gmTjs3X2XaoPASsXAOdPW9uTBwPp9wEDhgB9k4HYODErF88C58jf4X1A+U/WGSj8XuhzPgESU61+TZpAKHeUjKMTZonpV43KiwTI5iZVC2SMBcY+CSQN0vVOUm0lkL8W+HmzbhFDPzaHwPKPupB7eNq/Hfj8JUAF2TsReJ7W6IzF3kEygFvph55+h/ouA3olSEhNl4DPcoETh6XOhnMGWvQDsOpV4K9rslvKcGDeGiAtQ+rayqWNBF6hkU0ZJns2X6FZWwg0NUqdibMHWvAN8NVbFA//lubDxwBzlwLduktduBzH2NxP9Z1f/xvwNc2SA1mB5q0C1n+km3MkmPEuELxJ10cide4CPPMeHQb9pReOKLwnbEgHWkFGG7/QzR56Api2CIjqpOv9kLrGi3Wr+tpI69+GdKB82qg0cTYwmTZTIKBq/eUHDgVGPCJ9cig8Virl61zQojEUo6cAqSOAX0sMjXjz+uId7CfxgOzdJj0WbwL4BxTS46jS4MryqcLLwU/6kGJybYXwGN8HWExRRyF96pUGV7Zkq2tzWI3DHpbdLpwB6k9ImbiolmNPU3kQ+FTym5Jv1z3WHdPkIN5cD5RsodAT7S1BaI81ypA4b1WJ8wSFxGbKGKeo/ic2Okb/sOmUCm+N6i79kcx5sCkk3jhAG8/rP9ylqybfOEDP1GjA0OMWTbYHyundTtpkfzZpxu0qVNGJpFJCqirBejIVbgDWUd7IVEn3o9l0/fgvqLRAfiW+N8B5r0LWEVXj1y8FQN1Rxbyd2FPVdFVRRjT9fsuHrECHPqAb5a/T5faQfqTUUqXMCarUwluBplIWn5QmDTnTt8lmpEGEHI9kyWbphBMexmAiK1A24Hu3QVz1WPs2baw/DI1/b66qrHldVFYMr5OUbxs6etsD5evvyPHS7HQNsGI+cO2q1EXKXW2mO9lrevLBiUn6vbae7YGy6ZSXgbheslPlHgHWdLRJgzZwPDsr5tG1o1B26kF1qqk0ug7kDJQvcTkfA9Gxsuuh3cCSp4Ca63mjbPHO8Zp8f7ooPhi9OtM5P5PuT1y8cKBAq4VczvCXvUDTTlNlEJ/DmROBR2cCfZIMrfubl0/eamBPnn675YHgAoR6fbbx1DpQ7lRTLu7dRo1KdcRXhjsfpOvJYErVBtIM0OhwgsG1qvpaoKoM4HhcdVDfNOyDq3yzPvBU4fMGlJ1y0sD37tIdLEVOvHGm0maKvdmTL+9ADXe8FL6jqeJaUjiUSDF60nOiXtqG/m0HajhnwMV0GBzcJUbb0Nu943qKsJOZFXY5KHygKiA+q09STtBSGm+kFtpsnE9yqpZAVwwuR5oSYbW7F94foF6+FKGNcxyN0LHf3TsM0H8Ae5tabcQ5lisAAAAASUVORK5CYII=","/assets/icons/scan.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAYAAABV7bNHAAAAAXNSR0IArs4c6QAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAASKADAAQAAAABAAAASAAAAACz+WTVAAACl0lEQVR4Ae2aQUsjQRCFy5CcVhAPi1fnKoriH1jwhwv+AVGUvZpDEMSDLLinSHYttcEM/eZNxKQK5tXBTrp6pl8+amqkq7b+vZrJIIER9MjxRkCASCAIkAARAsStCCKAxsT/5n5+/mt3d1N7evpjLy/zPpdU14zHE9vd3bGm2bft7R/VNWgySsMWe83f3v62q6sbWywWSPvK86PRyE5Ojuzw8KDXtZEaOgG5sMvL614/4iuLTk+PKaRoDTAHeUh75KzT/P6+D7IMGiAgzznf+VjVIPj9fR9kGTTAJO0JuW2TycT29n62p3t/f3h4tPl8OcnX9ik3rPk2rQECqr2tHM7Z2a+if+Xx/PzCZrP7petq+5QFNd+mNcBHrIgc+ihAJAIESIAIAeJWBAkQIUDciiABIgSIWxEkQIQAcSuCBIgQIG5FkAARAsQNjzv8gL1tfp7jRxZfNb++bbV9ypqab+Maipj26NWH6XR51g+72uc5yytW/+b7IMugAeagptk3rz6s0/z+vg+yponXAAl43cpLM+s0v39XfSyDBpiDHEypW0XWxaI1dNbFSvREVTXL/j5GaegF6LPQoX2GOWhoINDvFSBE5mNegASIECBuRRAB1Pl/ULk26hVb9vcxSgN9zUc2LxVAkRo6AUU3LzmgaA0wB3lIq4HKDALK0LyUQQNM0hmalzJogIAyNC9l0AAfsfIGGfooQCQCBEiACAHiVgQJECFA3IogASIEiFsRJECEAHErggSIECBuRZAAEQLEDY87UjQvZWjiQgAzNC9l0ABzUNPENy9l0AABZWheyqAB5iB/9KKblzJo6KyLuUC3qKrm++7vf6M09AL0WejQPsMcNDQQ6PcKECLzMS9AAkQIELciiAD6D5rW2LdmwXbnAAAAAElFTkSuQmCC","/assets/icons/search.png":"data:image/png;base64,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","/assets/icons/tab-cards-on.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEIAAABCCAYAAADjVADoAAAAAXNSR0IArs4c6QAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAQqADAAQAAAABAAAAQgAAAADLZaMtAAAD4ElEQVR4Ae1bS2gTURQ9SfrTGkr91IWKClGQUrAFRS2CioIVF7rRguLKiuLChYgFxYULN66KC8XWhVLws9GNtVhRQYoLqVWKCBr8oBVrtVrqr5+kvsskOPdlknlpJgkp90LavDtv3r3vzLk3k+TEN6kMYvALBhYCAkSMCQKEAMGbgjBCGCGM4AjERkWO3mw5R38DkYi3q5eUAUXFGa+ZXSC+DwDdt4C+R8CX98D4aMYJOy5QXgEsrQFWbgJWbQUC6W/Ll5U7y2gU6LwE3L0MTIw55p4157xFwJ4TQKgurRDeAxGZANqOWyxIKxUPJ/sDwN5TwOoG40W9f/m8cTa/INDWo6oPtZ8Gwk+NgfCWEa9V4JaDPHhxKbCxEajdDFTOB+hqeWnUdz6+Ah5eB14+5itTmZxUfoOekX5X4aH4qOMiH88IAkfOAwuXc7+nIxWjYi5QvQ640wbctuUw+AF40gms2e4a0bvSGBlSVOzlARubswwCD4eG/cCKtdz57D4fJxl5B8S7F4D9o43gHKBOlUOubcNuHvFtHx8nGXkHxPBXHmJBCPD5uC8XI70Mfw2rl/Bx18jeATH2lwejJpkPc4qr5+aQl3dAOCxeSC4BIna1zF4+6T1D1xXrlC37rPuBQrrcBrmaAXHhKNCvblrI3jwHmtut59Por3tp0FvnOAi0cbqLI980M3cgnD4/cPIVODDuQBT4Bk3TFyBiSAkQAgQvGmGEMEIYwREQRnA8pEcII4QRHAFhBMdDeoQwQhjBERBGcDykRwgjhBEcAWEEx0N6hDBCGMEREEZwPNx7RMBB80RiLd30eZNKYpgPM8nNIS93IEpnArrmgL4U1i1YyT1Dn/k4VyM9N8qd9uBi7kDQAlWL+TK99/jYac6nMDCg1La5Nj03Pfck+ZgBUbOen/7gmvVlsN1Lkh2SD9rt6hmlvVYC1FwZfUFNudlNz91+zPbcDIj6HUr4XfL/NNI2thwCerq4gEwXcpHK7tzh7DODRGyUC+Vk13tTzpS7gZkLTjtaAXroRuo5Eo5RLZIGO9yjZAN/9FlAWXms1xgKzPzqGgVnJ7JMX5k23q/KcOSbfgTY1mQ9Eo8keMyBoE22Hsu/vDhhC0kcVBJNSg5NgBqYORC0GNU7aa27bxosnccp9TuBXeqiGUiP41mmB0T8LNJck9yYeoBdZBo/no//pOkM1apSOAAsS+8nCpTu1ICIb5Rkx6S4JbFpKi3jj0Hgp5pLvYNKzMToBq1KicpnqT6RyugXPKTFXlJt9ZRUc1McywyIFAsX2iGzTlJou5pCvgJEDDQBQoDg9SOMEEZwRvwDQnrzhehAGfgAAAAASUVORK5CYII=","/assets/icons/tab-cards.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEIAAABCCAYAAADjVADoAAAAAXNSR0IArs4c6QAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAQqADAAQAAAABAAAAQgAAAADLZaMtAAAEBklEQVR4Ae1bbU8aQRCeQ0DQSorVakWUWmmlseFLGxJNP5gmpklN/L+aqk1rok2/oETS0mp9ragVfOHFCrQ3CJE5ztye3CE0swmBmdvbmX3u2WHhnpP+yg24gYUxuEKAgSgxgYFgIGhRYEYwI5gRFIGSZVX1muS8vLwEo7ctLS0tgK9am6lApFJpiMW+w/b2LpyenkE+n681X9XzW1vt0N3dBQMDXhga8oHFor/0SWbsLPGqr6xEYHV1DQqFgmryZjk7Ou7B2FgIenoe6gphOBA48YWFT7Czs6srESM7S5IE4+MhmR2PhYfVzyGNoZeXv9wpCJgeMnJxcRni8QONbK8PG8qI/f0DmJl5fz26/AkLWSDwDAYHvdDe3i6vX4kcr9XI5fKQSCQgGv0Ge3u/yHC4TKan3wnVDEOLZTi8ShKx220wOfkGOjvdxG+kYbcDtLU5wePpg3A4Ir+uczg7O4f19Z8wPDykGdKwpZHJZKuoGAq9MhUE5eyCwVHo63tE3Ftb28S+yTAMiKOj3ySGw+EAn2+A+OphBAJPSZjDwyNi32QYBkQmkyEx3O77gNW73s3tpsvw4uKP0P7FMCByuRyZs9Va+26PDChoqMUV2cgZBoRgng3bjYEoXRqhr0/8zRCJrBVPGR19Lu8H2hr2yt42MSEg5uY+yJuWZDEGVuGpqbe3jdew52kuDfzpXAYBZ3F8nAD0/W9NEwi1/w/UfM0OjCYQzT5B0fwZiBJSDAQDQRcNM4IZwYygCDAjKB5cI5gRzAiKADOC4sE1ghnBjKAIMCMoHlwjmBHMCIoAM4LiwTWCGcGMoAgwIygemjVCTeNQKFQ/66LUNt7VTSC13NTmQGEA7QdXbDZblbI1lUopxwGHo5X4zs/TxK6XocwNxWw4B62myQgcwOXqIONsblbrklwuF+mTTCbh5OSU+OphKHNT5n5TDkJAeL0ecn40+rV4M7jSico5pVxgaelzXZW3eIMac6tsytwrj1V+FgLC7x8mWkWU4qCecmNjk4jMR0aokCseP4TZ2TnTmYH1CHPBnCplQli3MHeRJiw4Rf0i6hiVDdVzKBxD7RImhKJTpZ4Kz7HZrHKtEZJjFENggXM6HVUsU8a/EpwmIZvNKg8Byg2DwRdVfjWHMBA4yfn5j3cuL1abhJqvv98DExOvhZV9wkBgMBSco9Y6FvuhFrthfH7/EwiFXpLlrJWcLiDKgyH9canoEX2XzzXzHR9NwKXQ26vvEQXM6VZAlCeDsmNU3KLYVK0ulPul02l5DV/IkiPUYlZvxsr9Kt8lyVL82lbuTyr74Ger1SrXEid0dT0o1hTlcVG7JiBEgzRDP6Gvz2aYSK05MhAlBBkIBoIuJmYEM4Iy4h/0RlX/Qhe60gAAAABJRU5ErkJggg==","/assets/icons/tab-create-on.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEIAAABCCAYAAADjVADoAAAAAXNSR0IArs4c6QAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAQqADAAQAAAABAAAAQgAAAADLZaMtAAAEkElEQVR4Ae1bTUgVURg9amZqJmJW+NOiX2gRgptoIwW1aVEtalEQtTJcVBBCRRBBtYmgWkiuiig3LapFm4LKTbQRtEXQn4ss6U9ErMzM6h7fjN65b7xz572Z90a9Z/Nm7ty593zH+/Pd53kF/wRggUKrQUoBK4QzEqwQVgjvomBHhB0R3hGxwHubxd34b2DgLfC1HxgdAcbHs2hM82pxMVBaAdQ0ALVrgOKFmsrmj7IT4u8E0PMYeP4AeNMtgh8z7zmKmsUlwNomYNMOoHErUFiUcasFGSdUPU+Au1eAwYGMO4/0xaV1wK4jQpAtGTUbXoixn0DnBaD7YUYdxv5S03Zg3ymgpCxUV+GEGBkC2oXq/a/8OykSM23FKqCyGigSczkOTIi1Z3gQ+NQHTPzx76FhPdB6Faio8n/uU2ouBEfC5RZ/EVY3As17gA2bgUXlPt3EUPTrB/DyGdB1B3jXk94BxTjWYTwyzIW4fjp9OpRXAvtF+cbmdCK5LHnRBdw+B/wY9vbKaXJIlBvALKHiwqiuCctWAm038i8Cg+QfglzISQY5k7sBgoXgFsndQQZHQqso40qdFJALOZGbjHtirWAMAQgWgnmCukVyOiRJBDdIciI3Gd8+pnIducznOlgIJksyuDDme02Q+ajX5EaOMtQY5GfOtV4Ips3MGGVwd0g6VI6TWa+IRQO9EDw7yGkz8wRukUkHOZKrC8bAWDTQC8EDlAwmS7nKE+R+w16TI7nKUGORn4lrSTblCW95ipTBjDFKDH0GHt1MtbjtAFC1PLrWyVWsk1NQY5l6kLrQC6EepaNOm68dF2Rfp5j09QInbin0srhVuaqxKE3rp4ZSOdJbpuyuCGz4gxCEZXlC/oSY8Ely/MpyJEz+hMhRgKbdWCEcpawQVgjvpLEjwtFDn0d4RQt/x+1wpp1g9Ht6e35lbq0i8Q11yO8h3VdNPuMRghljh0iWmBuEwZmd+tr164CWS9FmoE6P8UwNps1hRdBLkHrKNt2U3KR+iDrxCBGCQFKqxiMED1B1YhhHDU4Nth0D4lkjeIo8KQ5QQYuluiacvS/+r7nYP8xZuVi6oYRd5SlCWYX7dk4/45kaOQ0hms6sEI6OVggrhHdK2RGR9xHB7VCFX5laJ6b7/I0Ibq1y0sVkKex2G6Eo+oSKxi0ZNGlEicPiAOWeHaLOGFWuaixKHHoh6F6TQadKlGAGurctyhan21K5li6ZfuZzpZ8atPDJoF2HTpWkgxzJVUZNvXyXdq0XYtLHKCx8LuhZol0n6SBH2V9FGyJj0UAvBM2c9DHKoGcp6VA5MoYAY6peCAZMM6cMGrfoWUoqep+mm8vUGHy4BwtBR2t1rfdVGrfoREkayKnzvJcVXTSMIQDBQtDWu/uotxm619pFWZLEIBdyUp11dOMaWJODhaAEtPXSqifjy3vg4sFkTBNOVXIhJxnkbGhJNvdZ8tsmazh1ZLYWZGm8cWTMe1O6pMeko3Ve/0xBFsP+cEVWw7me5T9lMt81fGKfS0VmecRciniGWKwQjjBWCCuEd47YEWFHhHdE/AdUFWzunMDKZwAAAABJRU5ErkJggg==","/assets/icons/tab-create.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEIAAABCCAYAAADjVADoAAAAAXNSR0IArs4c6QAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAQqADAAQAAAABAAAAQgAAAADLZaMtAAAEnUlEQVR4Ae1bXU8TQRS9BcuHtCAkEiKKGGJCDA+a1BB8QL4SlMALP5QXExISvuRBYmyiD8SQGCJWMQQMCC0CbVrtqZ3m7jCd3Zbd7gJzXroz7c6ce3rvzJ3tbehvHmRAdUaD/woYIYqeYIQwQlgXBeMRxiOsHnHL2qy+lc1m6fDwNyWTSUqnM4S2F6ivr6eGhjBFo1Fqb79DaLuBSwmRy+UokfhOW1tfaXd3zzPjyxkKEbq6Oqmv7xH19DygurrqIz1UbUIFAeLxj5RKnZTjWdP+SCRCsdjTgiDVTFyxEJlMhtbXP9D29rdq5vP8nt7ehzQ09JzC4XBFc1UkxNnZGS0urtLBwaFyErhmW1srNTc352O3ejdVDl7szGZzdHp6SkdHx4TQVKGjo50mJkaoqalJ9bayz7EQ8ISFhSWlCJ2dd6m//zF1d9+r+JtQsnLQCT47Oz9pc/ML7e3tX7gDYkxOjjvm41iItbV3F8KhsbEh74aD+bi8f4FILTsSiR/5cH1P5+dpy7QIk+HhF5a+cg1H/ouFUV4TWlujNDU16bsIMAxfBLiAEwc4g7sT2AqBOMTuwAFPGB8fye/lEd7t6zW4gBO4ccTjn8quJfxztkJAUXmLRDgESQRhEDiBG0cqlXLkFbZCIFniwMLo95rA+cjX4AaOHLIN/D1xrRUCaTIyRg7sDkGHzNFJ1qsVAmcHfmZAnoAtMugAR55ui3OQjrdWCBygOJAsVZqx8ftrdQ2O4Moh28Lfw7X20IVTJAcyRjdxcvKHNjY+F4YcGHhCLS23XRseXOHRArItol+8aoXgYYEb3E6bl5fflsju7/+i6elXgtelX2Wusi3yBNrQkD/sZhspMv/GcH5Bn1/wTQjVzymqvloJ45sQtTLQ6TxGiKJSRggjhDVojEcU9dDmEVbNKm9hOyy3E6TT1ocoGF3VJ2YNhUKeZrWeCIGMcWVlTflYTximep2be6PqLvXh8dvo6LCrGagY3JPQQNpc7gGvmLiaV4wpUvJq7tfd44kQugmD+p4nQuAAhZ/j3AZCA2N7AU/WCJwiZ2ZeF84OusVSXhNmZ2fyv2tanzkKo6/kYinIV/rsAiKUE0KM6dWrJ6HhFVkvxzVCFNU1QhghrIFmPMJvj8B2KEPVJ3/Gq7ZvHoGtlSddSJYq3W7dFEWbUMmFWijScBNjYy9LZwe3M0aZq2yLbIdWCFSvcaBSxU0gAx0cjLk5ZGksmatdoqYNDZTwcaBcx89H7pyL7hocwZXD7td7rRByHSNqJVCuE3SAI6+vQljw9UjFXyuEqGPkN6JmKeiQOaIW026N0AoBg1HMyYHCLdQsBRXgJheXyTaouNsKgYrWSKTFci8Kt5LJlKUvCA1wAjcOFKLCBjvYCoE6g1jsmWUcVK8tLa0GSgyIAE5yZR2qcXmthMUQ1rAVAp+FoijV4zg+TtL8/EIgwgThAC7gxAHOTrwB9zius8SWZApOizKbEmTmb/CMG1+UzvQo1C7e6L8pcDGQvaEg9Ub/cYULgmtRwndV/8rkeNeQDb9ubUd5xHUzWmWPEaKoihHCCGENEOMRxiOsHvEPWegJlD+3OsAAAAAASUVORK5CYII=","/assets/icons/tab-home-on.png":"data:image/png;base64,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","/assets/icons/tab-home.png":"data:image/png;base64,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","/assets/icons/tab-me-on.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEIAAABCCAYAAADjVADoAAAAAXNSR0IArs4c6QAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAQqADAAQAAAABAAAAQgAAAADLZaMtAAAFs0lEQVR4Ae1aa4iVRRh+dl3d1lu7le6Kl2ypdBUNorLFsoQkpAsiGfqn+qEoYVJJRkF/CoqkGyKlKLRdQH+JhSFbgdHFSwVR4q1kLXVZNctNTVvTrXmc83Fm5hwP38yZ+TiL88Jyvplv3ss8+87M+77zVf0nCJFQHTGQCEQgcp4QgYhA6JtC9IjoEdEjdASiR+h41OjNjFrn/gF+2w0c6QD+/ksqHXQl0NQMXDsBGHBFRobk1WQLRMdPwJb1wM4vgfPn8laoTzUDgEnTgOlzgebJ6pugz1WZhNinTgDrXwF+/MJuMjfdDcx9DhjSYMfnMDo8EJ2/AKuWAieOOJgnWBqagEWvAyNvcONPyRUWCILwxgKg50yhOf3EqhzTAtQ3ynfdR4GDe4AL5wvH1g4Enl4TFIxwQHA5LH+00BOGXg3MnA/cci9QN1if9NnTwPftwOa1wMk/9Hf0jGXvBVsm4YBYs6xwT5g4FXjspUIA9CkDBKTtBWDXN/ob7hkLlut9nlphQmyeDubGSBAWirVuekGxiXAMx5JHJcqk7AAUBogt63RTuRzoCdUW6jiWPORVicdvALKwLKV2Bks7v9IHc09I4wk6l+Qhr0qMQajDM/kH4tdderDE04EboyuRlzISYiDGqNQz+Qfi6AHdRB6RLt6QSCEvZajE0Nwz+QciyR0SQ5M4IWm7/JoyTB0uMg0e/0AYCvpK0z8QzCJVYsRYLpkyBtWXK7GA3z8QjdfpShg2M0ByJfKam2OTocNVtsLnH4ixEwGm0gkxd2DY7Erk7b2Q56Zs1iw8k38gWFSZdKduJnMHF68gD3lVYq0iQOHGPxA0evo81XSZQDF36O3V+0u1OJY8ZvLFgk0ACgMEK0tMkFRiArVa1CXSeAbHcGyxpCtQ1Spc9hnTcMUNYmHGAOOyL9UleMTibYJE7veyL+cbeFysJ1TYBU+4U8OcfIW3w8QRFT7pYuZFIHKoRCByQCjFwGIO47GPucPhn4FDIi3v6hAXP6JOcbob+LdHKulfCwwWdYaGRmBEMzBalOdG3WhX+S7D3LBA8BPOvTuAbzfLvOHMSTtTBw6Vdxu3zQTGTwGqquz4LUaHOTX439+xCfjsfeDYQQtzSgwdPgaYIa4Qp9wXxEv8A8Ggad3L0v1LzMv5FZfNvOe9fzvhDwhWkTatkl5wqa+a6dq83h89Hhg2StxiXQPU1klMes6K2sNx4PfDYh/ZCzBhKyVnxiPA/YuEd/RzxlRl9AME6wdrnwX2fafKzj+zhtD6IDD5LsAs7uZH6U/cSHmrte3jS993jrsVmP9qefcmOa3lA0GDVy6WJ4I+Fem+s5aU78ZcbhtXFAeEJ8vilfLEMfVbtMsDgp6w4nHpyqpS1hRnPwncMVvtLf/56w3AhrcK7z651Ja8XZZnuAPBk+Gdp4A92/QJXjVCXumPvF7v99Xq3C/LeH926RIntIpPjN50PlGqdWkWrU9WF4LQOFZ84iOqzqFAoHmUTR3UpdJu8Q+hTY7kBsT+H4BP23SV/LTnCbFW64fp/SFa1EFd1KkSbaJtDmQPBEPiD1/UjzaGxwtfEyAMdzDBkYW6qJO6E+JxS9uSsD3pT/FrDwSjxeOduuiHROmdu3fWRJ3UrRJto42WZAcEL1s+/0BX0SI2qamz9L4sW9RNG1SijebFkPq+yLMdEO3v6kdXTX/g4WeKiM24izbQloT4aVF7W9JK9ZseCAZOWz/ShU6bI0NlvTf7FsN12qLS1o0yzVf7SjynB4KC1U2ImxSzwUoh2qJunLSVNqek9EB0HdBFtj4Q7CtYXVHKFj9cp00qmTar74zn9EDcfE++MFI3pLK8IZkUvYK2kZjp0uaUZBdiH9onkivx13J7tjFDyslcHNZ9TES828VxPk6k++IvJdkBkVJoXxyWfmn0xdlZ2ByByIEVgYhA6OsmekT0CN0j/gd61+jZ6H67JAAAAABJRU5ErkJggg==","/assets/icons/tab-me.png":"data:image/png;base64,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"};
 window.__TEMPLATES__ = {};
-window.__AST__ = [{"type":"el","tag":"view","attrs":{"class":"phone","style":"--statusbar:0px;--navtop:0px"},"children":[{"type":"text","text":"\n"},{"type":"text","text":"\n    "},{"type":"el","tag":"view","attrs":{"class":"page","id":"page-home"},"children":[{"type":"text","text":"\n      "},{"type":"el","tag":"view","attrs":{"class":"page-head"},"children":[{"type":"text","text":"\n        "},{"type":"el","tag":"view","attrs":{"class":"search-bar","bindtap":"toastSearch","bindlongpress":"openDemo"},"children":[{"type":"text","text":"\n          "},{"type":"el","tag":"image","attrs":{"class":"t-svg","src":"/assets/icons/search.png","mode":"aspectFit"},"children":[]},{"type":"text","text":"\n          "},{"type":"el","tag":"text","attrs":{"class":"t-span"},"children":[{"type":"text","text":"搜索卡集、做卡人…"}]},{"type":"text","text":"\n          "},{"type":"el","tag":"image","attrs":{"class":"t-svg scan-icon","src":"/assets/icons/scan.png","mode":"aspectFit"},"children":[]},{"type":"text","text":"\n        "}]},{"type":"text","text":"\n        "},{"type":"el","tag":"view","attrs":{"class":"quick-row"},"children":[{"type":"text","text":"\n          "},{"type":"el","tag":"view","attrs":{"class":"quick-card white","hover-class":"hm-press","bindtap":"tapQuickCat"},"children":[{"type":"text","text":"\n            "},{"type":"el","tag":"view","attrs":{"class":"qc-icon"},"children":[{"type":"text","text":"⊞"}]},{"type":"text","text":"\n            "},{"type":"el","tag":"view","attrs":{},"children":[{"type":"text","text":"\n              "},{"type":"el","tag":"view","attrs":{"class":"qc-label"},"children":[{"type":"text","text":"分类"}]},{"type":"text","text":"\n              "},{"type":"el","tag":"view","attrs":{"class":"qc-sub"},"children":[{"type":"text","text":"按主题找卡集"}]},{"type":"text","text":"\n            "}]},{"type":"text","text":"\n          "}]},{"type":"text","text":"\n          "},{"type":"el","tag":"view","attrs":{"class":"quick-card highlight","hover-class":"hm-press","bindtap":"tapQuickHot"},"children":[{"type":"text","text":"\n            "},{"type":"el","tag":"view","attrs":{"class":"qc-icon"},"children":[{"type":"text","text":"✦"}]},{"type":"text","text":"\n            "},{"type":"el","tag":"view","attrs":{},"children":[{"type":"text","text":"\n              "},{"type":"el","tag":"view","attrs":{"class":"qc-label"},"children":[{"type":"text","text":"热门活动"}]},{"type":"text","text":"\n              "},{"type":"el","tag":"view","attrs":{"class":"qc-sub"},"children":[{"type":"text","text":"本周精选"}]},{"type":"text","text":"\n            "}]},{"type":"text","text":"\n          "}]},{"type":"text","text":"\n          "},{"type":"el","tag":"view","attrs":{"class":"quick-card cream","hover-class":"hm-press","bindtap":"tapQuickNew"},"children":[{"type":"text","text":"\n            "},{"type":"el","tag":"view","attrs":{"class":"qc-icon"},"children":[{"type":"text","text":"★"}]},{"type":"text","text":"\n            "},{"type":"el","tag":"view","attrs":{},"children":[{"type":"text","text":"\n              "},{"type":"el","tag":"view","attrs":{"class":"qc-label"},"children":[{"type":"text","text":"新建卡片"}]},{"type":"text","text":"\n              "},{"type":"el","tag":"view","attrs":{"class":"qc-sub"},"children":[{"type":"text","text":"做一套自己的"}]},{"type":"text","text":"\n            "}]},{"type":"text","text":"\n          "}]},{"type":"text","text":"\n        "}]},{"type":"text","text":"\n        "},{"type":"el","tag":"view","attrs":{"class":"shelf-slogan"},"children":[{"type":"text","text":"今天对这个世界做出"},{"type":"el","tag":"text","attrs":{"class":"accent"},"children":[{"type":"text","text":"一点点"}]},{"type":"text","text":"探索"}]},{"type":"text","text":"\n        "},{"type":"el","tag":"view","attrs":{"class":"tagline"},"children":[{"type":"text","text":"万物皆可抽一签。"}]},{"type":"text","text":"\n        "},{"type":"el","tag":"view","attrs":{"class":"chips"},"children":[{"type":"text","text":"\n          "},{"type":"el","tag":"view","attrs":{"class":"chip {{item.color}} {{item.on ? 'on' : ''}}","wx:for":"{{home.chips}}","wx:key":"key","hover-class":"hm-press","data-key":"{{item.key}}","bindtap":"setCat"},"children":[{"type":"text","text":"{{item.chip}}"}],"loopId":1},{"type":"text","text":"\n        "}]},{"type":"text","text":"\n        "},{"type":"el","tag":"view","attrs":{"class":"list-head"},"children":[{"type":"text","text":"\n          "},{"type":"el","tag":"text","attrs":{"class":"count"},"children":[{"type":"text","text":"{{home.rows.length}} 个卡集"}]},{"type":"text","text":"\n          "},{"type":"el","tag":"view","attrs":{"class":"sortseg"},"children":[{"type":"text","text":"\n            "},{"type":"el","tag":"button","attrs":{"id":"sort-hot","size":"mini","class":"{{home.sort === 'hot' ? 'on' : ''}}","bindtap":"setSort","data-sort":"hot"},"children":[{"type":"text","text":"热门"}]},{"type":"text","text":"\n            "},{"type":"el","tag":"button","attrs":{"id":"sort-new","size":"mini","class":"{{home.sort === 'new' ? 'on' : ''}}","bindtap":"setSort","data-sort":"new"},"children":[{"type":"text","text":"最新"}]},{"type":"text","text":"\n          "}]},{"type":"text","text":"\n        "}]},{"type":"text","text":"\n      "}]},{"type":"text","text":"\n\n      "},{"type":"text","text":"\n      "},{"type":"el","tag":"view","attrs":{"class":"hm-empty","wx:if":"{{bootError}}","style":"padding:64px 24px 20px"},"children":[{"type":"text","text":"\n        "},{"type":"el","tag":"view","attrs":{"class":"hm-empty-text"},"children":[{"type":"text","text":"内容加载失败，检查一下网络"}]},{"type":"text","text":"\n        "},{"type":"el","tag":"button","attrs":{"class":"hm-empty-btn","hover-class":"hm-press","bindtap":"retryBoot"},"children":[{"type":"text","text":"重新加载"}]},{"type":"text","text":"\n      "}]},{"type":"text","text":"\n\n      "},{"type":"text","text":"\n      "},{"type":"el","tag":"view","attrs":{"id":"squareList"},"children":[{"type":"text","text":"\n        "},{"type":"el","tag":"view","attrs":{"class":"book-card","wx:for":"{{home.rows}}","wx:key":"id","bindtap":"openSet","data-id":"{{item.id}}","data-from":"home"},"children":[{"type":"text","text":"\n          "},{"type":"el","tag":"view","attrs":{"class":"cover {{item.cover}}","style":"position:relative"},"children":[{"type":"text","text":"\n            "},{"type":"el","tag":"image","attrs":{"wx:if":"{{item.coverImage}}","class":"cover-img","src":"{{item.coverImage}}","mode":"aspectFill"},"children":[]},{"type":"text","text":"\n            "},{"type":"el","tag":"block","attrs":{"wx:else":""},"children":[{"type":"text","text":"\n              "},{"type":"el","tag":"text","attrs":{"class":"t-span"},"children":[{"type":"text","text":"{{item.covT4}}"}]},{"type":"el","tag":"text","attrs":{"class":"t-i"},"children":[{"type":"text","text":"{{item.covS8}}"}]},{"type":"text","text":"\n            "}]},{"type":"text","text":"\n            "},{"type":"el","tag":"view","attrs":{"class":"cover-price","wx:if":"{{item.price > 0}}"},"children":[{"type":"text","text":"¥{{item.price}}"}]},{"type":"text","text":"\n            "},{"type":"el","tag":"view","attrs":{"class":"cover-trial","wx:if":"{{item.trial > 0}}"},"children":[{"type":"text","text":"试{{item.trial}}张"}]},{"type":"text","text":"\n          "}]},{"type":"text","text":"\n          "},{"type":"el","tag":"view","attrs":{"class":"bc-info"},"children":[{"type":"text","text":"\n            "},{"type":"el","tag":"view","attrs":{"class":"t-h3"},"children":[{"type":"text","text":"{{item.title}}"}]},{"type":"text","text":"\n            "},{"type":"el","tag":"view","attrs":{"class":"t-p bc-meta"},"children":[{"type":"text","text":"{{item.meta}}"}]},{"type":"text","text":"\n            "},{"type":"el","tag":"view","attrs":{"class":"t-p bc-status {{item.faint ? 'faint' : ''}}"},"children":[{"type":"el","tag":"view","attrs":{"class":"t-i dot {{item.faint ? 'faint' : ''}}"},"children":[]},{"type":"text","text":"{{item.vmText}}"}]},{"type":"text","text":"\n            "},{"type":"el","tag":"view","attrs":{"class":"bc-tagrow"},"children":[{"type":"text","text":"\n              "},{"type":"el","tag":"view","attrs":{"class":"bc-status-tag {{item.tagCls}}"},"children":[{"type":"text","text":"{{item.tagText}}"}]},{"type":"text","text":"\n              "},{"type":"el","tag":"view","attrs":{"class":"bc-like {{item.liked ? 'on' : ''}}"},"children":[{"type":"text","text":"\n                "},{"type":"el","tag":"text","attrs":{"class":"bc-heart"},"children":[{"type":"text","text":"{{item.liked ? '♥' : '♡'}}"}]},{"type":"text","text":"\n                "},{"type":"el","tag":"text","attrs":{"class":"bc-like-n"},"children":[{"type":"text","text":"{{item.likeText}}"}]},{"type":"text","text":"\n              "}]},{"type":"text","text":"\n            "}]},{"type":"text","text":"\n          "}]},{"type":"text","text":"\n          "},{"type":"el","tag":"view","attrs":{"class":"bc-sticker"},"children":[{"type":"text","text":"{{item.sticker}}"}]},{"type":"text","text":"\n        "}],"loopId":2},{"type":"text","text":"\n      "}]},{"type":"text","text":"\n\n      "},{"type":"text","text":"\n      "},{"type":"el","tag":"view","attrs":{"class":"hm-empty","style":"padding:48px 0 20px","wx:if":"{{home.emptyText}}"},"children":[{"type":"text","text":"\n        "},{"type":"el","tag":"view","attrs":{"class":"hm-empty-text"},"children":[{"type":"text","text":"{{home.emptyText}}"}]},{"type":"text","text":"\n        "},{"type":"el","tag":"button","attrs":{"class":"hm-empty-btn","hover-class":"hm-press","bindtap":"clearCat"},"children":[{"type":"text","text":"看全部卡集"}]},{"type":"text","text":"\n      "}]},{"type":"text","text":"\n\n      "},{"type":"el","tag":"view","attrs":{"class":"shelf-tail"},"children":[{"type":"el","tag":"text","attrs":{"class":"t-span"},"children":[{"type":"text","text":"更多卡集，正在上架"}]}]},{"type":"text","text":"\n    "}]},{"type":"text","text":"\n\n    \n\n"},{"type":"text","text":"\n  "},{"type":"el","tag":"view","attrs":{"class":"toast {{toastShow ? 'show' : (toastHide ? 'hide' : '')}}","wx:if":"{{toastMsg}}"},"children":[{"type":"text","text":"\n    "},{"type":"el","tag":"text","attrs":{},"children":[{"type":"text","text":"{{toastMsg}}"}]},{"type":"text","text":"\n    "},{"type":"el","tag":"view","attrs":{"class":"toast-progress","wx:if":"{{toastShow}}"},"children":[{"type":"el","tag":"view","attrs":{"class":"t-i"},"children":[]}]},{"type":"text","text":"\n  "}]},{"type":"text","text":"\n\n"}]},{"type":"text","text":"\n"}];
+window.__AST__ = [{"type":"el","tag":"view","attrs":{"class":"phone","style":"--statusbar:0px;--navtop:0px"},"children":[{"type":"text","text":"\n"},{"type":"text","text":"\n    "},{"type":"el","tag":"view","attrs":{"class":"page","id":"page-home"},"children":[{"type":"text","text":"\n"},{"type":"text","text":"\n"},{"type":"el","tag":"view","attrs":{"class":"hm-empty","wx:if":"{{bootError}}","style":"padding:64px 24px 20px"},"children":[{"type":"text","text":"\n  "},{"type":"el","tag":"view","attrs":{"class":"hm-empty-text"},"children":[{"type":"text","text":"内容加载失败，检查一下网络"}]},{"type":"text","text":"\n  "},{"type":"el","tag":"button","attrs":{"class":"hm-empty-btn","hover-class":"hm-press","bindtap":"retryBoot"},"children":[{"type":"text","text":"重新加载"}]},{"type":"text","text":"\n"}]},{"type":"text","text":"\n\n"},{"type":"el","tag":"view","attrs":{"class":"toast {{toastShow ? 'show' : (toastHide ? 'hide' : '')}}","wx:if":"{{toastMsg}}"},"children":[{"type":"text","text":"\n  "},{"type":"el","tag":"text","attrs":{},"children":[{"type":"text","text":"{{toastMsg}}"}]},{"type":"text","text":"\n  "},{"type":"el","tag":"view","attrs":{"class":"toast-progress","wx:if":"{{toastShow}}"},"children":[{"type":"el","tag":"view","attrs":{"class":"t-i"},"children":[]}]},{"type":"text","text":"\n"}]},{"type":"text","text":"\n\n      "},{"type":"el","tag":"view","attrs":{"class":"page-head"},"children":[{"type":"text","text":"\n        "},{"type":"el","tag":"view","attrs":{"class":"search-bar","bindtap":"toastSearch"},"children":[{"type":"text","text":"\n          "},{"type":"el","tag":"image","attrs":{"class":"t-svg","src":"/assets/icons/search.png","mode":"aspectFit"},"children":[]},{"type":"text","text":"\n          "},{"type":"el","tag":"text","attrs":{"class":"t-span"},"children":[{"type":"text","text":"搜索卡集、做卡人…"}]},{"type":"text","text":"\n          "},{"type":"el","tag":"image","attrs":{"class":"t-svg scan-icon","src":"/assets/icons/scan.png","mode":"aspectFit"},"children":[]},{"type":"text","text":"\n        "}]},{"type":"text","text":"\n        "},{"type":"el","tag":"view","attrs":{"class":"quick-row"},"children":[{"type":"text","text":"\n          "},{"type":"el","tag":"view","attrs":{"class":"quick-card white","hover-class":"hm-press","bindtap":"tapQuickCat"},"children":[{"type":"text","text":"\n            "},{"type":"el","tag":"view","attrs":{"class":"qc-icon"},"children":[{"type":"text","text":"⊞"}]},{"type":"text","text":"\n            "},{"type":"el","tag":"view","attrs":{},"children":[{"type":"text","text":"\n              "},{"type":"el","tag":"view","attrs":{"class":"qc-label"},"children":[{"type":"text","text":"分类"}]},{"type":"text","text":"\n              "},{"type":"el","tag":"view","attrs":{"class":"qc-sub"},"children":[{"type":"text","text":"按主题找卡集"}]},{"type":"text","text":"\n            "}]},{"type":"text","text":"\n          "}]},{"type":"text","text":"\n          "},{"type":"el","tag":"view","attrs":{"class":"quick-card highlight","hover-class":"hm-press","bindtap":"tapQuickHot"},"children":[{"type":"text","text":"\n            "},{"type":"el","tag":"view","attrs":{"class":"qc-icon"},"children":[{"type":"text","text":"✦"}]},{"type":"text","text":"\n            "},{"type":"el","tag":"view","attrs":{},"children":[{"type":"text","text":"\n              "},{"type":"el","tag":"view","attrs":{"class":"qc-label"},"children":[{"type":"text","text":"热门活动"}]},{"type":"text","text":"\n              "},{"type":"el","tag":"view","attrs":{"class":"qc-sub"},"children":[{"type":"text","text":"本周精选"}]},{"type":"text","text":"\n            "}]},{"type":"text","text":"\n          "}]},{"type":"text","text":"\n          "},{"type":"el","tag":"view","attrs":{"class":"quick-card cream","hover-class":"hm-press","bindtap":"tapQuickNew"},"children":[{"type":"text","text":"\n            "},{"type":"el","tag":"view","attrs":{"class":"qc-icon"},"children":[{"type":"text","text":"★"}]},{"type":"text","text":"\n            "},{"type":"el","tag":"view","attrs":{},"children":[{"type":"text","text":"\n              "},{"type":"el","tag":"view","attrs":{"class":"qc-label"},"children":[{"type":"text","text":"新建卡片"}]},{"type":"text","text":"\n              "},{"type":"el","tag":"view","attrs":{"class":"qc-sub"},"children":[{"type":"text","text":"做一套自己的"}]},{"type":"text","text":"\n            "}]},{"type":"text","text":"\n          "}]},{"type":"text","text":"\n        "}]},{"type":"text","text":"\n        "},{"type":"el","tag":"view","attrs":{"class":"shelf-slogan"},"children":[{"type":"text","text":"今天对这个世界做出"},{"type":"el","tag":"text","attrs":{"class":"accent"},"children":[{"type":"text","text":"一点点"}]},{"type":"text","text":"探索"}]},{"type":"text","text":"\n        "},{"type":"el","tag":"view","attrs":{"class":"tagline"},"children":[{"type":"text","text":"万物皆可抽一签。"}]},{"type":"text","text":"\n        "},{"type":"el","tag":"view","attrs":{"class":"chips"},"children":[{"type":"text","text":"\n          "},{"type":"el","tag":"view","attrs":{"class":"chip {{item.color}} {{item.on ? 'on' : ''}}","wx:for":"{{home.chips}}","wx:key":"key","hover-class":"hm-press","data-key":"{{item.key}}","bindtap":"setCat"},"children":[{"type":"text","text":"{{item.chip}}"}],"loopId":1},{"type":"text","text":"\n        "}]},{"type":"text","text":"\n        "},{"type":"el","tag":"view","attrs":{"class":"list-head"},"children":[{"type":"text","text":"\n          "},{"type":"el","tag":"text","attrs":{"class":"count"},"children":[{"type":"text","text":"{{home.rows.length}} 个卡集"}]},{"type":"text","text":"\n          "},{"type":"el","tag":"view","attrs":{"class":"sortseg"},"children":[{"type":"text","text":"\n            "},{"type":"el","tag":"button","attrs":{"id":"sort-hot","size":"mini","class":"{{home.sort === 'hot' ? 'on' : ''}}","bindtap":"setSort","data-sort":"hot"},"children":[{"type":"text","text":"热门"}]},{"type":"text","text":"\n            "},{"type":"el","tag":"button","attrs":{"id":"sort-new","size":"mini","class":"{{home.sort === 'new' ? 'on' : ''}}","bindtap":"setSort","data-sort":"new"},"children":[{"type":"text","text":"最新"}]},{"type":"text","text":"\n          "}]},{"type":"text","text":"\n        "}]},{"type":"text","text":"\n      "}]},{"type":"text","text":"\n\n      "},{"type":"text","text":"\n\n      "},{"type":"text","text":"\n            "},{"type":"el","tag":"view","attrs":{"class":"skel-list","wx:if":"{{booting}}"},"children":[{"type":"text","text":"\n        "},{"type":"el","tag":"view","attrs":{"class":"skel-book","wx:for":"{{[1,2,3,4]}}","wx:key":"*this"},"children":[{"type":"text","text":"\n          "},{"type":"el","tag":"view","attrs":{"class":"skel skel-cover"},"children":[]},{"type":"text","text":"\n          "},{"type":"el","tag":"view","attrs":{"class":"skel-book-txt"},"children":[{"type":"text","text":"\n            "},{"type":"el","tag":"view","attrs":{"class":"skel skel-line","style":"width:70%"},"children":[]},{"type":"text","text":"\n            "},{"type":"el","tag":"view","attrs":{"class":"skel skel-line","style":"width:45%"},"children":[]},{"type":"text","text":"\n            "},{"type":"el","tag":"view","attrs":{"class":"skel skel-line","style":"width:55%"},"children":[]},{"type":"text","text":"\n          "}]},{"type":"text","text":"\n        "}],"loopId":2},{"type":"text","text":"\n      "}]},{"type":"text","text":"\n"},{"type":"el","tag":"view","attrs":{"id":"squareList"},"children":[{"type":"text","text":"\n        "},{"type":"el","tag":"view","attrs":{"class":"book-card","wx:for":"{{home.rows}}","wx:key":"id","bindtap":"openSet","data-id":"{{item.id}}","data-from":"home"},"children":[{"type":"text","text":"\n          "},{"type":"el","tag":"view","attrs":{"class":"cover {{item.cover}}","style":"position:relative"},"children":[{"type":"text","text":"\n            "},{"type":"el","tag":"image","attrs":{"wx:if":"{{item.coverImage}}","class":"cover-img","src":"{{item.coverImage}}","mode":"aspectFill"},"children":[]},{"type":"text","text":"\n            "},{"type":"el","tag":"block","attrs":{"wx:else":""},"children":[{"type":"text","text":"\n              "},{"type":"el","tag":"text","attrs":{"class":"t-span"},"children":[{"type":"text","text":"{{item.covT4}}"}]},{"type":"el","tag":"text","attrs":{"class":"t-i"},"children":[{"type":"text","text":"{{item.covS8}}"}]},{"type":"text","text":"\n            "}]},{"type":"text","text":"\n            "},{"type":"el","tag":"view","attrs":{"class":"cover-price","wx:if":"{{item.price > 0}}"},"children":[{"type":"text","text":"¥{{item.price}}"}]},{"type":"text","text":"\n            "},{"type":"el","tag":"view","attrs":{"class":"cover-trial","wx:if":"{{item.trial > 0}}"},"children":[{"type":"text","text":"试{{item.trial}}张"}]},{"type":"text","text":"\n          "}]},{"type":"text","text":"\n          "},{"type":"el","tag":"view","attrs":{"class":"bc-info"},"children":[{"type":"text","text":"\n            "},{"type":"el","tag":"view","attrs":{"class":"t-h3"},"children":[{"type":"text","text":"{{item.title}}"}]},{"type":"text","text":"\n            "},{"type":"el","tag":"view","attrs":{"class":"t-p bc-meta"},"children":[{"type":"text","text":"{{item.meta}}"}]},{"type":"text","text":"\n            "},{"type":"el","tag":"view","attrs":{"class":"t-p bc-status {{item.faint ? 'faint' : ''}}"},"children":[{"type":"el","tag":"view","attrs":{"class":"t-i dot {{item.faint ? 'faint' : ''}}"},"children":[]},{"type":"text","text":"{{item.vmText}}"}]},{"type":"text","text":"\n            "},{"type":"el","tag":"view","attrs":{"class":"bc-tagrow"},"children":[{"type":"text","text":"\n              "},{"type":"el","tag":"view","attrs":{"class":"bc-status-tag {{item.tagCls}}"},"children":[{"type":"text","text":"{{item.tagText}}"}]},{"type":"text","text":"\n              "},{"type":"el","tag":"view","attrs":{"class":"bc-like {{item.liked ? 'on' : ''}}"},"children":[{"type":"text","text":"\n                "},{"type":"el","tag":"text","attrs":{"class":"bc-heart"},"children":[{"type":"text","text":"{{item.liked ? '♥' : '♡'}}"}]},{"type":"text","text":"\n                "},{"type":"el","tag":"text","attrs":{"class":"bc-like-n"},"children":[{"type":"text","text":"{{item.likeText}}"}]},{"type":"text","text":"\n              "}]},{"type":"text","text":"\n            "}]},{"type":"text","text":"\n          "}]},{"type":"text","text":"\n          "},{"type":"el","tag":"view","attrs":{"class":"bc-sticker"},"children":[{"type":"text","text":"{{item.sticker}}"}]},{"type":"text","text":"\n        "}],"loopId":3},{"type":"text","text":"\n      "}]},{"type":"text","text":"\n\n      "},{"type":"text","text":"\n      "},{"type":"el","tag":"view","attrs":{"class":"hm-empty","style":"padding:48px 0 20px","wx:if":"{{home.emptyText}}"},"children":[{"type":"text","text":"\n        "},{"type":"el","tag":"view","attrs":{"class":"hm-empty-text"},"children":[{"type":"text","text":"{{home.emptyText}}"}]},{"type":"text","text":"\n        "},{"type":"el","tag":"button","attrs":{"class":"hm-empty-btn","hover-class":"hm-press","bindtap":"clearCat"},"children":[{"type":"text","text":"看全部卡集"}]},{"type":"text","text":"\n      "}]},{"type":"text","text":"\n\n      "},{"type":"el","tag":"view","attrs":{"class":"shelf-tail"},"children":[{"type":"el","tag":"text","attrs":{"class":"t-span"},"children":[{"type":"text","text":"更多卡集，正在上架"}]}]},{"type":"text","text":"\n    "}]},{"type":"text","text":"\n\n    \n\n\n"}]},{"type":"text","text":"\n"}];
 </script>
 
 <script>
@@ -5342,63 +5111,6 @@ module.exports = {
 };
 
 window.__SEED = module.exports;
-})();
-</script>
-
-<script>
-(function(){var module = { exports: {} };
-/* ══════════════════════════════════════════════════════════
-   security.js · 内容安全客户端封装
-   身份：app.js 静默登录（wx.cloud.callFunction('auth')）
-   检测：cloudfunctions/sec
-   预览环境 / 未配置云环境时：mock 为 pass，保证 demo 可用
-   ══════════════════════════════════════════════════════════ */
-
-// 上线前填入微信云开发环境 ID；为空时走本地 mock。
-const CLOUD_ENV = '';
-
-function cloudReady() {
-  return typeof wx !== 'undefined' && !!wx.cloud && !!CLOUD_ENV;
-}
-
-function mockResult(action) {
-  if (action === 'image.submit') return { media: 'pass', traceId: 'mock' };
-  if (action === 'comment.create') return { status: 'visible', suggest: 'pass' };
-  if (action === 'stamp.create') return { ok: true, sec: { text: 'pass', media: 'none' } };
-  if (action === 'set.submit') return { status: 'submitted', machineFlag: false, suggest: 'pass' };
-  return { suggest: 'pass' };
-}
-
-async function call(action, data) {
-  if (!cloudReady()) return mockResult(action);
-  const res = await wx.cloud.callFunction({
-    name: 'sec',
-    data: Object.assign({ action }, data || {}),
-  });
-  return (res && res.result) || mockResult(action);
-}
-
-async function uploadImage(filePath) {
-  if (!filePath || !cloudReady() || !wx.cloud.uploadFile) return '';
-  const ext = (filePath.match(/\.(\w+)(?:\?|$)/) || [])[1] || 'jpg';
-  const cloudPath = `stamps/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-  const res = await wx.cloud.uploadFile({ cloudPath, filePath });
-  return (res && res.fileID) || '';
-}
-
-module.exports = {
-  CLOUD_ENV,
-  cloudReady,
-  call,
-  uploadImage,
-  checkText: (text, scene) => call('text.check', { text, scene: scene || 2 }),
-  checkImage: (fileID, scene) => call('image.submit', { fileID, scene: scene || 4 }),
-  commentCreate: (text) => call('comment.create', { text }),
-  stampCreate: (note, imgFileID) => call('stamp.create', { note, imgFileID }),
-  setSubmit: (set) => call('set.submit', { set }),
-};
-
-window.__SECURITY__ = module.exports;
 })();
 </script>
 
@@ -8473,13 +8185,14 @@ module.exports = {
 __define("services/config.js", function(module, exports, require){
 module.exports = {
   USE_MOCK: true, // Phase 2 切 false 前必须完成 real/index.js
+  DEBUG: true, // 提审前必须 false：压制 __apiDebug 后门
 };
 
 });
 
 __define("services/api.js", function(module, exports, require){
 /* services/api.js — 页面唯一数据出口。页面只许 require 这里。 */
-const { USE_MOCK } = require('./config.js');
+const { USE_MOCK, DEBUG } = require('./config.js');
 
 const impl = USE_MOCK
   ? require('./mock/index.js')
@@ -8512,7 +8225,7 @@ module.exports = {
   uploadImage: impl.uploadImage,
   reportRemindAuth: impl.reportRemindAuth,
   track: impl.track,
-  __debug: impl._debug || null, // 仅 mock 存在；上线构建剥离
+  __debug: (DEBUG && impl._debug) || null, // 仅 mock + DEBUG；提审前关
 };
 
 });
@@ -8946,7 +8659,7 @@ function seedActivity(st) {
     const n = Math.min(u.drawn, 3);
     const endOffset = u.todayDrawn ? 0 : 1;
     for (let i = 0; i < n; i++) {
-      st.activity.push({ ts: now - (n - 1 - i + endOffset) * DAY, sid: s.id, idx: (u.got || [])[i] || 0, demo: true });
+      st.activity.push({ ts: now - (n - 1 - i + endOffset) * DAY, sid: s.id, idx: (u.got || [])[i] || 0 });
     }
   });
 }
@@ -9536,8 +9249,7 @@ function notImpl() {
 });
 
 __define("lib/craftStore.js", function(module, exports, require){
-/* lib/craftStore.js — 草稿本地持久化（契约 D005：草稿仅存客户端） */
-const seed = require('../services/mock/seed.js'); // TODO(D6): 仅首启种子，随 demo 删
+/* lib/craftStore.js — 草稿本地持久化（契约 D005） */
 const KEY = 'dsm_drafts_v1';
 
 function load() {
@@ -9545,7 +9257,7 @@ function load() {
     const raw = wx.getStorageSync(KEY);
     if (raw) return JSON.parse(raw);
   } catch (e) { /* 无 storage 环境：走内存 */ }
-  return JSON.parse(JSON.stringify((seed.CRAFT && seed.CRAFT.drafts) || [])); // TODO(D6)
+  return [];
 }
 
 function save(drafts) {
@@ -9559,10 +9271,8 @@ module.exports = { load, save };
 __define("lib/core.js", function(module, exports, require){
 // 今日做点小事 · 微信小程序版
 // 移植自远程仓库 static/day_small_things_v2.html（V2.3c 原型）
-const seed = require('../services/mock/seed.js');
 const craftStore = require('./craftStore.js');
 const posterKit = window.__POSTER_KIT__;
-const Security = window.__SECURITY__;
 const api = require('../services/api.js');
 
 function getViewport() {
@@ -9896,22 +9606,18 @@ function catChipOf(key) {
 function initS() {
   return {
     booted: false,
-    mode: 'rich',
     cat: '全部', sort: 'hot',
-    catList: seed.CATS.slice(),
     sets: [],
-    authored: [],
     craft: { drafts: craftStore.load(), reviewing: [] },
-    craftBackup: null, craftEmptyView: false,
     follow: {},
     fans: {},
     social: {},
     comments: {},
     commentDrafts: {},
-    cur: null, cameFrom: 'home',
-    draw: null, posterCtx: null, posterType: '', pw: null,
+    cur: null,
+    posterType: '', pw: null,
     ed: null, edOpen: null, rv: null,
-    author: null, authorFrom: 'home',
+    author: null,
     rc: null, rcTmp: { img: null },
     seq: 1000, toastTimer: null, toastToken: 0,
     weeklyMade: {},
@@ -9969,7 +9675,6 @@ function ensureBoot() {
   if (!bootPromise) {
     bootPromise = api.listSets().then(list => {
       list.forEach(applySetPayload);
-      st.authored = clone(st.sets);
       st.booted = true;
     }).catch(err => { bootPromise = null; throw err; });
   }
@@ -9989,7 +9694,6 @@ const PAGE_ROUTES = {
   edit: '/pages/edit/index',
   income: '/pages/income/index',
   author: '/pages/author/index',
-  demo: '/pages/demo/index',
 };
 
 module.exports = {
@@ -10005,7 +9709,6 @@ __define("lib/shared.js", function(module, exports, require){
 const core = require('./core.js');
 const api = require('../services/api.js');
 const posterKit = window.__POSTER_KIT__;
-const Security = window.__SECURITY__;
 const {
   getViewport,
   BRAND,
@@ -10054,9 +9757,7 @@ const PAGE_OPTS = {
   data: {
     brand: BRAND,
     bootError: false,
-    page: 'home',
-    showTabbar: true,
-    tabActive: 'home',
+    booting: true,
     statusBarHeight: 20,
     navTop: 64,
     tabs: [
@@ -10073,19 +9774,16 @@ const PAGE_OPTS = {
     setPage: { exists: false, ctaShow: false, ctaFloating: false },
     draw: null,
     mapV: { cells: [], drawn: 0, count: 0, pct: 0 },
-    done: { exists: false },
-    cards: { isNew: false, groups: [] },
     craft: { empty: false, groups: [] },
     edit: { mode: 'edit', cards: [] },
     income: { exists: false },
     author: { exists: false, works: [] },
     me: { cardN: 0, stampN: 0, emptied: 0, todayLine: '' },
-    demo: { mode: 'rich' },
     pay: { show: false, paying: false },
     check: { show: false, list: [] },
     pub: { show: false },
     nudge: { show: false },
-    record: { show: false, note: '', img: '', hasImg: false, count: 0 },
+    record: { show: false, note: '', img: '', hasImg: false, count: 0, saveText: '盖上邮戳', saving: false },
     commentsSheet: { show: false, sid: null, title: '', items: [], count: 0, canComment: false, draft: '', draftLen: 0, sending: false },
     rulesSheet: { show: false },
     remindSheet: { show: false, enabled: false, time: '21:00', times: [], btn: '', meta: '' },
@@ -10093,7 +9791,6 @@ const PAGE_OPTS = {
     floatCta: { show: false },
     donePage: { show: false, ctaShow: false },
     subs: { waiting: [], ongoing: [], done: [], total: 0, weekly: null, weekGoal: null, greeting: null },
-    mine: { empty: true, days: 0, lit: 0, stamps: 0, done: [], ongoingCount: 0, notes: [] },
     bigCard: { show: false, flipped: false, back: { sid: '', idx: 0, rec: null } },
   },
 
@@ -10130,7 +9827,6 @@ const PAGE_OPTS = {
       return;
     }
     this.S.shareSid = sid;
-    this.S.cameFrom = 'home';
     if (this.__page === 'set' && this.data.setPage && this.data.setPage.id === sid) {
       this.renderSetPage();
       return;
@@ -10159,74 +9855,8 @@ const PAGE_OPTS = {
      模式 / 数据工具
      ────────────────────────────────────────────────────────── */
   /* 重建全局活动流水：优先用真实 drawnLog；演示模式下为"有进度"的卡集合成了最近几天的记录 */
-  _seedActivity() {
-    const S = this.S;
-    S.activity = [];
-    if (S.mode !== 'rich') return;
-    const now = Date.now();
-    const DAY = 86400000;
-    S.sets.forEach(s => {
-      const u = s.user;
-      if (!u || !(u.drawn > 0)) return;
-      if (u.drawnLog && u.drawnLog.length) {
-        u.drawnLog.forEach(e => {
-          if (e && e.ts) S.activity.push({ ts: e.ts, sid: s.id, idx: e.idx });
-        });
-        return;
-      }
-      /* 种子数据没有 drawnLog：合成最近 min(drawn,3) 天，每天一条；
-         todayDrawn 的集含今天，否则止于昨天（避免与"今日已抽"标记矛盾） */
-      const n = Math.min(u.drawn, 3);
-      const endOffset = u.todayDrawn ? 0 : 1;
-      for (let i = 0; i < n; i++) {
-        S.activity.push({
-          ts: now - (n - 1 - i + endOffset) * DAY,
-          sid: s.id, idx: (u.got || [])[i] || 0, demo: true,
-        });
-      }
-    });
-  },
 
-  resetMode(m) {
-    const S = this.S;
-    S.mode = m;
-    this.refreshIncome();
-    S.weeklyMade = {};
-    S.sets = clone(S.authored);
-    if (m === 'new') {
-      S.sets = S.sets.filter(s => s.creator !== ME);
-      S.sets.forEach(s => { s.user = null; });
-      if (S.craftBackup) {
-        S.craftBackup.drafts = S.craftBackup.drafts.concat(S.craft.drafts);
-        S.craftBackup.reviewing = S.craftBackup.reviewing.concat(S.craft.reviewing);
-      } else {
-        S.craftBackup = { drafts: S.craft.drafts.slice(), reviewing: S.craft.reviewing.slice() };
-      }
-      S.craft.drafts = [];
-      S.craft.reviewing = [];
-      S.follow = {};
-    } else if (S.craftBackup) {
-      S.craft.drafts = S.craftBackup.drafts.concat(S.craft.drafts);
-      S.craft.reviewing = S.craftBackup.reviewing.concat(S.craft.reviewing);
-      S.craftBackup = null;
-    }
-    this._seedActivity();
-    S.lastActive = Date.now();
-    S.remind = { enabled: false, time: '21:00', asked: 0 };
-    this.setData({ demo: { mode: m } });
-  },
 
-  setMode(e) {
-    const m = e.currentTarget.dataset.mode;
-    const S = this.S;
-    S.craftEmptyView = false;
-    this.resetMode(m);
-    this.renderHome();
-    this.renderSubs();
-    this.renderMe();
-    this.renderCraft();
-    this.toast(m === 'new' ? '已切换到「新用户 · 空态」' : '已切换到「演示用户 · 有进度」');
-  },
 
 
 
@@ -10272,7 +9902,6 @@ const PAGE_OPTS = {
   _bootFromApi() {
     return api.listSets().then(list => {
       list.forEach(p => this.applySetPayload(p));
-      this.S.authored = clone(this.S.sets); // TODO(D6): demo 模式专用，随 demo 一起删
       this.S.booted = true;
       this.renderHome();
       this.renderSubs();
@@ -10291,29 +9920,7 @@ const PAGE_OPTS = {
   /* ──────────────────────────────────────────────────────────
      导航 / 轻提示
      ────────────────────────────────────────────────────────── */
-  go(id, initial) {
-    if (id !== 'set') this.S.shareSid = null;
-    if (this.__page === 'set' && id !== 'set') this.teardownSetObservers();
-    if (this.__page === 'home' && id !== 'home') this.teardownHomeObserver();
-    if (this.__page === 'draw' && id !== 'draw') clearTimeout(this._drawTimer);
-    if (id === 'home') this.renderHome();
-    if (id === 'create') this.renderCraft();
-    if (id === 'income') this.renderIncome();
-    if (id === 'cards') this.renderSubs();
-    if (id === 'me') this.renderMe();
-    this.setData({
-      page: id,
-      showTabbar: TABS.includes(id),
-      tabActive: TABS.includes(id) ? id : '',
-    }, () => {
-      if (!initial) wx.pageScrollTo({ scrollTop: 0, duration: 0 });
-    });
-  },
 
-  goTab(e) {
-    const id = e.currentTarget.dataset.page;
-    this.go(id);
-  },
 
 
   backToSet() {
@@ -10514,17 +10121,12 @@ const PAGE_OPTS = {
 
   teardownHomeObserver() {},
 
-  openDemo() {
-    this.renderCraft();
-    this.go('demo');
-  },
 
   /* ──────────────────────────────────────────────────────────
      卡集详情
      ────────────────────────────────────────────────────────── */
   openSet(e) {
     const d = e.currentTarget.dataset;
-    this.S.cameFrom = d.from || 'home';
     this.S.shareSid = null;
     this.S.cur = Number(d.id);
     this._setRecTab = 'related';
@@ -10533,7 +10135,6 @@ const PAGE_OPTS = {
   },
 
   openSetById(id, from) {
-    this.S.cameFrom = from || 'home';
     this.S.cur = Number(id);
     this._setRecTab = 'related';
     this.renderSetPage();
@@ -11016,9 +10617,11 @@ const PAGE_OPTS = {
     this.setData({ 'commentsSheet.sending': true });
 
     let status = 'visible';
+    let saved = null;
     try {
-      const r = await Security.commentCreate(text);
+      const r = await api.addComment({ setId: s.id, text });
       status = (r && r.status) || 'visible';
+      saved = (r && r.comment) || null;
     } catch (e) {
       status = 'pending';                 // 公开内容 fail-closed
     }
@@ -11029,7 +10632,7 @@ const PAGE_OPTS = {
     }
 
     const list = this._commentsOf(s);
-    list.unshift({
+    const c = saved || {
       id: 'c' + Date.now(),
       name: ME,
       avatar: ME.slice(0, 1),
@@ -11037,8 +10640,9 @@ const PAGE_OPTS = {
       time: '刚刚',
       creator: s.creator === ME,
       status,
-      sec: { text: status === 'visible' ? 'pass' : 'review' },
-    });
+    };
+    c.sec = c.sec || { text: status === 'visible' ? 'pass' : 'review' };
+    list.unshift(c);
     this.S.commentDrafts[s.id] = '';
     const items = this._commentItems(s);
     const patch = {
@@ -11167,7 +10771,6 @@ const PAGE_OPTS = {
   openAuthorPage(e) {
     const d = e.currentTarget.dataset;
     this.S.author = d.name;
-    this.S.authorFrom = d.from || 'home';
     this.renderAuthor();
     this.go('author');
   },
@@ -11456,55 +11059,6 @@ const PAGE_OPTS = {
      trial    试抽还有余额（当前 trial=1 不会出现，为多试抽预留）
      unlock   试抽用尽，转化时机
      memorial 本张抽空了全图                                   */
-  computeDrawActions() {
-    const S = this.S;
-    const D = S.draw;
-    if (!D) return;
-    const s = S.sets.find(x => x.id === D.sid);
-    if (!s) return;
-    const u = s.user || {};
-
-    let primaryKind = 'stamp';
-    let primaryText = '';
-    let tail = '';
-
-    if (s.type === 'collect' && (u.got || []).length >= s.pool.length) {
-      primaryKind = 'memorial';
-      primaryText = '集齐啦 · 看纪念册';
-      tail = '这是最后一张 · 全图点亮，去纪念册看看吧';
-    } else if (D.trial) {
-      if ((u.trialUsed || 0) < s.trial) {
-        primaryKind = 'trial';
-        primaryText = `再试一张 · 还剩 ${s.trial - (u.trialUsed || 0)} 张`;
-        tail = '试抽免费，不占每日额度';
-      } else {
-        primaryKind = 'unlock';
-        primaryText = `解锁全集 · ¥${s.price}`;
-        tail = '试抽结束 · 解锁后每天继续';
-      }
-    } else if (getRec(u, D.idx)) {
-      primaryKind = 'share';
-      primaryText = '分享这张明信片';
-      tail = '✓ 今天的邮戳已盖好，这张卡现在是明信片了';
-    } else if (s.type === 'collect') {
-      primaryKind = 'stamp';
-      primaryText = '盖个邮戳 · 记录今天';
-      const rest = Math.max(0, s.pool.length - (u.got || []).length);
-      tail = `已收进卡包 · 还剩 ${rest} 张，明天继续`;
-    } else {
-      primaryKind = 'stamp';
-      primaryText = '盖个邮戳 · 记录今天';
-      tail = '抽到什么，就是什么。\n今天的纠结，到此为止。';
-    }
-
-    this.setData({
-      'draw.primaryKind': primaryKind,
-      'draw.primaryText': primaryText,
-      'draw.showShareBtn': primaryKind !== 'share',
-      'draw.tail': tail,
-      'draw.weeklyReady': !!this.weeklyForSet(s),
-    });
-  },
 
   /* ──────────────────────────────────────────────────────────
      卡背（回信 / 明信片）
@@ -11644,7 +11198,6 @@ const PAGE_OPTS = {
     if (!s) return;
     const c = s.pool[idx];
     if (!c) return;
-    S.posterCtx = { sid, idx };
     const back = this.buildCardBack(s, idx, 'big');
     if (opts.stampAnim) back.stampAnim = true;
     this.setData({
@@ -11680,6 +11233,7 @@ const PAGE_OPTS = {
 
   /* ── 抽空页 · 金色时刻（全屏接管） ── */
   renderDone() {
+    if (!['cards', 'set', 'draw', 'map'].includes(this.__page)) return;
     const S = this.S;
     const s = S.sets.find(x => x.id === S.cur);
     if (!s) return;
@@ -11926,13 +11480,17 @@ const PAGE_OPTS = {
     if (!s) return;
     const from = d.from || 'cards';
     const u = s.user || {};
+    if (d.tap === 'booklet') {
+      this.S.cur = sid;
+      this.openDoneView();
+      return;
+    }
     if (d.tap === 'stamp') {
       const idx = d.idx != null ? Number(d.idx)
         : (u.todayIdx != null ? u.todayIdx
           : (u.todayDrawn && u.got && u.got.length ? u.got[u.got.length - 1] : null));
       if (idx == null) return;
       this.S.cur = sid;
-      this.S.cameFrom = from;
       this.openRecordAt(sid, idx, from);
     } else if (d.tap === 'draw') {
       this.goSubsDraw(sid, from);
@@ -11945,13 +11503,11 @@ const PAGE_OPTS = {
     const s = this.S.sets.find(x => x.id === sid);
     if (!s) return;
     this.S.cur = sid;
-    this.S.cameFrom = from || 'cards';
     if (setVM(s).act === 'draw') this.startDraw(sid);
     else this.mainAct();
   },
 
   goSubsView(sid, from) {
-    this.S.cameFrom = from || 'cards';
     this.goSetView(sid);
   },
 
@@ -11959,10 +11515,6 @@ const PAGE_OPTS = {
     this.go('home');
   },
 
-  browseBooklet(e) {
-    const variant = e.currentTarget.dataset.variant;
-    this.openBooklet(variant);
-  },
 
   /* ──────────────────────────────────────────────────────────
      订阅页
@@ -11972,7 +11524,7 @@ const PAGE_OPTS = {
   renderCraft() {
     const S = this.S;
     const pub = S.sets.filter(s => s.creator === ME);
-    if (S.craftEmptyView || (!pub.length && !S.craft.reviewing.length && !S.craft.drafts.length)) {
+    if (!pub.length && !S.craft.reviewing.length && !S.craft.drafts.length) {
       this.setData({ craft: { empty: true, groups: [] } });
       return;
     }
@@ -12034,7 +11586,6 @@ const PAGE_OPTS = {
 
   newCraft() {
     const S = this.S;
-    S.craftEmptyView = false;
     const d = {
       id: ++S.seq, title: '', intro: '', type: 'collect', cat: 'create', price: 0, trial: 0, status: 'draft',
       coverImage: '',
@@ -12274,65 +11825,6 @@ const PAGE_OPTS = {
     return errs;
   },
 
-  async tryPublish() {
-    const S = this.S;
-    if (!S.ed || S.ed.secChecking) return;
-    const errs = this.validateCraft(S.ed);
-    if (errs.length) {
-      this.setData({ check: { show: true, list: errs } });
-      return;
-    }
-
-    if (!S.ed.secChecked) {
-      S.ed.secChecking = true;
-      let coverFileID = '';
-      try { coverFileID = await Security.uploadImage(S.ed.coverImage); } catch (e) { /* mock / 上传失败 */ }
-      if (S.ed.coverImage && Security.cloudReady() && !coverFileID) {
-        S.ed.secChecking = false;
-        this.toast('封面安全校验暂不可用 · 请稍后再试');
-        return;
-      }
-      let r;
-      try {
-        r = await Security.setSubmit({
-          title: S.ed.title,
-          intro: S.ed.intro,
-          pool: S.ed.pool,
-          signatureNote: S.ed.signatureNote || '',
-          coverFileID,
-        });
-      } catch (e) {
-        S.ed.secChecking = false;
-        this.toast('内容安全校验暂不可用 · 请稍后再试');
-        return;
-      }
-      S.ed.secChecking = false;
-      if (r && (r.status === 'machine_reject')) {
-        this.toast('内容暂时无法公开展示 · 请检查文案或封面后重新提交');
-        return;
-      }
-      if (r && r.error) {
-        this.toast('内容安全校验暂不可用 · 请稍后再试');
-        return;
-      }
-      S.ed.secChecked = true;
-      S.ed.machineFlag = !!(r && r.machineFlag);
-      S.ed.coverFileID = coverFileID;
-    }
-
-    if (S.ed.signatureIdx < 0 && !S.ed.signatureNudgeSkipped) {
-      this.setData({ nudge: { show: true } });
-      return;
-    }
-    const complete = S.ed.pool.filter(cardDone);
-    this.setData({
-      pub: {
-        show: true,
-        title: `《${S.ed.title.trim()}》`,
-        meta: `${complete.length} 张 · ${S.ed.type === 'collect' ? '收藏集' : '常驻集'} · ${S.ed.price > 0 ? `¥${S.ed.price}（前 ${S.ed.trial} 张免费试抽）` : '免费'}`,
-      },
-    });
-  },
 
   skipSignatureNudge() {
     const S = this.S;
@@ -12360,21 +11852,6 @@ const PAGE_OPTS = {
     this.setData({ 'pub.show': false });
   },
 
-  doPublish() {
-    const S = this.S;
-    this.setData({ 'pub.show': false });
-    if (!S.ed) return;
-    const i = S.craft.drafts.indexOf(S.ed);
-    if (i > -1) S.craft.drafts.splice(i, 1);
-    S.ed.status = 'reviewing';
-    S.ed.review = { status: 'submitted', machineFlag: !!S.ed.machineFlag };
-    S.ed.submitted = todayMD();
-    S.craft.reviewing.push(S.ed);
-    S.ed = null;
-    this.toast('已提交审核。');
-    this.renderCraft();
-    this.go('create');
-  },
 
   openReview(e) {
     const S = this.S;
@@ -12408,52 +11885,8 @@ const PAGE_OPTS = {
     });
   },
 
-  passReview() {
-    const S = this.S;
-    if (!S.rv) return;
-    const i = S.craft.reviewing.indexOf(S.rv);
-    if (i < 0) return;
-    S.craft.reviewing.splice(i, 1);
-    const s = this.buildPublic(S.rv);
-    S.authored.push(clone(s));
-    S.sets.push(s);
-    S.rv = null;
-    this.toast('审核通过，已上架。去「发现」看看它。');
-    this.renderHome();
-    this.renderCraft();
-    this.go('create');
-  },
 
-  buildPublic(d) {
-    const S = this.S;
-    const kept = d.pool.map((c, i) => ({ c, i })).filter(x => cardDone(x.c));
-    const pool = kept.map(x => ({ w: x.c.w.trim(), b: x.c.b.trim() }));
-    const sigPos = kept.findIndex(x => x.i === d.signatureIdx);
-    const id = ++S.seq;
-    return {
-      id,
-      title: d.title.trim(),
-      covT: d.title.trim().slice(0, 8),
-      covS: d.intro.trim().replace(/[，。、；！？…—\s]/g, '').slice(0, 7) || '认真做的',
-      cover: 'c' + (id % 6 + 1),
-      coverImage: d.coverImage || '',
-      cat: d.cat, type: d.type, price: d.price, trial: d.price > 0 ? 1 : 0,
-      count: pool.length, creator: ME, heat: 0, date: todayMD(),
-      intro: d.intro.trim(), pool, user: null,
-      signatureIdx: sigPos,
-      signatureNote: sigPos >= 0 ? (d.signatureNote || '') : '',
-      signaturePublic: !!d.signaturePublic,
-      review: { status: 'approved', machineFlag: !!d.machineFlag },
-      totalDrawn: 0, buyers: 0, earn: 0,
-    };
-  },
 
-  toggleCraftEmpty() {
-    const S = this.S;
-    S.craftEmptyView = !S.craftEmptyView;
-    this.renderCraft();
-    this.setData({ demo: { mode: S.mode, craftEmpty: S.craftEmptyView } });
-  },
 
   /* ──────────────────────────────────────────────────────────
      收益看板
@@ -12516,18 +11949,13 @@ const PAGE_OPTS = {
     const stampN = S.sets.reduce((a, s) => a + stampedCount(s), 0);
     const emptied = collectMine.filter(s => s.user.drawn >= s.count).length;
 
-    let todayLine;
-    if (S.mode === 'new') {
-      todayLine = '今天的第一签，还在等你';
-    } else {
-      const drew = S.sets.filter(s => s.user && s.user.todayDrawn).length;
-      const can = S.sets.filter(s => setVM(s).act === 'draw').length;
-      const rp = S.sets.filter(s => s.user && hasRecPending(s)).length;
-      const bits = [`今天抽了 ${drew} 张`];
-      if (can > 0) bits.push(`还有 ${can} 个可抽`);
-      if (rp > 0) bits.push(`${rp} 张等回信`);
-      todayLine = bits.join(' · ');
-    }
+    const drew = S.sets.filter(s => s.user && s.user.todayDrawn).length;
+    const can = S.sets.filter(s => setVM(s).act === 'draw').length;
+    const rp = S.sets.filter(s => s.user && hasRecPending(s)).length;
+    const bits = [`今天抽了 ${drew} 张`];
+    if (can > 0) bits.push(`还有 ${can} 个可抽`);
+    if (rp > 0) bits.push(`${rp} 张等回信`);
+    const todayLine = bits.join(' · ');
 
     this.setData({
       me: {
@@ -12546,7 +11974,6 @@ const PAGE_OPTS = {
 
   meToAuthor() {
     this.S.author = ME;
-    this.S.authorFrom = 'me';
     this.renderAuthor();
     this.go('author');
   },
@@ -12660,6 +12087,7 @@ const PAGE_OPTS = {
         title: `「${s.pool[idx].w}」`,
         sub: resident ? '这一次，做到了。留个证据，只给自己看。' : '做完这件小事，给它留个证据。只给自己看。',
         saveText: editing ? '更新这枚邮戳' : '盖上邮戳',
+        saving: false,
         note,
         count: note.length,
         img: editing && prev.img ? prev.img : '',
@@ -12743,107 +12171,45 @@ const PAGE_OPTS = {
     if (!s) return;
     const note = (this.data.record.note || '').trim().slice(0, 50);
     const img = S.rcTmp.img || '';
-    if (!img && !note) {
-      this.toast('写一句话，或选一张图，再盖邮戳。');
-      return;
-    }
+    if (!img && !note) { this.toast('写一句话，或选一张图，再盖邮戳。'); return; }
+
     S.rcSaving = true;
-    let imgFileID = '';
-    let sec = { text: 'pending', media: img ? 'pending' : 'none', traceId: '' };
+    this.setData({ 'record.saving': true });
     try {
-      if (img) imgFileID = await Security.uploadImage(img);
-      const r = await Security.stampCreate(note, imgFileID);
-      if (r && r.sec) sec = r.sec;
-      if (img && !imgFileID && Security.cloudReady()) sec.media = 'pending';
-    } catch (e) {
-      // 私有内容 fail-open：先保存，海报闸门会拦住未过审图片
-      sec = { text: 'pending', media: img ? 'pending' : 'none', traceId: '' };
-    }
-    S.rcSaving = false;
+      let imgFileID = '';
+      if (img) imgFileID = (await api.uploadImage(img)).fileID;
+      const r = await api.saveStamp({ setId: rc.sid, idx: rc.idx, note, imgFileID });
 
-    /* D4 F：邮戳写回 api（跨 tab onShow 同步后不丢）。
-       失败 fail-open：保留本地记录，不阻塞私看。 */
-    let serverRec = null;
-    try {
-      const r = await api.saveStamp({
-        setId: s.id, idx: rc.idx, note,
-        imgFileID: imgFileID || img || '',
-      });
-      serverRec = (r && r.rec) || null;
-    } catch (e) { /* keep local */ }
-
-    if (!s.user) {
-      s.user = { drawn: 0, trialUsed: 0, unlocked: true, todayDrawn: true, got: [], recs: {}, todayIdx: rc.idx };
-    }
-    const u = s.user;
-    if (!u.recs) u.recs = {};
-    const rec = {
-      img, imgFileID, note,
-      date: (serverRec && serverRec.date) || getTodayShort(),
-      stampDate: (serverRec && serverRec.stampDate) || '',
-      sec: (serverRec && serverRec.sec) || sec,
-    };
-    if (s.type === 'resident') {
-      const arr = Array.isArray(u.recs[rc.idx]) ? u.recs[rc.idx] : (u.recs[rc.idx] ? [u.recs[rc.idx]] : []);
-      arr.push(rec);
-      u.recs[rc.idx] = arr;
-    } else {
-      u.recs[rc.idx] = rec;
-    }
-    this.setData({ 'record.show': false });
-    const weekly = this.weeklyState(s);
-    const weeklyFresh = weekly.ready && weekly.stampN === 7 && !this.isWeeklyMade(s, weekly.weekNo);
-    if (weeklyFresh) this.toast('本周集齐 7 张 · 可以生成周记了');
-    else if (rc.from === 'draw') this.toast('已盖上今天的邮戳');
-    else this.toast('已盖上邮戳，可以分享这张明信片了');
-    /* 首次盖戳后补一次授权请求（投入时刻；受 asked>=2 上限约束，不会反复打扰） */
-    setTimeout(() => this._maybeAskRemind('stamp'), 1600);
-
-    if (rc.from === 'draw') {
-      /* 抽卡页：无论盖章前在正面还是背面，盖章后停在背面，
-         落戳动画直接可见 */
-      const back = this._dwBack(s, rc.idx);
-      back.stampAnim = true;
-      this.setData({
-        'draw.back': back,
-        'draw.backIdx': rc.idx,
-        'draw.front': this._dwFront(s, rc.idx),
-        'draw.flipped': true,
-        'draw.hint': '轻触卡面 · 翻到另一面',
-      });
-      this.renderHome();
-      this.renderSubs();
-      this.renderMe();
-      setTimeout(() => {
-        if (this.data.draw) {
-          this.setData({ 'draw.back.stampAnim': false });
-          this.renderDraw();     // 重算 CTA：补盖 → 分享这张明信片
-        }
-      }, 620);
-    } else {
-      /* 回看场景（big / set / cards 来源）：不重置、不闪正面 */
-      this.renderHome();
-      this.renderSubs();
-      this.renderSetPage();
-      if (this.__page === 'map') this.renderMap();
-      if (this.data.bigCard.show) {
-        // 正在查看大卡：原地刷新背面，翻面状态不丢
-        const back = this.buildCardBack(s, rc.idx, 'big');
-        back.stampAnim = true;
-        this.setData({ 'bigCard.back': back, 'bigCard.flipped': true });
-      } else {
-        // 从详情页 / 订阅页补盖：打开大卡即背面 + 落戳动画
-        this.showBigCard(s.id, rc.idx, { flipped: true, stampAnim: true });
+      /* 本地即时更新（显示缓存；onShow listSets 会与 store 对齐） */
+      if (!s.user) {
+        s.user = { drawn: 0, trialUsed: 0, unlocked: true, todayDrawn: true, got: [], recs: {}, todayIdx: rc.idx };
       }
-      // 若抽卡页还在背后（例如从「看看今天的卡」大卡里补盖），同步刷新抽卡卡背
-      if (this.__page === 'draw') {
-        const dwBack = this._dwBack(s, rc.idx);
-        dwBack.stampAnim = true;
+      const u = s.user;
+      if (!u.recs) u.recs = {};
+      if (s.type === 'resident') {
+        const arr = Array.isArray(u.recs[rc.idx]) ? u.recs[rc.idx] : (u.recs[rc.idx] ? [u.recs[rc.idx]] : []);
+        arr.push(r.rec);
+        u.recs[rc.idx] = arr;
+      } else {
+        u.recs[rc.idx] = r.rec;
+      }
+
+      this.setData({ 'record.show': false, 'record.saving': false });
+      const weekly = this.weeklyState(s);
+      const weeklyFresh = weekly.ready && weekly.stampN === 7 && !this.isWeeklyMade(s, weekly.weekNo);
+      if (weeklyFresh) this.toast('本周集齐 7 张 · 可以生成周记了');
+      else if (rc.from === 'draw') this.toast('已盖上今天的邮戳');
+      else this.toast('已盖上邮戳，可以分享这张明信片了');
+      setTimeout(() => this._maybeAskRemind('stamp'), 1600);
+
+      if (rc.from === 'draw' && this.__page === 'draw') {
+        const back = this._dwBack(s, rc.idx);
+        back.stampAnim = true;
         this.setData({
-          'draw.back': dwBack,
-          'draw.backIdx': rc.idx,
+          'draw.back': back, 'draw.backIdx': rc.idx,
           'draw.front': this._dwFront(s, rc.idx),
           'draw.flipped': true,
+          'draw.hint': '轻触卡面 · 翻到另一面',
         });
         setTimeout(() => {
           if (this.data.draw) {
@@ -12851,12 +12217,41 @@ const PAGE_OPTS = {
             this.renderDraw();
           }
         }, 620);
+      } else {
+        if (this.data.bigCard.show) {
+          const back = this.buildCardBack(s, rc.idx, 'big');
+          back.stampAnim = true;
+          this.setData({ 'bigCard.back': back, 'bigCard.flipped': true });
+        } else {
+          this.showBigCard(s.id, rc.idx, { flipped: true, stampAnim: true });
+        }
+        setTimeout(() => { if (this.data.bigCard) this.setData({ 'bigCard.back.stampAnim': false }); }, 620);
+        if (this.__page === 'cards') this.renderSubs();   // 当前页状态即时刷新
+        if (this.__page === 'set') this.renderSetPage();  // stampRow 即时刷新
+        if (this.__page === 'map') this.renderMap();      // 格子徽标即时刷新
+        if (this.__page === 'draw') {                     // 抽卡页还在背后：同步卡背
+          const dwBack = this._dwBack(s, rc.idx);
+          dwBack.stampAnim = true;
+          this.setData({
+            'draw.back': dwBack, 'draw.backIdx': rc.idx,
+            'draw.front': this._dwFront(s, rc.idx),
+            'draw.flipped': true,
+          });
+          setTimeout(() => {
+            if (this.data.draw) {
+              this.setData({ 'draw.back.stampAnim': false });
+              this.renderDraw();
+            }
+          }, 620);
+        }
       }
-      setTimeout(() => {
-        if (this.data.bigCard) this.setData({ 'bigCard.back.stampAnim': false });
-      }, 620);
+      S.rc = null;
+      S.rcSaving = false;
+    } catch (e) {
+      S.rcSaving = false;
+      this.setData({ 'record.saving': false });
+      this.toast((e && e.message) || '没盖上，再试一次');
     }
-    S.rc = null;
   },
 
   /* ──────────────────────────────────────────────────────────
@@ -13085,41 +12480,8 @@ const PAGE_OPTS = {
     }
   },
 
-  async demoWeekly() {
-    const s = this.S.sets.find(x => x.id === 14);
-    if (!s) { this.toast('演示数据里没有找到「云的图鉴」'); return; }
-    posterKit.synthesizeLog(s, 7);
-    this.S.cur = 14;
-    await this.openWeeklyPoster();
-  },
 
-  async demoWeekly916() {
-    const s = this.S.sets.find(x => x.id === 14);
-    if (!s) { this.toast('演示数据里没有找到「云的图鉴」'); return; }
-    posterKit.synthesizeLog(s, 7);
-    this.S.cur = 14;
-    await this.exportWeeklyById(14, '916');
-  },
 
-  async demoMemorial() {
-    const s = this.S.sets.find(x => x.id === 14);
-    if (!s) return;
-    s.user = s.user || {};
-    s.user.got = s.pool.map((_, i) => i);
-    posterKit.synthesizeLog(s, s.pool.length);
-    const data = posterKit.buildMemorialData(s, { qrSrc: '' });
-    if (!data) return;
-    wx.showLoading({ title: '生成中', mask: true });
-    try {
-      await posterKit.exportAndSaveMemorial34(data);
-      this.toast('纪念海报已保存 📸');
-    } catch (e) {
-      console.warn(e);
-      this.toast('生成失败');
-    } finally {
-      wx.hideLoading();
-    }
-  },
 
   buildHighlight(c, s, opts = {}) {
     if (!c || !s) return null;
@@ -13131,15 +12493,7 @@ const PAGE_OPTS = {
     const S = this.S;
     S.posterType = type;
     let data = null;
-    if (type === 'draw') {
-      if (!S.draw) { this.toast('请先抽一张卡'); return; }
-      const s = S.sets.find(x => x.id === S.draw.sid);
-      data = this.buildHighlight(S.draw.card, s, {
-        idx: S.draw.idx,                              // ← 显式传 idx
-        no: `No.${pad2(S.draw.idx + 1)} / ${s.pool.length}`,
-        slogan: '万物皆可抽一签',
-      });
-    } else if (type === 'memorial') {
+    if (type === 'memorial') {
       const d = (e && e.currentTarget && e.currentTarget.dataset) || {};
       data = this.buildMemorialPoster({ sid: d.sid != null ? Number(d.sid) : undefined });
     } else if (type === 'card') {
@@ -13258,19 +12612,6 @@ const PAGE_OPTS = {
     });
   },
 
-  openPosterDemo() {
-    const S = this.S;
-    S.posterType = 'demo';
-    S.posterCtx = null;
-    const c = { w: '晚霞', b: '遇见一场鎏金晚霞，像是天空送给今天的礼物。' };
-    const s = {
-      title: '生活中的微小确幸', covT: '生活中的微小确幸', creator: '小鱼',
-      count: 12, pool: [c], signatureIdx: 0, signatureNote: '这是我最想送你的一张。', user: null,
-    };
-    const data = this.buildHighlight(c, s, { no: 'No. 003 / 012', slogan: '「做点小事，慢慢收集。」' });
-    S.posterExport = data;
-    this.setData({ poster: Object.assign({ show: true, booklet: false, ratio: '34' }, data) });
-  },
 
   hidePoster() {
     this.setData({ 'poster.show': false });
@@ -13330,42 +12671,11 @@ const PAGE_OPTS = {
   /* ──────────────────────────────────────────────────────────
      演示工具
      ────────────────────────────────────────────────────────── */
-  demoEmptySet() {
-    const S = this.S;
-    const s = S.sets.find(x => x.id === 14);
-    if (!s) { this.toast('演示数据里没有找到「云的图鉴」'); return; }
-    if (!s.user) s.user = { drawn: 0, got: [] };
-    const u = s.user;
-    u.drawn = s.count;
-    u.got = s.pool.map((_, i) => i);
-    const now = Date.now();
-    u.drawnLog = s.pool.map((_, i) => {
-      const d = new Date(now - (s.pool.length - 1 - i) * 86400000);
-      return {
-        idx: i,
-        date: `${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`,
-        ts: d.getTime(),
-      };
-    });
-    u.todayDrawn = false;
-    u.todayIdx = null;
-    u.recs = {
-      0: { img: '', note: '下班路上真的抬头看了，积云像棉花糖。', date: '11月8日' },
-      3: { img: '', note: '雨云压得很低，带了伞，没用上。', date: '11月11日' },
-      6: { img: '', note: '查了珠母云的图，想亲眼看一次。', date: '11月12日' },
-    };
-    this.toast('已快进：「云的图鉴」8 张全收集 · 3 枚邮戳');
-    this.renderHome();
-    this.renderSubs();
-    this.renderMe();
-    this.openDone(s.id);
-  },
 
 
   /* D5：收益基类最小 no-op；实际逻辑在 d4/d5 override */
   renderIncome() {},
   doWithdraw() {},
-  doArrive() {},
 };
 
 /* ═══════════ D3 · 覆盖：导航 / getFeed / 互动 / 周记 ═══════════ */
@@ -13383,7 +12693,6 @@ const overrides = {
   },
 
   openSetById(id, from) {
-    this.S.cameFrom = from || 'home';
     this.S.shareSid = null;
     this.S.cur = Number(id);
     this._setRecTab = 'related';
@@ -13431,10 +12740,8 @@ const overrides = {
   openAuthorPage(e) {
     const d = e.currentTarget.dataset;
     this.S.author = d.name;
-    this.S.authorFrom = d.from || 'home';
     this.go('author');
   },
-  openDemo() { this.go('demo'); },
   goSetView(id) { if (id != null) this.S.cur = id; this.go('set'); },
   backToCreate() { this.go('create'); },
   backToHome() { this.go('home'); },
@@ -13444,12 +12751,10 @@ const overrides = {
     const s = this.S.sets.find(x => x.id === sid);
     if (!s) return;
     this.S.cur = sid;
-    this.S.cameFrom = from || 'cards';
     if (setVM(s).act === 'draw') this.startDraw(sid);
     else this.goSetView(sid);
   },
   goSubsView(sid, from) {
-    this.S.cameFrom = from || 'cards';
     this.goSetView(sid);
   },
 
@@ -13705,12 +13010,11 @@ const d4Overrides = {
 
 
   retryBoot() {
-    this.setData({ bootError: false });
-    core.ensureBoot().then(() => this.__renderSelf())
-      .catch(() => this.setData({ bootError: true }));
+    this.setData({ booting: true, bootError: false });
+    core.ensureBoot().then(() => { this.__renderSelf(); this.setData({ booting: false }); })
+      .catch(() => this.setData({ bootError: true, booting: false }));
   },
 
-  /* ── 物理返回替代 cameFrom ── */
   goSetView(id) {
     if (id != null) this.S.cur = id;
     const stack = typeof getCurrentPages === 'function' ? getCurrentPages() : [];
@@ -13742,12 +13046,10 @@ const d4Overrides = {
     const s = this.S.sets.find(x => x.id === sid);
     if (!s) return;
     this.S.cur = sid;
-    this.S.cameFrom = from || 'cards';
     if (setVM(s).act === 'draw') this.startDraw(sid);
     else this.go('set');
   },
   goSubsView(sid, from) {
-    this.S.cameFrom = from || 'cards';
     if (sid != null) this.S.cur = sid;
     this.go('set');
   },
@@ -13762,7 +13064,7 @@ const d4Overrides = {
     return overrides.renderSubs.call(this);
   },
   renderCraft() {
-    if (!['create', 'demo'].includes(this.__page)) return;
+    if (this.__page !== 'create') return;
     PAGE_OPTS.renderCraft.call(this);
   },
   renderMe() {
@@ -13864,11 +13166,6 @@ const d4Overrides = {
     }
   },
 
-  doArrive() {
-    const dbg = getApp().__apiDebug;
-    if (dbg && dbg.arrive) dbg.arrive();
-    api.getIncome().then(d => { this.S.incomeData = d; this.renderIncome(); }).catch(() => {});
-  },
 
   refreshIncome() {
     return api.getIncome().then(d => { this.S.incomeData = d; }).catch(() => {});
@@ -13901,7 +13198,6 @@ const d5Overrides = {
     else if (p === 'edit') { if (S.rv) this.renderReview(); else if (S.ed) this.renderEdit(); }
     else if (p === 'income') this.renderIncome();
     else if (p === 'author' && S.author) this.renderAuthor();
-    else if (p === 'demo') this.renderCraft();
   },
 
   renderMap() {
@@ -14008,7 +13304,6 @@ const d5Overrides = {
   edDelCard() { PAGE_OPTS.edDelCard.apply(this, arguments); this._saveDrafts(); },
   applyCover() { PAGE_OPTS.applyCover.apply(this, arguments); this._saveDrafts(); },
   clearCover() { PAGE_OPTS.clearCover.apply(this, arguments); this._saveDrafts(); },
-  resetMode() { PAGE_OPTS.resetMode.apply(this, arguments); this._saveDrafts(); },
 
   async tryPublish() {
     const S = this.S;
@@ -14083,8 +13378,12 @@ Object.assign(page, {
   onLoad(options) {
     this.S = core.getS(); // 每页第一行，必写
     core.ensureBoot()
-      .then(() => { this.renderHome(); this.handleLaunchOptions(options); })
-      .catch(() => this.setData({ bootError: true }));
+      .then(() => {
+      this.renderHome();
+      this.handleLaunchOptions(options);
+      this.setData({ booting: false });
+    })
+      .catch(() => this.setData({ bootError: true, booting: false }));
   },
   onShow(options) {
     if (!this.S) return;

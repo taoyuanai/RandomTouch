@@ -10,8 +10,8 @@ Object.assign(page, {
       setTimeout(() => this.toast('欢迎回来 · 今天的卡到了'), 400);
     }
     core.ensureBoot()
-      .then(() => this.renderSubs())
-      .catch(() => this.setData({ bootError: true }));
+      .then(() => { this.renderSubs(); this.setData({ booting: false }); })
+      .catch(() => this.setData({ bootError: true, booting: false }));
   },
   onShow() {
     if (!this.S) return;

@@ -1,5 +1,5 @@
 /* services/api.js — 页面唯一数据出口。页面只许 require 这里。 */
-const { USE_MOCK } = require('./config.js');
+const { USE_MOCK, DEBUG } = require('./config.js');
 
 const impl = USE_MOCK
   ? require('./mock/index.js')
@@ -32,5 +32,5 @@ module.exports = {
   uploadImage: impl.uploadImage,
   reportRemindAuth: impl.reportRemindAuth,
   track: impl.track,
-  __debug: impl._debug || null, // 仅 mock 存在；上线构建剥离
+  __debug: (DEBUG && impl._debug) || null, // 仅 mock + DEBUG；提审前关
 };

@@ -1,0 +1,66 @@
+<!-- D6 · 卡集弹层：pay / comments（set/draw） -->
+<!-- ═══════════════════ 付费墙 ═══════════════════ -->
+  <view class="modal {{pay.show ? 'show' : ''}}" id="payModal">
+    <view class="sheet bottom-sheet">
+      <view class="modal-kind">解 锁 卡 集</view>
+      <view class="modal-title">{{pay.title}}</view>
+      <view class="t-p modal-line">{{pay.line}}</view>
+      <view class="t-p modal-body">{{pay.body}}</view>
+      <view class="modal-meta">一次解锁，永久有效 · 虚拟商品，解锁后不支持退款</view>
+      <view class="modal-actions">
+        <button class="cta solid" disabled="{{pay.paying}}" bindtap="doUnlock">{{pay.payText}}</button>
+        <button class="ghost" bindtap="closePay">再想想</button>
+      </view>
+    </view>
+  </view>
+
+  
+
+<!-- ═══════════════════ 签友留言 ═══════════════════ -->
+  <view class="modal {{commentsSheet.show ? 'show' : ''}}" id="commentsModal">
+    <view class="sheet comments-sheet">
+      <view class="cs-head">
+        <view class="cs-head-txt">
+          <view class="cs-kicker">签 友 留 言</view>
+          <view class="cs-title">{{commentsSheet.title}}</view>
+        </view>
+        <button class="close-btn cs-close" bindtap="closeComments">✕</button>
+      </view>
+
+      <scroll-view class="cs-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+        <view class="cs-empty" wx:if="{{!commentsSheet.items.length}}">
+          <view class="cs-empty-stamp">签</view>
+          <view class="cs-empty-t">还没有人留言</view>
+          <view class="cs-empty-s">第一个说话的人，会被看见。</view>
+        </view>
+        <view class="cs-item" wx:for="{{commentsSheet.items}}" wx:key="id">
+          <view class="cs-avatar">{{item.avatar}}</view>
+          <view class="cs-main">
+            <view class="cs-meta">
+              <text class="cs-name">{{item.name}}</text>
+              <text class="cs-badge" wx:if="{{item.creator}}">做卡人</text>
+              <text class="cs-time">{{item.time}}</text>
+            </view>
+            <view class="cs-text">{{item.text}}</view>
+          </view>
+        </view>
+      </scroll-view>
+
+      <view class="cs-compose" wx:if="{{commentsSheet.canComment}}">
+        <textarea class="cs-textarea" value="{{commentsSheet.draft}}" maxlength="200"
+                  auto-height show-confirm-bar="{{false}}" cursor-spacing="24"
+                  bindinput="onCommentInput"
+                  placeholder="写下你抽到这张卡时，想到的那件小事…"></textarea>
+        <view class="cs-compose-foot">
+          <text class="cs-counter">{{commentsSheet.draftLen}}/200</text>
+          <button class="cs-send {{commentsSheet.draftLen && !commentsSheet.sending ? 'on' : ''}}" bindtap="submitComment">{{commentsSheet.sending ? '发送中…' : '发送'}}</button>
+        </view>
+      </view>
+      <view class="cs-locked" wx:else>
+        <view class="cs-lock-t">抽过这张卡集，就可以留一句话。</view>
+        <button class="cs-lock-btn" hover-class="sp-social-press" bindtap="goDrawFromComments">去抽今天的卡</button>
+      </view>
+    </view>
+  </view>
+
+  

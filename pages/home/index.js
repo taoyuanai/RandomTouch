@@ -6,8 +6,12 @@ Object.assign(page, {
   onLoad(options) {
     this.S = core.getS(); // 每页第一行，必写
     core.ensureBoot()
-      .then(() => { this.renderHome(); this.handleLaunchOptions(options); })
-      .catch(() => this.setData({ bootError: true }));
+      .then(() => {
+      this.renderHome();
+      this.handleLaunchOptions(options);
+      this.setData({ booting: false });
+    })
+      .catch(() => this.setData({ bootError: true, booting: false }));
   },
   onShow(options) {
     if (!this.S) return;

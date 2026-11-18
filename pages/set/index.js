@@ -8,15 +8,14 @@ Object.assign(page, {
     const q = (options && (options.query || options)) || {};
     if (q.sid) {
       this.S.shareSid = q.nav ? null : Number(q.sid);
-      this.S.cameFrom = 'home';
       this.S.cur = Number(q.sid);
       this._setRecTab = 'related';
     }
     if (this.S.cur == null) { wx.switchTab({ url: '/pages/home/index' }); return; }
     this.setData({ statusBarHeight: 0, navTop: 0 });
     core.ensureBoot()
-      .then(() => this.renderSetPage())
-      .catch(() => this.setData({ bootError: true }));
+      .then(() => { this.renderSetPage(); this.setData({ booting: false }); })
+      .catch(() => this.setData({ bootError: true, booting: false }));
   },
   onShow() {
     if (!this.S) return;

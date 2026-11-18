@@ -1,9 +1,6 @@
 <view class="phone" style="--statusbar:0px;--navtop:0px">
 <view class="page" id="page-create">
-      <view class="hm-empty" wx:if="{{bootError}}" style="padding:64px 24px 20px">
-        <view class="hm-empty-text">内容加载失败，检查一下网络</view>
-        <button class="hm-empty-btn" hover-class="hm-press" bindtap="retryBoot">重新加载</button>
-      </view>
+<include src="/templates/m-base.wxml"/>
 
       <view id="craftBody">
         <view class="empty" wx:if="{{craft.empty}}">
@@ -55,10 +52,5 @@
 
     
 
-<!-- ═══════════════════ 轻提示 ═══════════════════ -->
-  <view class="toast {{toastShow ? 'show' : (toastHide ? 'hide' : '')}}" wx:if="{{toastMsg}}">
-    <text>{{toastMsg}}</text>
-    <view class="toast-progress" wx:if="{{toastShow}}"><view class="t-i"></view></view>
-  </view>
 
 </view>

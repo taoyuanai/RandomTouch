@@ -5,16 +5,14 @@
 「今日做点小事」微信小程序：每日抽卡 + 盖邮戳记录 + 集齐装订。
 当前 Phase 1：前端先行，后端冻结。一切数据走 services/api.js → mock。
 
-> 架构提示：D5 起为**多页原生小程序**（4 tab + set/draw/map/edit/income/author/demo），
+> 架构提示：D5 起为**多页原生小程序**（4 tab + set/draw/map/edit/income/author），
 > S 由 lib/core.js 全局单例共享；页面只保留生命周期与极少量私有方法。
 
 ## 铁律（违反任何一条 = 返工，无例外）
 
 1. 页面/组件只允许 `const api = require('../../services/api.js')`。
    禁止：wx.request、wx.cloud.callFunction、直接 require mock/store
-   **过渡例外**：D2-D3 已完成 首页/订阅/创作/我的 + 抽卡/解锁/点赞/留言 的 api 迁移；
-   其余 view（set 页的 seed 社交/粉丝、edit/income/author/demo）暂直连 `data.js`，
-   按 D4-D6 逐 view 迁移，迁移完成的 view 必须只走 api；D6 前删除本例外。
+   D6 起全部页面迁移完成，无过渡例外。
 2. 迁移页面时**类名一个不改**（全部样式挂在类名上）
 3. 事件绑定名与原实现保持一致（bindtap="openSet" 等）
 4. posterKit/ 只调用，不修改内部
@@ -36,8 +34,7 @@
 
 ## 过渡期规则（D2-D6）
 
-- 存量 seed 直引（CATS/CRAFT/FANS/SOCIAL_SEED/COMMENTS_SEED/PLATFORM_INCOME/TXN_SEED）
-  在各页迁移日移除；新代码禁止新增任何 seed/mock 直引
+- 客户端零 seed 直引；mock fixture 只允许在 services/mock/ 内。新代码禁止新增任何 seed/mock 直引
 - S.activity 为临时缓存（见 _afterDrawnApi 内 TODO(D3)），renderSubs 迁 getFeed 后删除
 - 预览 html 从 D2 起只作视觉基准，不再维护业务逻辑
 
@@ -64,3 +61,7 @@
 - `getApp().__apiDebug.reset()`               重置种子数据
 
 > D1 验收也可直接用 `getApp().__api`（app.js 已暴露），避免控制台 require 路径问题。
+
+12. 提审前 checklist：USE_MOCK=false / DEBUG=false / real/index.js 完成 /
+    grep 无 demo 残留 / 全量烟测
+13. 弹层新增规则：≥2 页复用 → templates/m-*.wxml；单页 → 留页内

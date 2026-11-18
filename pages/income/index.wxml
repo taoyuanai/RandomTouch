@@ -1,10 +1,7 @@
 <view class="phone" style="--statusbar:0px;--navtop:0px">
   <view class="screen">
 <view class="page" id="page-income">
-  <view class="hm-empty" wx:if="{{bootError}}" style="padding:64px 24px 20px">
-    <view class="hm-empty-text">内容加载失败，检查一下网络</view>
-    <button class="hm-empty-btn" hover-class="hm-press" bindtap="retryBoot">重新加载</button>
-  </view>
+<include src="/templates/m-base.wxml"/>
 
       <view id="incomeBody">
         <view class="panel" style="text-align:center">
@@ -24,7 +21,6 @@
           <view style="margin-top:var(--space-3)">
             <button wx:if="{{income.canWithdraw}}" class="cta solid" bindtap="doWithdraw">{{income.withdrawBtn}}</button>
             <button wx:else class="cta" disabled style="opacity:0.5">{{income.withdrawBtn}}</button>
-            <button class="ghost" wx:if="{{income.hasPending}}" style="margin-top:var(--space-2)" bindtap="doArrive">（演示）提现已到账</button>
           </view>
           <view class="t-p draw-tail" style="margin-top:var(--space-3)">提现 1–3 个工作日到账</view>
         </view>
@@ -72,10 +68,5 @@
     <!-- ═══════════════════ 创作者主页 ═══════════════════ -->
       </view>
 
-<!-- ═══════════════════ 轻提示 ═══════════════════ -->
-  <view class="toast {{toastShow ? 'show' : (toastHide ? 'hide' : '')}}" wx:if="{{toastMsg}}">
-    <text>{{toastMsg}}</text>
-    <view class="toast-progress" wx:if="{{toastShow}}"><view class="t-i"></view></view>
-  </view>
 
 </view>

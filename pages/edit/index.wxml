@@ -1,6 +1,7 @@
 <view class="phone" style="--statusbar:0px;--navtop:0px">
   <view class="screen">
 <view class="page" id="page-edit">
+<include src="/templates/m-base.wxml"/>
 
       <view id="editBody">
         <block wx:if="{{edit.mode === 'edit'}}">
@@ -122,8 +123,6 @@
             </view>
           </view>
           <view style="margin-top:16px">
-            <button class="ghost" bindtap="passReview">（演示）通过审核，立即上架</button>
-            <view class="t-p tiny">真实环境里，这一步由平台审核完成。</view>
           </view>
         </block>
       </view>
@@ -175,10 +174,5 @@
   </view>
 
   
-<!-- ═══════════════════ 轻提示 ═══════════════════ -->
-  <view class="toast {{toastShow ? 'show' : (toastHide ? 'hide' : '')}}" wx:if="{{toastMsg}}">
-    <text>{{toastMsg}}</text>
-    <view class="toast-progress" wx:if="{{toastShow}}"><view class="t-i"></view></view>
-  </view>
 
 </view>
