@@ -89,9 +89,18 @@ pageSrc = pageSrc.replace(
   "const posterKit = require('../../utils/posterKit/export.js');",
   'const posterKit = window.__POSTER_KIT__;'
 );
+pageSrc = pageSrc.replace(
+  "const Security = require('../../utils/security.js');",
+  'const Security = window.__SECURITY__;'
+);
 if (/require\s*\(/.test(pageSrc)) {
   throw new Error('index.js 仍包含 require()，无法在浏览器中直接运行');
 }
+
+const securityBundle =
+  '(function(){var module = { exports: {} };\n' +
+  read(path.join(ROOT, 'utils/security.js')) +
+  '\nwindow.__SECURITY__ = module.exports;\n})();';
 
 // 把 posterKit 的四个 CommonJS 模块打成一个浏览器可用的包
 function bundlePosterKit() {
@@ -165,6 +174,10 @@ window.__AST__ = ${JSON.stringify(ast)};
 
 <script>
 ${seedBundle}
+</script>
+
+<script>
+${securityBundle}
 </script>
 
 <script>

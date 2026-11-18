@@ -2,6 +2,7 @@
 // 移植自远程仓库 static/day_small_things_v2.html（V2.3c 原型）
 const seed = require('../../data.js');
 const posterKit = require('../../utils/posterKit/export.js');
+const Security = require('../../utils/security.js');
 
 function getViewport() {
   try {
@@ -363,7 +364,7 @@ Page({
     pub: { show: false },
     nudge: { show: false },
     record: { show: false, note: '', img: '', hasImg: false, count: 0 },
-    commentsSheet: { show: false, sid: null, title: '', items: [], count: 0, canComment: false, draft: '', draftLen: 0 },
+    commentsSheet: { show: false, sid: null, title: '', items: [], count: 0, canComment: false, draft: '', draftLen: 0, sending: false },
     rulesSheet: { show: false },
     remindSheet: { show: false, enabled: false, time: '21:00', times: [], btn: '', meta: '' },
     poster: { show: false, kind: 'highlight', ratio: '34' },
@@ -1062,7 +1063,7 @@ Page({
 
     /* ── 公开互动：心动 + 留言 ── */
     const soc = this._socialOf(s);
-    const commentN = this._commentsOf(s).length;
+    const commentN = this._commentItems(s).length;
 
     this.setData({
       setPage: {
@@ -1310,9 +1311,11 @@ Page({
   },
 
   _commentItems(s) {
-    return this._commentsOf(s).map(c => Object.assign({}, c, {
-      avatar: c.avatar || (c.name || '签').slice(0, 1),
-    }));
+    return this._commentsOf(s)
+      .filter(c => !c.status || c.status === 'visible')
+      .map(c => Object.assign({}, c, {
+        avatar: c.avatar || (c.name || '签').slice(0, 1),
+      }));
   },
 
   /* 订阅且有抽卡记录（含试抽）才可留言 */
@@ -1394,8 +1397,9 @@ Page({
     this.setData({ 'commentsSheet.draft': draft, 'commentsSheet.draftLen': draft.length });
   },
 
-  submitComment() {
+  async submitComment() {
     const sheet = this.data.commentsSheet;
+    if (sheet.sending) return;
     const text = (sheet.draft || '').trim();
     if (!text) {
       this.toast('写一句话再发送');
@@ -1403,6 +1407,21 @@ Page({
     }
     const s = this.S.sets.find(x => x.id === sheet.sid);
     if (!s) return;
+    this.setData({ 'commentsSheet.sending': true });
+
+    let status = 'visible';
+    try {
+      const r = await Security.commentCreate(text);
+      status = (r && r.status) || 'visible';
+    } catch (e) {
+      status = 'pending';                 // 公开内容 fail-closed
+    }
+    if (status === 'rejected') {
+      this.setData({ 'commentsSheet.sending': false });
+      this.toast('这句话发不出去 · 换个说法试试');
+      return;
+    }
+
     const list = this._commentsOf(s);
     list.unshift({
       id: 'c' + Date.now(),
@@ -1411,12 +1430,14 @@ Page({
       text,
       time: '刚刚',
       creator: s.creator === ME,
+      status,
+      sec: { text: status === 'visible' ? 'pass' : 'review' },
     });
     this.S.commentDrafts[s.id] = '';
     const items = this._commentItems(s);
     const patch = {
       commentsSheet: Object.assign({}, sheet, {
-        items, count: items.length, draft: '', draftLen: 0,
+        items, count: items.length, draft: '', draftLen: 0, sending: false,
       }),
     };
     if (this.data.setPage && this.data.setPage.exists) {
@@ -1429,7 +1450,7 @@ Page({
     this.setData(patch);
     if (wx.hideKeyboard) wx.hideKeyboard();
     if (wx.vibrateShort) wx.vibrateShort({ type: 'light' });
-    this.toast('已留下这句话');
+    this.toast(status === 'visible' ? '已留下这句话' : '收到了 · 通过后会显示出来');
   },
 
   goDrawFromComments() {
@@ -1885,11 +1906,13 @@ Page({
       stampAnim: false,
       rec: rec ? {
         img: rec.img || '',
+        imgFileID: rec.imgFileID || '',
         note: rec.note || '',
         date: rec.date || '',
         stampDate: stampDate(rec.date),
         count: recCount(s.user, idx),
         resident: s.type === 'resident',
+        sec: rec.sec || null,
       } : null,
     };
   },
@@ -2632,14 +2655,52 @@ Page({
     return errs;
   },
 
-  tryPublish() {
+  async tryPublish() {
     const S = this.S;
-    if (!S.ed) return;
+    if (!S.ed || S.ed.secChecking) return;
     const errs = this.validateCraft(S.ed);
     if (errs.length) {
       this.setData({ check: { show: true, list: errs } });
       return;
     }
+
+    if (!S.ed.secChecked) {
+      S.ed.secChecking = true;
+      let coverFileID = '';
+      try { coverFileID = await Security.uploadImage(S.ed.coverImage); } catch (e) { /* mock / 上传失败 */ }
+      if (S.ed.coverImage && Security.cloudReady() && !coverFileID) {
+        S.ed.secChecking = false;
+        this.toast('封面安全校验暂不可用 · 请稍后再试');
+        return;
+      }
+      let r;
+      try {
+        r = await Security.setSubmit({
+          title: S.ed.title,
+          intro: S.ed.intro,
+          pool: S.ed.pool,
+          signatureNote: S.ed.signatureNote || '',
+          coverFileID,
+        });
+      } catch (e) {
+        S.ed.secChecking = false;
+        this.toast('内容安全校验暂不可用 · 请稍后再试');
+        return;
+      }
+      S.ed.secChecking = false;
+      if (r && (r.status === 'machine_reject')) {
+        this.toast('内容暂时无法公开展示 · 请检查文案或封面后重新提交');
+        return;
+      }
+      if (r && r.error) {
+        this.toast('内容安全校验暂不可用 · 请稍后再试');
+        return;
+      }
+      S.ed.secChecked = true;
+      S.ed.machineFlag = !!(r && r.machineFlag);
+      S.ed.coverFileID = coverFileID;
+    }
+
     if (S.ed.signatureIdx < 0 && !S.ed.signatureNudgeSkipped) {
       this.setData({ nudge: { show: true } });
       return;
@@ -2687,6 +2748,7 @@ Page({
     const i = S.craft.drafts.indexOf(S.ed);
     if (i > -1) S.craft.drafts.splice(i, 1);
     S.ed.status = 'reviewing';
+    S.ed.review = { status: 'submitted', machineFlag: !!S.ed.machineFlag };
     S.ed.submitted = todayMD();
     S.craft.reviewing.push(S.ed);
     S.ed = null;
@@ -2762,6 +2824,7 @@ Page({
       signatureIdx: sigPos,
       signatureNote: sigPos >= 0 ? (d.signatureNote || '') : '',
       signaturePublic: !!d.signaturePublic,
+      review: { status: 'approved', machineFlag: !!d.machineFlag },
       totalDrawn: 0, buyers: 0, earn: 0,
     };
   },
@@ -3116,10 +3179,10 @@ Page({
     this.setData({ 'record.show': false });
   },
 
-  saveStamp() {
+  async saveStamp() {
     const S = this.S;
     const rc = S.rc;
-    if (!rc) return;
+    if (!rc || S.rcSaving) return;
     const s = S.sets.find(x => x.id === rc.sid);
     if (!s) return;
     const note = (this.data.record.note || '').trim().slice(0, 50);
@@ -3128,12 +3191,26 @@ Page({
       this.toast('写一句话，或选一张图，再盖邮戳。');
       return;
     }
+    S.rcSaving = true;
+    let imgFileID = '';
+    let sec = { text: 'pending', media: img ? 'pending' : 'none', traceId: '' };
+    try {
+      if (img) imgFileID = await Security.uploadImage(img);
+      const r = await Security.stampCreate(note, imgFileID);
+      if (r && r.sec) sec = r.sec;
+      if (img && !imgFileID && Security.cloudReady()) sec.media = 'pending';
+    } catch (e) {
+      // 私有内容 fail-open：先保存，海报闸门会拦住未过审图片
+      sec = { text: 'pending', media: img ? 'pending' : 'none', traceId: '' };
+    }
+    S.rcSaving = false;
+
     if (!s.user) {
       s.user = { drawn: 0, trialUsed: 0, unlocked: true, todayDrawn: true, got: [], recs: {}, todayIdx: rc.idx };
     }
     const u = s.user;
     if (!u.recs) u.recs = {};
-    const rec = { img, note, date: getTodayShort() };
+    const rec = { img, imgFileID, note, date: getTodayShort(), sec };
     if (s.type === 'resident') {
       const arr = Array.isArray(u.recs[rc.idx]) ? u.recs[rc.idx] : (u.recs[rc.idx] ? [u.recs[rc.idx]] : []);
       arr.push(rec);
@@ -3520,6 +3597,15 @@ Page({
       });
     }
     if (!data) return;
+    if (data.rec) {
+      const sec = data.rec.sec || {};
+      if (sec.text === 'pending') { this.toast('回信安全校验中 · 稍等片刻再分享'); return; }
+      if (sec.text === 'risky') { this.toast('这条回信暂不支持生成海报'); return; }
+      if (data.rec.img) {
+        if (sec.media === 'pending') { this.toast('照片安全校验中 · 稍等片刻再分享'); return; }
+        if (sec.media === 'risky') { this.toast('这张照片暂不支持生成海报'); return; }
+      }
+    }
     S.posterExport = data;                            // ← 供 savePoster 真实导出
     this.setData({ poster: Object.assign({ show: true, booklet: !!data.rec, ratio: '34' }, data) });
   },
@@ -3536,6 +3622,12 @@ Page({
     S.posterType = 'booklet';
     const s = S.sets.find(x => x.id === S.cur);
     if (!s) return;
+    const u0 = s.user || {};
+    const blocked = (u0.got || []).some(i => {
+      const r0 = getRec(u0, i);
+      return !!(r0 && r0.img && r0.sec && (r0.sec.media === 'pending' || r0.sec.media === 'risky'));
+    });
+    if (blocked) { this.toast('有照片还在安全校验中 · 稍后再翻开纪念册'); return; }
     const full = variant === 'full';
     const u = s.user || {};
     const got = u.got || [];

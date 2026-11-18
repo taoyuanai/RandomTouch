@@ -33,6 +33,25 @@
 - **海报 / 纪念册**：单卡高亮海报（题眼金章 / 普通卡无概率视觉）、抽空纪念海报、双档纪念册（基础版 / 满页纪念版）。
 - **组件总览（dev-only）**：题眼金章、签名海报与原型控制台。
 
+## 内容安全 P0-1（当前为代码脚手架）
+
+- `utils/security.js`：客户端安全调用封装；`CLOUD_ENV` 初始为空，未配置时走 mock，预览 demo 不受影响
+- `app.js`：云环境就绪时执行 `wx.cloud.init` + `wx.login` + `auth` 云函数，获取 openid
+- `cloudfunctions/auth`：返回云函数上下文 openid
+- `cloudfunctions/sec`：`msgSecCheck v2` 文本检测、`mediaCheckAsync v2` 图片送审、`sec_traces` 留痕、`status` 查询
+- `cloudfunctions/sec-callback`：接收 `wxa_media_check` 推送并回写审核状态
+- 已接入：留言提交、邮戳文字/照片、卡集批量文本（含题眼附言）/封面、带图海报与纪念册闸门
+- 私有邮戳 fail-open：先保存、私看不阻塞；待审/风险照片在公开海报前拦截
+- 留言 fail-closed：未通过/待审内容不进入公开列表
+- 卡集提交：机审 `risky` 驳回，`review` 进入人工队列，生产环境应移除「演示通过审核」按钮
+
+上线前需要：
+1. 在 `utils/security.js` 填写真实 `CLOUD_ENV`
+2. 在云开发控制台创建 `sec_traces` 集合
+3. 配置消息推送事件 `wxa_media_check` 到 `sec-callback`
+4. 在公众平台完成用户隐私保护指引声明（相册/摄像头/保存相册/裁剪）
+5. 用真实模板与云环境联调文本与图片样本
+
 ## 原型控制台入口
 
 原网页有一个外部 devbar；小程序里没有手机壳外的空间，因此把入口藏在了：

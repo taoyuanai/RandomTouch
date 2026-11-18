@@ -67,8 +67,8 @@ function buildHighlightData(set, card, opts = {}) {
     setInfo: `@${set.creator || ''} · ${count} 张卡${collect ? ` · 已点亮 ${gotN}/${count}` : ''}`,
     slogan: opts.slogan || '万物皆可抽一签',
     rec: rec ? {
-      img: rec.img || '', note: rec.note || '',
-      date: rec.date || '', stampDate: stampDate(rec.date),
+      img: rec.img || '', imgFileID: rec.imgFileID || '', note: rec.note || '',
+      date: rec.date || '', stampDate: stampDate(rec.date), sec: rec.sec || null,
     } : null,
     qrSrc: opts.qrSrc || '',
   };
