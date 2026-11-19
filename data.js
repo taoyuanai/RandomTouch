@@ -4,7 +4,7 @@ const DEMO = {
   mode:"rich", cat:"全部", sort:"hot",
   sets:[
     { id:1, title:"醒来觉得甚是爱你", covT:"醒来觉得甚是爱你", covS:"朱生豪情书二十四签", cover:"c1",
-      cat:"reading", type:"collect", price:0, trial:0, count:24, signatureIdx:20, signatureNote:"", signaturePublic:false,
+      cat:"bond", type:"collect", price:0, trial:0, count:24, signatureIdx:20, signatureNote:"", signaturePublic:false,
       creator:"沈鱼白", heat:12034, date:"10-28",
       intro:"从朱生豪写给宋清如的五百多封信里，摘出二十四个词。每天抽一个，像收到一封很小的信。",
       pool:[
@@ -95,7 +95,7 @@ const DEMO = {
         {w:"天际线",b:"看天际线的时候，城市也在看你。"}],
       user:{drawn:1,todayDrawn:false,got:[0]} },
     { id:12, title:"睡前一首诗", covT:"睡前一首诗", covS:"枕上八行", cover:"c5",
-      cat:"reading", type:"collect", price:0, trial:0, count:8, signatureIdx:7, signatureNote:"", signaturePublic:false,
+      cat:"life", type:"collect", price:0, trial:0, count:8, signatureIdx:7, signatureNote:"", signaturePublic:false,
       creator:"沈鱼白", heat:9800, date:"11-08",
       intro:"睡前抽一行诗，像给今天盖一个邮戳。",
       pool:[
@@ -109,7 +109,7 @@ const DEMO = {
         {w:"银河",b:"银河在天上，你在我心上。"}],
       user:null },
     { id:13, title:"心理防御机制图鉴", covT:"心理防御机制图鉴", covS:"认识自己 · 八签", cover:"c6",
-      cat:"emotion", type:"collect", price:19, trial:1, count:8, signatureIdx:-1, signatureNote:"", signaturePublic:false,
+      cat:"know", type:"collect", price:19, trial:1, count:8, signatureIdx:-1, signatureNote:"", signaturePublic:false, disclaimer:"内容仅供轻松阅读，不构成专业建议",
       creator:"林医生", heat:4530, date:"09-30",
       intro:"防御机制不是缺点，是我们保护自己的方式。抽一张，看看今天你在用哪一种。",
       pool:[
@@ -123,7 +123,7 @@ const DEMO = {
         {w:"自我觉察",b:"看见自己的防御，就是改变的开始。"}],
       user:null },
     { id:14, title:"云的图鉴", covT:"云的图鉴", covS:"抬头看天 · 八签", cover:"c1",
-      cat:"nature", type:"collect", price:0, trial:0, count:8, signatureIdx:-1, signatureNote:"", signaturePublic:false,
+      cat:"walk", type:"collect", price:0, trial:0, count:8, signatureIdx:-1, signatureNote:"", signaturePublic:false,
       creator:"云朵收集者", heat:7811, date:"11-01",
       intro:"国际云图里有十属二十九类。先收集这八朵，从今天开始抬头。",
       pool:[
@@ -139,7 +139,7 @@ const DEMO = {
         recs:{0:{note:"下班路上抬头看了，积云像棉花糖。",date:"11月12日"},
           3:{note:"雨云压得很低，带了伞，没用上。",date:"11月13日"}}} },
     { id:15, title:"便利店哲学", covT:"便利店哲学", covS:"深夜食堂 · 八签", cover:"c2",
-      cat:"life", type:"collect", price:6, trial:1, count:8, signatureIdx:7, signatureNote:"", signaturePublic:false,
+      cat:"city", type:"collect", price:6, trial:1, count:8, signatureIdx:7, signatureNote:"", signaturePublic:false,
       creator:"阿茅", heat:5602, date:"10-22",
       intro:"城市里最平等的地方是便利店。八件货架上的小事，八条大城市生存哲学。",
       pool:[
@@ -153,7 +153,7 @@ const DEMO = {
         {w:"二十四小时",b:"永远亮着的灯，等晚归的人。"}],
       user:null },
     { id:3, title:"圣诞倒数", covT:"圣诞倒数", covS:"倒数二十五天", cover:"c4",
-      cat:"nature", type:"collect", price:0, count:25, trial:0, signatureIdx:3, signatureNote:"", signaturePublic:false,
+      cat:"life", type:"collect", price:0, count:25, trial:0, signatureIdx:3, signatureNote:"", signaturePublic:false,
       creator:"圣诞办事处", heat:852, date:"11-08",
       intro:"十二月第一天开始抽，抽到第 25 张那天，正好是圣诞。",
       pool:[
@@ -164,7 +164,7 @@ const DEMO = {
         {w:"雪橇",b:"铃铛一响，大人也会抬头看天。"}],
       user:null },
     { id:4, title:"律师朋友讲的三十个案例", covT:"三十个案例", covS:"李律讲给你", cover:"c5",
-      cat:"work", type:"collect", price:19, count:30, trial:1, signatureIdx:-1, signatureNote:"", signaturePublic:false,
+      cat:"know", type:"collect", price:19, count:30, trial:1, signatureIdx:-1, signatureNote:"", signaturePublic:false, disclaimer:"内容仅供轻松阅读，不构成专业建议",
       creator:"李律的案例本", heat:987, date:"10-29",
       intro:"三十个真实案例，均已脱敏改写。正面是案件名，背面是法律怎么说。不构成法律意见。",
       pool:[
@@ -232,6 +232,20 @@ const DEMO = {
         {w:"下午四点的水果",b:"一天里最清醒的时刻，配一点甜。"},
         {w:"厕所隔间的十分钟",b:"打工人的冥想室。全世界最安静的地方。"}],
       user:null, totalDrawn:623, buyers:0, earn:0 },
+    { id:17, title:"今日做点小事", covT:"今日做点小事", covS:"每天一件小事 · 八签", cover:"c2",
+      cat:"life", type:"collect", price:0, trial:0, count:8, signatureIdx:7, signatureNote:"", signaturePublic:false,
+      creator:"打工人小王", heat:0, date:"11-19",
+      intro:"每天抽一件小事，做完就盖个戳。今天也是被小事接住的一天。",
+      pool:[
+        {w:"抬头看云",b:"抬头三分钟，云不会催你。"},
+        {w:"给植物浇水",b:"顺便看看它有没有长新叶。"},
+        {w:"走一段路",b:"不赶时间的那种走。"},
+        {w:"认真吃饭",b:"放下手机，吃完这一顿。"},
+        {w:"整理桌面",b:"只收十件东西，也算开始。"},
+        {w:"给朋友发消息",b:"不用有事，想到就发。"},
+        {w:"写一句话",b:"今天值得留下的一句。"},
+        {w:"早点睡",b:"今天到此为止，明天再说。"}],
+      user:null },
     { id:16, title:"周一生存指南", covT:"周一生存指南", covS:"打工人 · 八签", cover:"c4",
       cat:"work", type:"collect", price:6, trial:1, count:8, signatureIdx:7, signatureNote:"", signaturePublic:false,
       creator:"打工人小王", heat:88, date:"11-12",

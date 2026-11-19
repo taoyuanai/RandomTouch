@@ -1,8 +1,8 @@
 /* tools/validate-content.js — 运行：node tools/validate-content.js 路径/*.json */
 const fs = require('fs');
 
-// 与 core.js HM_CATS 的 key 对齐
-const CATS = ['reading', 'life', 'emotion', 'work', 'sport', 'food', 'city', 'relation', 'nature', 'create'];
+// 与 core.js CATS 的九 key 对齐
+const CATS = ['food', 'work', 'city', 'mood', 'life', 'bond', 'muse', 'walk', 'know'];
 let bad = 0;
 
 process.argv.slice(2).forEach(f => {
@@ -20,6 +20,8 @@ process.argv.slice(2).forEach(f => {
     if (!c.b || !c.b.trim()) errs.push(`pool[${i}].b`);
   });
   if (j.signatureIdx != null && (j.signatureIdx < 0 || j.signatureIdx >= (j.pool || []).length)) errs.push('signatureIdx');
+  if (j.cat === 'know' && !(j.disclaimer && j.disclaimer.trim())) errs.push('know 需 disclaimer');
+  if (j.disclaimer && j.disclaimer.length > 20) errs.push('disclaimer 超长');
   if (errs.length) { bad++; console.log('✗', f, '→', errs.join(', ')); }
   else console.log('✓', f);
 });

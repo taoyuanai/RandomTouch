@@ -133,6 +133,7 @@ DraftPayload = { id, title, intro, type, cat, price, trial, coverImage,
 | D5 | SetPayload 的 totalDrawn/earn/buyers（D2 曾可选）转正 | 收益看板与作者页数据源 |
 | D6 | 无接口变更（saveStamp 为页面侧实现修复） | |
 | V1 | saveStamp 返回的 rec 增加可选 dateText/dayText（显示字段，additive） | 邮戳日期随记录持久化，卡背不再显示"今天" |
+| C1 | set 增加可选 disclaimer: string（≤20 字，知识类必填） | 详情页免责展示 |
 | D2 | draw 响应新增可选 `weekGoal?: {done, total, full, justFull}`；SetPayload 新增可选 `totalDrawn? / earn? / buyers?`（own 集统计） | 本周目标只有服务端能跨集聚合判定；justFull=本周刚达成，驱动一次性 toast。符合容差条款①，后端可返回 null/省略 |
 | D2 | SetPayload 新增可选 `subscribed?: boolean` | 区分「未订阅集」：progress 默认对象不应被当成订阅，否则首页/订阅页会把全部卡集算作订阅。符合容差条款① |
 | D2 | draw 失败重试复用同一 requestId | 覆盖「服务端已处理但响应丢失」：重放返回同一张卡，不丢不重 |

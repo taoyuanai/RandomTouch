@@ -83,6 +83,7 @@
             <button class="follow {{setPage.following ? 'on' : ''}}" wx:else hover-class="sb2-press" catchtap="toggleFollowSet">{{setPage.following ? '已关注' : '关注'}}</button>
           </view>
         </block>
+        <view class="sp-disclaim" wx:if="{{setPage.disclaimer}}">{{setPage.disclaimer}}</view>
 
         <!-- ③ 收集进度 -->
         <view class="panel spv2-panel" wx:if="{{setPage.prog}}">

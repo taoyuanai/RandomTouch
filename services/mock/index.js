@@ -55,6 +55,7 @@ function setPayload(s) {
     count: s.count, pool: s.pool, intro: s.intro,
     creator: s.creator, heat: s.heat, date: s.date,
     signatureIdx: s.signatureIdx, signatureNote: s.signatureNote,
+    disclaimer: s.disclaimer || '',
     own: s.creator === store.ME,
     subscribed: !!s.user,
     totalDrawn: s.totalDrawn || 0,
