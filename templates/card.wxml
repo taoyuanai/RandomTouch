@@ -28,29 +28,43 @@
 </template>
 
 <template name="cardBack">
-  <view class="cw"
+  <view class="cw {{c.photoMode ? 'cw-b' : 'cw-a'}}"
         style="--ink:{{c.ink}};--ink-line:{{c.inkLine}};--ink-faint:{{c.inkFaint}}">
     <view class="cw-frame"></view>
     <view class="cw-head">
       <text class="cw-series">{{c.series}}</text>
       <text class="cw-tag">POST CARD</text>
     </view>
-    <view class="cw-div"></view>
-    <view class="cw-main">
-      <text class="cw-print">{{c.backText}}</text>
-      <view class="cw-write">
-        <text class="cw-note">{{c.note}}</text>
+
+    <block wx:if="{{!c.photoMode}}">
+      <view class="cw-hrule"></view>
+      <view class="cw-slotrow">
+        <view class="cw-slot" wx:if="{{!c.stamped}}"><text class="cw-slot-t">待盖戳</text></view>
+        <view wx:if="{{c.stamped}}" class="cw-pmk {{c.stampAnim ? 'pop' : ''}}">
+          <text class="cw-pmk-date">{{c.pmkDate}}</text>
+          <text class="cw-pmk-day">{{c.pmkDay}}</text>
+        </view>
       </view>
-    </view>
-    <view class="cw-post">
-      <view class="cw-stamp">
-        <image wx:if="{{c.photo}}" class="cw-stamp-img" src="{{c.photo}}" mode="aspectFill"/>
-        <text wx:else class="cw-stamp-empty">待盖戳</text>
+      <view class="cw-in"><text class="cw-in-t">{{c.backText}}</text></view>
+      <view class="cw-mid">
+        <view class="cw-mid-l"></view><text class="cw-mid-x">❦</text><view class="cw-mid-l"></view>
       </view>
-      <view wx:if="{{c.stamped}}" class="cw-pmk {{c.stampAnim ? 'pop' : ''}}">
-        <text class="cw-pmk-date">{{c.pmkDate}}</text>
-        <text class="cw-pmk-day">{{c.pmkDay}}</text>
+      <view class="cw-out"><text class="cw-out-t">{{c.note}}</text></view>
+    </block>
+
+    <block wx:else>
+      <view class="cw-photo">
+        <image class="cw-photo-img" src="{{c.photo}}" mode="aspectFill"/>
+        <view class="cw-pmk on-img {{c.stampAnim ? 'pop' : ''}}">
+          <text class="cw-pmk-date">{{c.pmkDate}}</text>
+          <text class="cw-pmk-day">{{c.pmkDay}}</text>
+        </view>
       </view>
-    </view>
+      <view class="cw-cap"><text class="cw-cap-t">{{c.note}}</text></view>
+      <view class="cw-src">
+        <text class="cw-src-t">{{c.backText}}</text>
+        <text class="cw-src-mark">·官方</text>
+      </view>
+    </block>
   </view>
 </template>
