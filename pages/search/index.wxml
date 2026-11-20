@@ -1,0 +1,67 @@
+<import src="/templates/common.wxml"/>
+<view class="phone" style="--statusbar:0px;--navtop:0px">
+  <view class="screen">
+    <view class="page" id="page-search">
+      <include src="/templates/m-base.wxml"/>
+
+      <view class="srch-head">
+        <view class="srch-box">
+          <image class="t-svg" src="/assets/icons/search.png" mode="aspectFit" />
+          <input class="srch-input" value="{{search.q}}" focus="{{search.focus}}"
+                 placeholder="搜索卡集、做卡人、卡面…" confirm-type="search" maxlength="30"
+                 bindinput="onSearchInput" bindconfirm="onSearchConfirm" />
+          <view wx:if="{{search.q}}" class="srch-clear" bindtap="clearSearch">×</view>
+        </view>
+        <view class="srch-cancel" hover-class="hm-press" bindtap="closeSearch">取消</view>
+      </view>
+
+      <view class="srch-body">
+        <view class="skel-list" wx:if="{{booting}}">
+          <view class="skel-book" wx:for="{{[1,2,3]}}" wx:key="*this">
+            <view class="skel skel-cover"></view>
+            <view class="skel-book-txt">
+              <view class="skel skel-line" style="width:70%"></view>
+              <view class="skel skel-line" style="width:45%"></view>
+            </view>
+          </view>
+        </view>
+
+        <block wx:elif="{{!search.q}}">
+          <view class="srch-hint">搜索卡集、做卡人，或卡面里的任意一句话。</view>
+          <view class="srch-sug-title">试试这些</view>
+          <view class="srch-sugs">
+            <view class="srch-sug" wx:for="{{search.suggestions}}" wx:key="*this"
+                  hover-class="hm-press" data-q="{{item}}" bindtap="tapSearchWord">{{item}}</view>
+          </view>
+        </block>
+
+        <block wx:elif="{{search.rows.length}}">
+          <view class="srch-meta">{{search.resultText}}</view>
+          <view id="squareList">
+            <view class="hb-book" wx:for="{{search.rows}}" wx:key="id" bindtap="openSet"
+                  data-id="{{item.id}}" data-from="search" hover-class="hb-press">
+              <view class="hb-cover" style="background:{{item.tintStyle}}">
+                <image wx:if="{{item.coverImage}}" class="hb-cover-img" src="{{item.coverImage}}" mode="aspectFill" />
+                <view class="hb-cover-wash" style="background:{{item.tintStyle}}"></view>
+                <text class="hb-no" style="color:{{item.ink}}">{{item.noText}}</text>
+                <view class="hb-label"><text class="hb-label-t">{{item.title}}</text></view>
+                <view class="hb-resident" wx:if="{{item.isResident}}">常驻</view>
+                <view class="hb-done-seal" wx:if="{{item.done}}"><text>完</text></view>
+              </view>
+              <view class="hb-meta">
+                <text class="hb-title">{{item.title}}</text>
+                <text class="hb-creator">@{{item.creator}}</text>
+              </view>
+            </view>
+          </view>
+        </block>
+
+        <view class="srch-nothing" wx:else>
+          <view class="srch-nothing-t">没有找到「{{search.q}}」</view>
+          <view class="srch-nothing-s">试试更短的关键词，或搜做卡人</view>
+          <view class="srch-nothing-clear" hover-class="hm-press" bindtap="clearSearch">清空重搜</view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

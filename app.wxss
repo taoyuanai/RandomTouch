@@ -4501,3 +4501,36 @@ letter-spacing:.02em;text-align:center}
 .cf-word.w4{gap:calc(var(--cw,240px)*.012)}
 .cf-word.w4 .cf-word-row{font-size:calc(var(--cw,240px)*.075);letter-spacing:.03em;line-height:1.55;
 color:var(--ink);font-weight:600;text-shadow:0 1px 0 rgba(255,255,255,.8)}
+
+/* ═══ 搜索页 ═══ */
+#page-search{padding-top:8px}
+.srch-head{display:flex;align-items:center;gap:12px;padding:8px 0 14px;
+  background:var(--surface-page);position:sticky;top:0;z-index:20}
+.srch-box{flex:1;display:flex;align-items:center;gap:8px;min-width:0;
+  height:42px;padding:0 12px;background:var(--surface-card);
+  border:1px solid var(--border-default);border-radius:var(--radius-full);
+  box-shadow:var(--shadow-xs);transition:all var(--duration-fast) var(--ease-default)}
+.srch-box:focus-within{border-color:var(--border-strong);box-shadow:var(--shadow-sm)}
+.srch-box .t-svg{width:18px;height:18px;flex:none}
+.srch-input{flex:1;min-width:0;height:40px;font-size:15px;color:var(--text-primary);
+  background:transparent;letter-spacing:.02em}
+.srch-clear{flex:none;width:22px;height:22px;line-height:20px;text-align:center;
+  border-radius:50%;background:var(--gray-200);color:var(--text-secondary);
+  font-size:16px;font-weight:500}
+.srch-clear:active{opacity:.65}
+.srch-cancel{flex:none;padding:8px 2px;font-size:14px;color:var(--text-secondary);letter-spacing:.05em}
+.srch-body{padding-top:4px}
+.srch-hint{font-size:13px;line-height:1.8;color:var(--text-tertiary);letter-spacing:.03em}
+.srch-sug-title{margin-top:26px;font-size:12px;color:var(--text-tertiary);letter-spacing:.12em}
+.srch-sugs{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.srch-sug{padding:7px 15px;border:1px solid var(--border-default);border-radius:var(--radius-full);
+  background:var(--surface-card);font-size:13px;color:var(--text-secondary);letter-spacing:.04em}
+.srch-sug:active{opacity:.65}
+.srch-meta{padding:2px 0 12px;font-size:12px;color:var(--text-tertiary);letter-spacing:.04em}
+.srch-nothing{padding:56px 0 24px;text-align:center}
+.srch-nothing-t{font-family:var(--font-serif);font-size:17px;color:var(--text-primary);letter-spacing:.04em}
+.srch-nothing-s{margin-top:8px;font-size:12px;color:var(--text-tertiary);letter-spacing:.03em}
+.srch-nothing-clear{display:inline-block;margin-top:20px;padding:8px 16px;
+  border:1px solid var(--border-default);border-radius:var(--radius-full);
+  font-size:13px;color:var(--text-secondary)}
+.srch-nothing-clear:active{opacity:.65}
