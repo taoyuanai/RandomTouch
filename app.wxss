@@ -1470,15 +1470,6 @@ page{
   }.panel{
     position:relative;
     overflow:hidden;
-  }.panel::before{
-    content:"";
-    position:absolute;
-    top:0;
-    left:0;
-    right:0;
-    height:3px;
-    background:linear-gradient(90deg,transparent,var(--orange-100),transparent);
-    opacity:0.6;
   }.fi{
     transition:all var(--duration-fast) var(--ease-default);
   }.fi:hover{
@@ -1530,16 +1521,7 @@ page{
     position:relative;
     overflow:hidden;
     transition:all var(--duration-fast) var(--ease-default);
-  }#page-cards .stat:hover{box-shadow:var(--shadow-sm)}#page-cards .stat::before{
-    content:"";
-    position:absolute;
-    top:0;
-    left:0;
-    right:0;
-    height:3px;
-    background:linear-gradient(90deg,transparent,var(--orange-100),transparent);
-    opacity:0.6;
-  }#page-cards .stat .t-b{
+  }#page-cards .stat:hover{box-shadow:var(--shadow-sm)}#page-cards .stat .t-b{
     font-size:26px;
     display:block;
     font-weight:var(--weight-bold);
@@ -1579,16 +1561,7 @@ page{
     position:relative;
     overflow:hidden;
     transition:all var(--duration-fast) var(--ease-default);
-  }#page-create .stat:hover{box-shadow:var(--shadow-sm)}#page-create .stat::before{
-    content:"";
-    position:absolute;
-    top:0;
-    left:0;
-    right:0;
-    height:3px;
-    background:linear-gradient(90deg,transparent,var(--orange-100),transparent);
-    opacity:0.6;
-  }#page-create .stat .t-b{
+  }#page-create .stat:hover{box-shadow:var(--shadow-sm)}#page-create .stat .t-b{
     font-size:26px;
     display:block;
     font-weight:var(--weight-bold);
@@ -1776,15 +1749,6 @@ page{
     border:1px solid var(--border-default);
     position:relative;
     overflow:hidden;
-  }#page-income .stat::before{
-    content:"";
-    position:absolute;
-    top:0;
-    left:0;
-    right:0;
-    height:3px;
-    background:linear-gradient(90deg,transparent,var(--orange-100),transparent);
-    opacity:0.6;
   }#page-income .stat .t-b{
     font-size:22px;
     display:block;
@@ -2338,10 +2302,6 @@ page{
     text-align:center;box-shadow:var(--shadow-xs);
     border:1px solid var(--border-default);
     position:relative;overflow:hidden;
-  }#page-me .stat::before{
-    content:"";position:absolute;top:0;left:0;right:0;height:3px;
-    background:linear-gradient(90deg,transparent,var(--orange-100),transparent);
-    opacity:0.6;
   }#page-me .stat .t-b{
     font-size:26px;display:block;font-weight:var(--weight-bold);
     font-variant-numeric:tabular-nums;color:var(--text-primary);
@@ -3063,21 +3023,20 @@ input, textarea, .stamp, .stamp-text, .bk-stamp{ -webkit-user-select: auto; user
    ══════════════════════════════════════════════════════════ */
 page{
   --paper:#FFFFFF;
-  --paper-page:var(--paper);  --paper-card:#FFFFFF;  --paper-deep:#F5F5F7;
+  --paper-page:var(--paper);  --paper-card:#FFFFFF;  --paper-deep:#F7F7F8;
   /* ═══ V1 · 纸品印刷系统 ═══ */
-  --paper-face:#FAF6EF;
-  --paper-env:#F3EBDD;
-  --paper-env-deep:#EADFC9;
-  --gold:#AE8A4E;
-  --gold-soft:rgba(174,138,78,.4);
+  --paper-face:#FFFFFF;
+  --paper-env:#FFFFFF;
+  --paper-env-deep:#FFFFFF;
+  --gold:#D9A227;
+  --gold-soft:rgba(217,162,39,.44);
   --wax:#F2600F;
-  --weave:repeating-linear-gradient(0deg,rgba(43,43,51,.016) 0 1px,transparent 1px 3px),
-          repeating-linear-gradient(90deg,rgba(43,43,51,.016) 0 1px,transparent 1px 3px);
+  --weave:none;
   --ink-1:#1D1D1F;  --ink-2:#6E6E73;  --ink-3:#8E8E93;  --ink-4:#C7C7CC;
   --ink-soft:var(--ink-3);  --ink-faint:var(--ink-4);
-  --hairline:#E5E5EA;
+  --hairline:#F0F0F2;
 
-  --brand:#FF6B35;  --brand-deep:#E5541F;  --brand-text:#FF6B35;  --brand-tint:#FFF1E8;
+  --brand:#FF6B35;  --brand-deep:#E8541F;  --brand-text:#FF6B35;  --brand-tint:#FFF4ED;
   --rar-N:#10B981;  --rar-R:#0EA5E9;  --rar-SR:#F59E0B;  --rar-SSR:#D9A227;
   --gold-deep:#7A5410;  --gold-mid:#D9A227;  --gold-light:#F0CF7E;
 
@@ -3095,7 +3054,7 @@ page{
   --surface-card:var(--paper-card);
   --surface-elevated:#FAFAFA;
   --surface-muted:var(--paper-deep);
-  --surface-hover:#F0F0F2;
+  --surface-hover:#F5F5F7;
   --surface-pressed:#E5E5EA;
 
   --text-primary:var(--ink-1);
