@@ -49,7 +49,10 @@
       <view class="cw-mid">
         <view class="cw-mid-l"></view><text class="cw-mid-x">❦</text><view class="cw-mid-l"></view>
       </view>
-      <view class="cw-out"><text class="cw-out-t">{{c.note}}</text></view>
+      <view class="cw-out">
+        <text wx:if="{{c.note}}" class="cw-out-t">{{c.note}}</text>
+        <text wx:else class="cw-out-ph">在背面写下今天</text>
+      </view>
     </block>
 
     <block wx:else>
