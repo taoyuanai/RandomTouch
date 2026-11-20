@@ -3,10 +3,12 @@ const seed = require('./seed.js');
 const { todayKey } = require('../util/bktime.js');
 
 const STORE_KEY = 'dsm_mock_v1';
+const SEED_VERSION = '2026-11-20-id18';
 const ME = '打工人小王';
 
 function freshState() {
   return {
+    seedVersion: SEED_VERSION,
     sets: JSON.parse(JSON.stringify(seed.DEMO.sets)),
     reviewing: JSON.parse(JSON.stringify((seed.CRAFT && seed.CRAFT.reviewing) || [])),
     draftsLocal: JSON.parse(JSON.stringify((seed.CRAFT && seed.CRAFT.drafts) || [])),
@@ -29,7 +31,11 @@ function freshState() {
 function load() {
   try {
     const raw = wx.getStorageSync(STORE_KEY);
-    if (raw) return { state: JSON.parse(raw), fresh: false };
+    if (raw) {
+      const saved = JSON.parse(raw);
+      if (saved && saved.seedVersion === SEED_VERSION) return { state: saved, fresh: false };
+      // 内容种子升级：旧 store 不再兼容，自动重建（C1/id18）
+    }
   } catch (e) { /* 预览环境无 storage：走内存 */ }
   return { state: freshState(), fresh: true };
 }
@@ -58,7 +64,7 @@ const _boot = load();
 const state = _boot.state;
 if (!state.drawCache) state.drawCache = {};
 if (!state.activity) state.activity = [];
-if (_boot.fresh) seedActivity(state);
+if (_boot.fresh) { seedActivity(state); persist(); }
 
 function persist() {
   try { wx.setStorageSync(STORE_KEY, JSON.stringify(state)); } catch (e) {}
