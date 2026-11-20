@@ -74,15 +74,6 @@
                     bindtap="tapDrawCta" data-act="cta">{{draw.cta.text}}</button>
           </view>
 
-          <!-- D8 · 明天提醒我（常驻勾选，勾选才授权） -->
-          <view class="dw-remind" wx:if="{{draw.stage === 'after'}}">
-            <view class="dw-remind-check {{draw.remindChecked ? 'on' : ''}}"
-                  hover-class="dw-remind-press" bindtap="tapRemindCheck">
-              <view class="dw-remind-box">{{draw.remindChecked ? '✓' : ''}}</view>
-              <text class="dw-remind-text">{{draw.remindChecked ? '明天见' : '明天提醒我'}}</text>
-            </view>
-          </view>
-
           <!-- 再抽抽看：只推荐今天还能抽的卡集 -->
           <view class="draw-rec" wx:if="{{draw.stage === 'after'}}">
             <block wx:if="{{draw.recs && draw.recs.items.length}}">

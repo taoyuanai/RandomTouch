@@ -360,7 +360,7 @@
         <button class="dp-btn ghost" hover-class="dp-btn-press"
                 data-act="back" bindtap="tapDoneAction">回到这一集</button>
         <button class="dp-btn gold" hover-class="dp-btn-press"
-                data-act="booklet" bindtap="tapDoneAction">✦ 翻开纪念册</button>
+                data-act="booklet" bindtap="tapDoneAction">✦ 查看集齐海报</button>
       </view>
 
       <!-- 抽空后的下一集推荐 -->

@@ -18,8 +18,8 @@
           <view class="quick-card highlight" hover-class="hm-press" bindtap="tapQuickHot">
             <view class="qc-icon">✦</view>
             <view>
-              <view class="qc-label">热门活动</view>
-              <view class="qc-sub">本周精选</view>
+              <view class="qc-label">热门榜单</view>
+              <view class="qc-sub">按热度看一看</view>
             </view>
           </view>
           <view class="quick-card cream" hover-class="hm-press" bindtap="tapQuickNew">

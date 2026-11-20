@@ -35,11 +35,6 @@
           <view class="li" bindtap="backToCreate">创作中心<text class="t-span li-val">{{me.craftN}} 个作品</text><text class="t-span">›</text></view>
           <view class="li" style="border:none" bindtap="goIncome">收益看板<text class="t-span li-val">{{me.availText}}</text><text class="t-span">›</text></view>
         </view>
-        <view class="panel" style="padding:6px 18px">
-          <view class="li" bindtap="meWallet">钱包<text class="t-span">›</text></view>
-          <view class="li" style="border:none" bindtap="meSettings">提醒我明天的卡<text class="t-span li-val">{{me.remindText}}</text><text class="t-span">›</text></view>
-        </view>
-
       </view>
     </view>
 
@@ -70,27 +65,6 @@
       </view>
 
       <view class="rules-foot">缺席不损失，卡不会过期</view>
-    </view>
-  </view>
-
-  
-<!-- ═══════════════════ 订阅消息 · 提醒我明天的卡 ═══════════════════ -->
-  <view class="modal {{remind.show ? 'show' : ''}}" id="remindModal">
-    <view class="sheet rules-sheet remind-sheet">
-      <button class="close-btn rules-close" bindtap="closeRemind">✕</button>
-      <view class="rules-kicker">提 醒 我 明 天 的 卡</view>
-      <view class="rules-title">提醒我明天的卡</view>
-      <view class="remind-desc">每天 0 点，新的卡到。选个时间，授权一次，明天这个时间提醒你。</view>
-      <view class="remind-time {{item.on ? 'on' : ''}}" wx:for="{{remind.times}}" wx:key="key"
-            bindtap="pickRemindTime" data-key="{{item.key}}" hover-class="sb2-press">
-        <view class="remind-time-l">
-          <text class="remind-time-t">{{item.label}}</text>
-          <text class="remind-time-s">{{item.sub}}</text>
-        </view>
-        <view class="remind-radio"></view>
-      </view>
-      <button class="cta solid remind-btn" bindtap="enableRemind">开启提醒</button>
-      <view class="remind-off" wx:if="{{remind.enabled}}" bindtap="disableRemind">关闭提醒</view>
     </view>
   </view>
 
