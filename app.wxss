@@ -4496,3 +4496,8 @@ font-variant-numeric:tabular-nums}
 /* C1 · 知识类免责 */
 .sp-disclaim{margin-top:10px;font-size:11px;color:var(--text-tertiary);
 letter-spacing:.02em;text-align:center}
+
+/* 长引文：>10 字改为两行小号印刷 */
+.cf-word.w4{gap:calc(var(--cw,240px)*.012)}
+.cf-word.w4 .cf-word-row{font-size:calc(var(--cw,240px)*.075);letter-spacing:.03em;line-height:1.55;
+color:var(--ink);font-weight:600;text-shadow:0 1px 0 rgba(255,255,255,.8)}
