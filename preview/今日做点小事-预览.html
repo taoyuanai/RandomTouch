@@ -4561,6 +4561,151 @@ color:var(--ink);font-weight:600;text-shadow:0 1px 0 rgba(255,255,255,.8)}
 .stats-empty-t{font-size:15px;font-weight:600;color:var(--ink-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stats-empty-s{margin-top:3px;font-size:11px;color:var(--text-tertiary);letter-spacing:.03em}
 
+/* ═══ P2 · 字体 / 按钮 / 线条统一 ═══ */
+body {
+  --line: #E5E5EA;
+  --border-default: #E5E5EA;
+  --border-strong: #D8D8DE;
+  --border-divider: var(--hairline);
+  --shadow-xs: 0 1px 2px rgba(0,0,0,.03);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.03), 0 4px 12px rgba(0,0,0,.04);
+  --shadow-md: 0 2px 4px rgba(0,0,0,.03), 0 8px 24px rgba(0,0,0,.06);
+  --shadow-lg: 0 2px 4px rgba(0,0,0,.03), 0 12px 32px rgba(0,0,0,.08);
+  --shadow-cta: 0 6px 16px rgba(255,107,53,.28);
+}
+
+/* 主按钮：48 / 胶囊 / 橙渐变 / 无边框 */
+.cta.solid,
+.cta.solid.gold {
+  height: 48px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--gradient-brand);
+  color: #FFFFFF;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  box-shadow: var(--shadow-cta);
+}
+.cta.solid:hover { box-shadow: 0 8px 20px rgba(255,107,53,.32); transform: translateY(-1px); }
+.cta.solid:active { background: var(--brand-deep); box-shadow: 0 3px 10px rgba(255,107,53,.22); }
+
+/* 次按钮：40 / 白底 / 1px 中性描边 */
+.cta,
+.cta.secondary,
+.ghost {
+  height: 40px;
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  background: var(--surface-card);
+  color: var(--ink-1);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: .02em;
+  box-shadow: none;
+}
+.cta::before { display: none; }
+.cta:hover, .cta.secondary:hover, .ghost:hover {
+  color: var(--ink-1);
+  border-color: var(--border-strong);
+  background: var(--surface-hover);
+}
+.cta:active, .ghost:active { background: var(--surface-pressed); transform: scale(.97); }
+.cta:disabled, .ghost:disabled {
+  background: var(--surface-muted);
+  color: var(--ink-4);
+  border-color: transparent;
+  box-shadow: none;
+}
+
+/* 轻操作：32 / 品牌淡底 */
+.mini-cta,
+.follow {
+  height: 32px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--brand-tint);
+  color: var(--brand-deep);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  box-shadow: none;
+}
+.mini-cta:hover { background: var(--brand-tint); color: var(--brand-deep); }
+.mini-cta:active, .follow:active { transform: scale(.97); }
+.follow { border: 1px solid var(--border-default); background: var(--surface-card); color: var(--ink-1); font-weight: 500; }
+.follow.on { background: var(--surface-muted); color: var(--ink-3); border-color: var(--border-default); }
+
+/* 页面级主 CTA / 轻 CTA */
+.sp-cta, .dw-btn, .dp-btn {
+  height: 48px;
+  min-width: 200px;
+  padding: 0 28px;
+  border: 0;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  box-shadow: none;
+}
+.sp-cta.brand, .dw-btn.brand, .dw-btn.gold, .dp-btn.gold {
+  background: var(--gradient-brand);
+  color: #FFFFFF;
+  box-shadow: var(--shadow-cta);
+}
+.sp-cta.tint { height: 48px; background: var(--brand-tint); color: var(--brand-deep); }
+.sp-cta.ink { height: 48px; background: var(--ink-1); color: #FFFFFF; }
+.dw-btn.ghost, .dp-btn.ghost {
+  height: 40px;
+  min-width: 160px;
+  padding: 0 22px;
+  border: 1px solid var(--border-default);
+  background: var(--surface-card);
+  color: var(--ink-1);
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: none;
+}
+.sp-float .sp-cta { height: 48px; font-size: 16px; }
+.bigcard-actions .cta { height: 40px; min-width: 200px; }
+.sb-btn {
+  height: 40px;
+  min-width: 160px;
+  padding: 0 24px;
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  background: var(--surface-card);
+  color: var(--ink-1);
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: none;
+}
+.sb-btn.ghost { background: var(--surface-card); color: var(--ink-1); border: 1px solid var(--border-default); }
+
+/* 其它轻操作 */
+.ob-cta {
+  height: 48px;
+  border-radius: 999px;
+  background: var(--gradient-brand);
+  color: #FFFFFF;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  box-shadow: var(--shadow-cta);
+}
+.cs-send {
+  height: 32px;
+  line-height: 32px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: var(--brand-tint);
+  color: var(--brand-deep);
+  font-size: 12px;
+  font-weight: 600;
+}
+.cs-send.on { background: var(--brand); color: #FFFFFF; }
+
 
 
 /* ── 浏览器预览适配 ── */
