@@ -952,12 +952,6 @@ page{
     font-size:var(--text-md);
     color:var(--text-tertiary);
     letter-spacing:0.5px;
-  }.search-bar .scan-icon{
-    width:20px;
-    height:20px;
-    flex:none;
-    stroke:var(--text-tertiary);
-    stroke-width:1.5;
   }.quick-row{
     display:flex;
     gap:var(--space-2);
@@ -2667,7 +2661,7 @@ input::placeholder, textarea::placeholder{ color: var(--text-tertiary); }
 image.t-svg{ display: inline-block; vertical-align: middle; }
 .tabbar button image.t-svg{ display: block; }
 .search-bar image.t-svg{ width: 18px; height: 18px; flex: none; }
-.search-bar image.scan-icon{ width: 20px; height: 20px; }
+
 .set-heat image.t-svg{ width: 14px; height: 14px; }
 
 .rec-slot.empty image.t-svg{ width: 18px; height: 18px; flex: none; }

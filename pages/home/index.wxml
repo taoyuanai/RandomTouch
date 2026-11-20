@@ -6,7 +6,6 @@
         <view class="search-bar" bindtap="goSearch">
           <image class="t-svg" src="/assets/icons/search.png" mode="aspectFit" />
           <text class="t-span">搜索卡集、做卡人…</text>
-          <image class="t-svg scan-icon" src="/assets/icons/scan.png" mode="aspectFit" />
         </view>
         <view class="quick-row">
           <view class="quick-card white" hover-class="hm-press" bindtap="tapQuickCat">
@@ -76,12 +75,6 @@
             <text class="hb-creator">@{{item.creator}}</text>
           </view>
         </view>
-      </view>
-
-      <!-- 筛选空态 -->
-      <view class="hm-empty" style="padding:48px 0 20px" wx:if="{{home.emptyText}}">
-        <view class="hm-empty-text">{{home.emptyText}}</view>
-        <button class="hm-empty-btn" hover-class="hm-press" bindtap="clearCat">看全部卡集</button>
       </view>
 
       <view class="shelf-tail"><text class="t-span">更多卡集，正在上架</text></view>
