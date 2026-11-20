@@ -1012,7 +1012,7 @@ page{
     color:var(--text-inverse);
     border:none;
     box-shadow:0 3px 10px rgba(255,107,53,0.25);
-  }.quick-card.highlight .qc-icon{background:rgba(255,255,255,0.2);color:var(--text-inverse)}.quick-card.highlight::before{background:var(--text-inverse);opacity:0.1}.quick-card.cream{background:var(--orange-50);color:var(--text-primary);border-color:var(--orange-200)}.quick-card.cream .qc-icon{background:var(--orange-100);color:var(--orange-600)}.bc-status-tag{
+  }.quick-card.highlight .qc-icon{background:rgba(255,255,255,0.2);color:var(--text-inverse)}.quick-card.highlight::before{background:var(--text-inverse);opacity:0.1}.bc-status-tag{
     display:inline-flex;
     align-items:center;
     gap:4px;
@@ -3754,12 +3754,6 @@ page{
 .hm-qtxt .qc-sub{margin-top:3px;font-size:11px;color:var(--ink-3);letter-spacing:0.5px}
 .quick-card.highlight .hm-qtxt .qc-label,
 .quick-card.highlight .hm-qtxt .qc-sub{color:#FFFFFF}
-
-/* 新建卡片：一盒卡片卡通图（CSS 绘制） */
-
-
-.hm-box-card.a{transform:translateX(-50%) translateX(-11px) rotate(-9deg)}
-.hm-box-card.b{transform:translateX(-50%) translateX(11px) rotate(9deg);border-color:var(--orange-200)}
 
 
 

@@ -22,13 +22,6 @@
               <view class="qc-sub">按热度看一看</view>
             </view>
           </view>
-          <view class="quick-card cream" hover-class="hm-press" bindtap="tapQuickNew">
-            <view class="qc-icon">★</view>
-            <view>
-              <view class="qc-label">新建卡片</view>
-              <view class="qc-sub">做一套自己的</view>
-            </view>
-          </view>
         </view>
         <view class="shelf-slogan">今天对这个世界做出<text class="accent">一点点</text>探索</view>
         <view class="tagline">万物皆可抽一签。</view>
