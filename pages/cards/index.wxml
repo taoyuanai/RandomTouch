@@ -69,14 +69,14 @@
 
         <!-- ② 统计 -->
         <view class="sb2-stats" wx:if="{{subs.total}}">
-          <view class="sb2-stat"><view class="sb2-stat-n orange">{{subs.statCan}}</view><text class="sb2-stat-l">今日可抽</text></view>
-          <view class="sb2-stat"><view class="sb2-stat-n">{{subs.statCards}}</view><text class="sb2-stat-l">累计抽卡</text></view>
-          <view class="sb2-stat"><view class="sb2-stat-n">{{subs.statEmpty}}</view><text class="sb2-stat-l">已抽空</text></view>
+          <view class="sb2-stat" hover-class="sb2-stat-press" bindtap="tapStat" data-kind="today"><view class="sb2-stat-n orange">{{subs.statCan}}</view><text class="sb2-stat-l">今日可抽</text></view>
+          <view class="sb2-stat" hover-class="sb2-stat-press" bindtap="tapStat" data-kind="cards"><view class="sb2-stat-n">{{subs.statCards}}</view><text class="sb2-stat-l">累计抽卡</text></view>
+          <view class="sb2-stat" hover-class="sb2-stat-press" bindtap="tapStat" data-kind="empty"><view class="sb2-stat-n">{{subs.statEmpty}}</view><text class="sb2-stat-l">已抽空</text></view>
         </view>
 
         <!-- ③ 今日可抽 -->
         <block wx:if="{{subs.today.length}}">
-          <view class="sb2-group-head">
+          <view class="sb2-group-head" id="subsToday">
             <view class="sb2-group-title"><view class="sb2-gdot"></view><text>今日可抽</text></view>
             <view class="sb2-badge">{{subs.today.length}}</view>
           </view>
@@ -150,7 +150,34 @@
       </view>
     </view>
 
-    
+    <!-- 统计集合包：我抽过的卡 / 已抽空 -->
+    <view class="modal centered {{statsSheet.show ? 'show' : ''}}" id="statsModal">
+      <view class="sheet stats-sheet">
+        <button class="close-btn" bindtap="closeStats">✕</button>
+        <view class="stats-sheet-kicker">{{statsSheet.kind === 'empty' ? '空 集' : '我 的 卡'}}</view>
+        <view class="stats-sheet-title">{{statsSheet.title}}</view>
+        <view class="stats-sheet-sub">{{statsSheet.sub}}</view>
+        <scroll-view class="stats-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+          <view wx:if="{{statsSheet.kind === 'cards'}}" class="stats-grid">
+            <view class="stats-card" wx:for="{{statsSheet.cards}}" wx:key="key"
+                  data-sid="{{item.sid}}" bindtap="openStatSet" hover-class="stats-card-press">
+              <view class="stats-card-face" style="--cw:76px;--ch:108px">
+                <template is="cardFront" data="{{c: item.card}}" />
+              </view>
+              <view class="stats-card-title">{{item.title}}</view>
+            </view>
+          </view>
+          <view wx:else class="stats-empty-list">
+            <view class="stats-empty-row" wx:for="{{statsSheet.sets}}" wx:key="id"
+                  data-sid="{{item.id}}" bindtap="openStatSet" hover-class="stats-card-press">
+              <view class="stats-empty-sign"><text>{{item.charA}}</text><text wx:if="{{item.charB}}">{{item.charB}}</text></view>
+              <view class="stats-empty-info"><view class="stats-empty-t">{{item.title}}</view><view class="stats-empty-s">{{item.prog}} · 全部点亮</view></view>
+              <view class="sb2-go"><view class="sb2-chev"></view></view>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+    </view>
 
 <include src="/templates/m-flow.wxml"/>
 </view>

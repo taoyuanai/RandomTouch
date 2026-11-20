@@ -4572,3 +4572,24 @@ color:var(--ink);font-weight:600;text-shadow:0 1px 0 rgba(255,255,255,.8)}
 /* 海报 QR：有真实码显示图片，没有时给搜一搜兜底 */
 .poster-qr-img{width:100%;height:100%;display:block;border-radius:3px}
 .poster-qr-t{font-size:9px;line-height:1.2;color:var(--text-tertiary);letter-spacing:.04em;text-align:center}
+
+/* 订阅统计：可点击 */
+.sb2-stat-press{opacity:.68}
+.stats-sheet{width:calc(100vw - 48px);max-height:82vh;overflow:hidden;padding:22px 18px 16px}
+.stats-sheet-kicker{font-size:10px;letter-spacing:.2em;color:var(--text-tertiary);text-align:center}
+.stats-sheet-title{margin-top:6px;text-align:center;font-size:20px;font-weight:600;color:var(--ink-1);letter-spacing:.04em}
+.stats-sheet-sub{margin-top:5px;text-align:center;font-size:11px;color:var(--text-tertiary);letter-spacing:.04em}
+.stats-scroll{max-height:58vh;margin-top:16px}
+.stats-grid{display:flex;flex-wrap:wrap;gap:16px 12px;padding:2px 0 8px}
+.stats-card{width:calc((100% - 24px)/3);display:flex;flex-direction:column;align-items:center;gap:7px}
+.stats-card-press{opacity:.72}
+.stats-card-face{width:76px;height:108px;flex:none;filter:drop-shadow(0 2px 4px rgba(43,43,51,.08))}
+.stats-card-title{width:100%;font-size:10px;color:var(--text-secondary);text-align:center;letter-spacing:.02em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stats-empty-list{display:flex;flex-direction:column;gap:10px;padding:2px 0 8px}
+.stats-empty-row{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--border-default);border-radius:12px;background:var(--surface-card)}
+.stats-empty-sign{width:38px;height:38px;flex:none;border-radius:9px;background:var(--surface-muted);
+  display:flex;align-items:center;justify-content:center;flex-direction:column;font-size:12px;color:var(--ink-2)}
+.stats-empty-info{flex:1;min-width:0}
+.stats-empty-t{font-size:15px;font-weight:600;color:var(--ink-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stats-empty-s{margin-top:3px;font-size:11px;color:var(--text-tertiary);letter-spacing:.03em}
