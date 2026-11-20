@@ -4536,3 +4536,8 @@ color:var(--ink);font-weight:600;text-shadow:0 1px 0 rgba(255,255,255,.8)}
   border:1px solid var(--border-default);border-radius:var(--radius-full);
   font-size:13px;color:var(--text-secondary)}
 .srch-nothing-clear:active{opacity:.65}
+
+/* 故事开头：>18 字，两行更小字号 */
+.cf-word.w5{gap:calc(var(--cw,240px)*.012)}
+.cf-word.w5 .cf-word-row{font-size:calc(var(--cw,240px)*.0625);letter-spacing:.02em;line-height:1.65;
+color:var(--ink);font-weight:600;text-shadow:0 1px 0 rgba(255,255,255,.8)}

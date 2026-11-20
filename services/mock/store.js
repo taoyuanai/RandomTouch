@@ -3,7 +3,7 @@ const seed = require('./seed.js');
 const { todayKey } = require('../util/bktime.js');
 
 const STORE_KEY = 'dsm_mock_v1';
-const SEED_VERSION = '2026-11-20-id18';
+const SEED_VERSION = '2026-11-20-id19';
 const ME = '打工人小王';
 
 function freshState() {
