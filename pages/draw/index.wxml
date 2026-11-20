@@ -30,8 +30,9 @@
               <text class="dw-env-from">FROM · 今日做点小事</text>
             </view>
             <view class="dw-env-flap"></view>
-            <view class="dw-env-seal">
-              <text class="dw-env-seal-ch">今</text>
+            <view class="dw-env-wax">
+              <view class="dw-env-wax-half l"><text class="dw-env-wax-ch">今</text></view>
+              <view class="dw-env-wax-half r"><text class="dw-env-wax-ch">今</text></view>
             </view>
           </view>
 
