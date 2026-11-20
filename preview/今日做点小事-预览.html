@@ -4575,6 +4575,17 @@ color:var(--ink);font-weight:600;text-shadow:0 1px 0 rgba(255,255,255,.8)}
 .cat-name{font-size:16px;font-weight:600;color:var(--ink-1);letter-spacing:.06em}
 .cat-count{margin-top:6px;font-size:11px;color:var(--text-tertiary);letter-spacing:.04em}
 
+/* 卡集订阅入口 */
+.sp-subrow{margin-top:10px;display:flex;justify-content:center}
+.sp-sub{height:34px;padding:0 18px;border-radius:999px;border:1px solid var(--border-default);
+  background:var(--surface-card);font-size:12px;color:var(--text-secondary);letter-spacing:.05em}
+.sp-sub.on{border-color:var(--border-strong);color:var(--text-primary);background:var(--surface-muted)}
+.sp-sub-press{opacity:.72}
+
+/* 海报 QR：有真实码显示图片，没有时给搜一搜兜底 */
+.poster-qr-img{width:100%;height:100%;display:block;border-radius:3px}
+.poster-qr-t{font-size:9px;line-height:1.2;color:var(--text-tertiary);letter-spacing:.04em;text-align:center}
+
 
 
 /* ── 浏览器预览适配 ── */
@@ -8138,7 +8149,8 @@ module.exports = {
 __define("services/config.js", function(module, exports, require){
 module.exports = {
   USE_MOCK: true, // Phase 2 切 false 前必须完成 real/index.js
-  DEBUG: true, // 提审前必须 false：压制 __apiDebug 后门
+  DEBUG: true,
+  CLOUD_ENV: '', // 填入云开发环境 ID 后启用小程序码 // 提审前必须 false：压制 __apiDebug 后门
 };
 
 });
@@ -8171,6 +8183,8 @@ module.exports = {
   getAuthor: impl.getAuthor,
   toggleFollow: impl.toggleFollow,
   getFeed: impl.getFeed,
+  subscribeSet: impl.subscribeSet,
+  getPosterQR: impl.getPosterQR,
   getMyCraft: impl.getMyCraft,
   submitCraft: impl.submitCraft,
   getIncome: impl.getIncome,
@@ -8973,6 +8987,30 @@ async function unlock({ setId } = {}) {
   return { set: setPayload(s) };
 }
 
+async function subscribeSet({ setId } = {}) {
+  await gate();
+  const s = findSet(setId);
+  if (!s.user) {
+    s.user = {
+      drawn: 0, got: [], todayDrawn: false, trialToday: false, todayIdx: null,
+      unlocked: false, trialUsed: 0, drawnLog: [], recs: {},
+    };
+  }
+  store.persist();
+  return { set: setPayload(s) };
+}
+
+async function getPosterQR({ setId } = {}) {
+  try {
+    if (!wx.cloud || typeof wx.cloud.callFunction !== 'function') return { path: '' };
+    const r = await wx.cloud.callFunction({ name: 'qrcode', data: { sid: Number(setId) || 0 } });
+    const fileID = r && r.result && r.result.fileID;
+    if (!fileID) return { path: '' };
+    const d = await wx.cloud.downloadFile({ fileID });
+    return { path: (d && d.tempFilePath) || '' };
+  } catch (e) { return { path: '' }; }
+}
+
 async function getComments(setId) {
   await gate();
   return store.commentItems(findSet(setId));
@@ -9266,6 +9304,7 @@ const _debug = {
 module.exports = {
   auth, listSets, getSet, draw, saveStamp, unlock,
   getComments, addComment, toggleLike, markWeekly, getAuthor, toggleFollow, getFeed,
+  subscribeSet, getPosterQR,
   getMyCraft, submitCraft, getIncome, withdraw,
   uploadImage, reportRemindAuth, track,
   _debug,
@@ -9281,7 +9320,8 @@ __define("services/real/index.js", function(module, exports, require){
 module.exports = {
   auth: notImpl, listSets: notImpl, getSet: notImpl, draw: notImpl,
   saveStamp: notImpl, unlock: notImpl, getComments: notImpl, addComment: notImpl,
-  toggleLike: notImpl, getFeed: notImpl, getMyCraft: notImpl, submitCraft: notImpl,
+  toggleLike: notImpl, getFeed: notImpl, subscribeSet: notImpl,
+  getPosterQR: notImpl, getMyCraft: notImpl, submitCraft: notImpl,
   getIncome: notImpl, withdraw: notImpl, uploadImage: notImpl,
   reportRemindAuth: notImpl, track: notImpl,
 };
@@ -9934,7 +9974,9 @@ const PAGE_OPTS = {
     const q = options.query || options;
     let raw = q.sid || q.setId || q.set;
     if (!raw && q.scene) {
-      const m = String(q.scene).match(/(?:^|[&?])s=(\d+)/);
+      let scene = String(q.scene);
+      try { scene = decodeURIComponent(scene); } catch (e) {}
+      const m = scene.match(/(?:^|[&?])s=(\d+)/);
       if (m) raw = m[1];
     }
     if (!raw) return 0;
@@ -10460,6 +10502,9 @@ const PAGE_OPTS = {
           ? fmt(S.fans[s.creator]) + ' 位关注者' : '做卡人',
         following: !!S.follow[s.creator],
         own: s.creator === ME,
+        subscribed: !!s.user,
+        canSubscribe: s.creator !== ME && !s.user,
+        subBusy: false,
         prog,
         stampRow,
         trialRow,
@@ -10836,6 +10881,21 @@ const PAGE_OPTS = {
     S.follow[s.creator] = !S.follow[s.creator];
     this.toast(S.follow[s.creator] ? '已关注 @' + s.creator + '。' : '已取消关注。');
     this.renderSetPage();
+  },
+
+  async subscribeSet() {
+    const s = this.S.sets.find(x => x.id === this.S.cur);
+    if (!s || s.creator === ME || s.user || (this.data.setPage && this.data.setPage.subBusy)) return;
+    this.setData({ 'setPage.subBusy': true });
+    try {
+      const r = await api.subscribeSet({ setId: s.id });
+      if (r && r.set) this.applySetPayload(r.set);
+      this.toast('已订阅 · 每天一张');
+      this.renderSetPage();
+    } catch (e) {
+      this.setData({ 'setPage.subBusy': false });
+      this.toast((e && e.message) || '订阅没成功，再试一次');
+    }
   },
 
   /* CTA 分发 */
@@ -12051,8 +12111,8 @@ const PAGE_OPTS = {
     if (!d.coverImage) errs.push('封面：请上传一张 3:4 的卡集封面');
     const complete = d.pool.filter(cardDone);
     if (complete.length < 8) errs.push(`完整的卡：至少 8 张，现在 ${complete.length} 张（词、解释都齐才算完整）`);
-    const long = d.pool.filter(c => (c.w || '').trim().length > 8);
-    if (long.length) errs.push(`有 ${long.length} 张卡的词超过 8 个字`);
+    const long = d.pool.filter(c => (c.w || '').trim().length > 24);
+    if (long.length) errs.push(`卡面最多 24 个字，现在有 ${long.length} 张超长`);
     if (d.price > 0 && d.trial !== 1) errs.push('定价卡集：需要 1 张免费试抽');
     return errs;
   },
@@ -12580,7 +12640,7 @@ const PAGE_OPTS = {
     return w;
   },
 
-  openWeekly(e) {
+  async openWeekly(e) {
     const S = this.S;
     const d = e && e.currentTarget && e.currentTarget.dataset;
     const id = d && d.id != null ? Number(d.id) : S.cur;
@@ -12593,6 +12653,7 @@ const PAGE_OPTS = {
     }
     this.markWeeklyMade(s, w.weekNo);
     S.posterType = 'weekly';
+    const qrSrc = await this._posterQR(s.id);
     this.setData({
       poster: {
         show: true,
@@ -12611,6 +12672,7 @@ const PAGE_OPTS = {
         weekNo: w.weekNo,
         variant: w.variant,
         photos: w.photos,
+        qrSrc,
         wordLine: w.wordLine,
         quote: w.quote,
       },
@@ -12632,7 +12694,7 @@ const PAGE_OPTS = {
     if (!s) return;
     // qrSrc：服务端 wxacode.getUnlimited({ scene: `p=w&s=${s.id}` }) 的结果，
     // 缓存后传入；传空字符串会渲染 QR 占位框，不报错。
-    const data = posterKit.buildWeeklyData(s, { qrSrc: '' });
+    const data = posterKit.buildWeeklyData(s, { qrSrc: await this._posterQR(id) });
     if (!data) { this.toast('本周还没有抽卡记录'); return; }
 
     // 渠道选择：小红书 3:4 / 朋友圈 9:16
@@ -12652,7 +12714,7 @@ const PAGE_OPTS = {
     const S = this.S;
     const s = S.sets.find(x => x.id === id);
     if (!s) return;
-    const data = posterKit.buildWeeklyData(s, { qrSrc: '' });
+    const data = posterKit.buildWeeklyData(s, { qrSrc: await this._posterQR(id) });
     if (!data) { this.toast('本周还没有抽卡记录'); return; }
     // 从周记预览保存时，复用预览里的标题，避免随机文案和预览不一致
     const pv = this.data.poster || {};
@@ -12682,22 +12744,28 @@ const PAGE_OPTS = {
 
 
 
+  async _posterQR(sid) {
+    try {
+      const r = await api.getPosterQR({ setId: Number(sid) });
+      return (r && r.path) || '';
+    } catch (e) { return ''; }
+  },
+
   buildHighlight(c, s, opts = {}) {
     if (!c || !s) return null;
     return posterKit.buildHighlightData(s, c, opts);   // 唯一真相源：预览与导出同源
   },
 
-  openPoster(e) {
+  async openPoster(e) {
     const type = (e && e.currentTarget && e.currentTarget.dataset.type) || 'draw';
     const S = this.S;
     S.posterType = type;
+    const d = (e && e.currentTarget && e.currentTarget.dataset) || {};
     let data = null;
+    let sid = d.sid != null ? Number(d.sid) : S.cur;
     if (type === 'memorial') {
-      const d = (e && e.currentTarget && e.currentTarget.dataset) || {};
-      data = this.buildMemorialPoster({ sid: d.sid != null ? Number(d.sid) : undefined });
+      data = this.buildMemorialPoster({ sid, qrSrc: await this._posterQR(sid) });
     } else if (type === 'card') {
-      const d = (e && e.currentTarget && e.currentTarget.dataset) || {};
-      const sid = Number(d.sid != null ? d.sid : S.cur);
       const s = S.sets.find(x => x.id === sid);
       if (!s) return;
       let idx;
@@ -12713,11 +12781,10 @@ const PAGE_OPTS = {
         idx,
         no: `No.${pad2(idx + 1)} / ${s.pool.length}`,
         slogan: '扫码抽一张',
+        qrSrc: await this._posterQR(sid),
       });
     } else if (type === 'big') {
       // 回看场景：分享当前大卡的这一张
-      const d = (e && e.currentTarget && e.currentTarget.dataset) || {};
-      const sid = Number(d.sid != null ? d.sid : S.cur);
       const idx = Number(d.idx != null ? d.idx : 0);
       const s = S.sets.find(x => x.id === sid);
       if (!s || !s.pool[idx]) return;
@@ -12725,6 +12792,7 @@ const PAGE_OPTS = {
         idx,
         no: `No.${pad2(idx + 1)} / ${s.pool.length}`,
         slogan: '扫码抽一张',
+        qrSrc: await this._posterQR(sid),
       });
     }
     if (!data) return;

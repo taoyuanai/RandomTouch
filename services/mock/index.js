@@ -213,6 +213,30 @@ async function unlock({ setId } = {}) {
   return { set: setPayload(s) };
 }
 
+async function subscribeSet({ setId } = {}) {
+  await gate();
+  const s = findSet(setId);
+  if (!s.user) {
+    s.user = {
+      drawn: 0, got: [], todayDrawn: false, trialToday: false, todayIdx: null,
+      unlocked: false, trialUsed: 0, drawnLog: [], recs: {},
+    };
+  }
+  store.persist();
+  return { set: setPayload(s) };
+}
+
+async function getPosterQR({ setId } = {}) {
+  try {
+    if (!wx.cloud || typeof wx.cloud.callFunction !== 'function') return { path: '' };
+    const r = await wx.cloud.callFunction({ name: 'qrcode', data: { sid: Number(setId) || 0 } });
+    const fileID = r && r.result && r.result.fileID;
+    if (!fileID) return { path: '' };
+    const d = await wx.cloud.downloadFile({ fileID });
+    return { path: (d && d.tempFilePath) || '' };
+  } catch (e) { return { path: '' }; }
+}
+
 async function getComments(setId) {
   await gate();
   return store.commentItems(findSet(setId));
@@ -506,6 +530,7 @@ const _debug = {
 module.exports = {
   auth, listSets, getSet, draw, saveStamp, unlock,
   getComments, addComment, toggleLike, markWeekly, getAuthor, toggleFollow, getFeed,
+  subscribeSet, getPosterQR,
   getMyCraft, submitCraft, getIncome, withdraw,
   uploadImage, reportRemindAuth, track,
   _debug,

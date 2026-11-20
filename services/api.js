@@ -25,6 +25,8 @@ module.exports = {
   getAuthor: impl.getAuthor,
   toggleFollow: impl.toggleFollow,
   getFeed: impl.getFeed,
+  subscribeSet: impl.subscribeSet,
+  getPosterQR: impl.getPosterQR,
   getMyCraft: impl.getMyCraft,
   submitCraft: impl.submitCraft,
   getIncome: impl.getIncome,

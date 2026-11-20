@@ -66,6 +66,11 @@
           <button class="sp-cta {{setPage.cta.kind}}" hover-class="sp-cta-press"
                   bindtap="tapSetCta">{{setPage.cta.text}}</button>
           <view class="sp-tail-note">{{setPage.cta.note}}</view>
+          <view class="sp-subrow" wx:if="{{!setPage.own && (setPage.canSubscribe || setPage.subscribed)}}">
+            <button wx:if="{{setPage.canSubscribe}}" class="sp-sub" disabled="{{setPage.subBusy}}"
+                    hover-class="sp-sub-press" bindtap="subscribeSet">{{setPage.subBusy ? '订阅中…' : '订阅卡集 · 每天一张'}}</button>
+            <view wx:else class="sp-sub on">已订阅 · 每天一张</view>
+          </view>
         </view>
         <view id="sp-intro-end" style="height:1px"></view>
 

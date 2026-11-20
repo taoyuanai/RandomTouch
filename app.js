@@ -1,5 +1,6 @@
 // app.js
 const posterKit = require('./utils/posterKit/export.js');
+const { CLOUD_ENV } = require('./services/config.js');
 
 let core = null;
 let api = null;
@@ -23,6 +24,9 @@ App({
 
   onLaunch() {
     this.__api = api;
+    if (wx.cloud && CLOUD_ENV) {
+      try { wx.cloud.init({ env: CLOUD_ENV, traceUser: true }); } catch (e) { console.warn('[cloud] init failed', e); }
+    }
     this.__apiDebug = api && api.__debug;
     try {
       if (core) core.initS();

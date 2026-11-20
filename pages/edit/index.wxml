@@ -68,8 +68,8 @@
               </view>
               <view class="ed-body">
                 <view class="form-row">
-                  <view class="t-label">词 · 印在卡面（不超过 8 个字）</view>
-                  <input class="fi" value="{{item.w}}" data-index="{{index}}" data-key="w" bindinput="onEditCardInput" placeholder="一个词，或一句短话" />
+                  <view class="t-label">卡面 · 最多 24 个字；长句自动两行</view>
+                  <input class="fi" value="{{item.w}}" data-index="{{index}}" data-key="w" maxlength="24" bindinput="onEditCardInput" placeholder="一个词，或一句短话" />
                 </view>
                 <view class="form-row">
                   <view class="t-label">解释 · 印在卡背</view>

@@ -5,7 +5,8 @@
 module.exports = {
   auth: notImpl, listSets: notImpl, getSet: notImpl, draw: notImpl,
   saveStamp: notImpl, unlock: notImpl, getComments: notImpl, addComment: notImpl,
-  toggleLike: notImpl, getFeed: notImpl, getMyCraft: notImpl, submitCraft: notImpl,
+  toggleLike: notImpl, getFeed: notImpl, subscribeSet: notImpl,
+  getPosterQR: notImpl, getMyCraft: notImpl, submitCraft: notImpl,
   getIncome: notImpl, withdraw: notImpl, uploadImage: notImpl,
   reportRemindAuth: notImpl, track: notImpl,
 };

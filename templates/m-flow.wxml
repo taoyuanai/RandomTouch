@@ -89,7 +89,10 @@
             <view class="h916-src">@{{poster.creator}} · 《{{poster.setTitle}}》</view>
             <view class="h916-foot">
               <view class="h916-cta">扫码，抽你的一签</view>
-              <view class="poster-qr big">QR</view>
+              <view class="poster-qr big">
+                <image wx:if="{{poster.qrSrc}}" class="poster-qr-img" src="{{poster.qrSrc}}" mode="aspectFit"/>
+                <text wx:else class="poster-qr-t">搜一搜</text>
+              </view>
             </view>
           </view>
         </view>
@@ -133,7 +136,10 @@
 
           <view class="poster-footer">
             <view class="poster-slogan">{{poster.slogan}}</view>
-            <view class="poster-qr">QR</view>
+            <view class="poster-qr">
+                <image wx:if="{{poster.qrSrc}}" class="poster-qr-img" src="{{poster.qrSrc}}" mode="aspectFit"/>
+                <text wx:else class="poster-qr-t">搜一搜</text>
+              </view>
           </view>
         </view>
 
@@ -168,7 +174,10 @@
           <view class="m916-stampnote" wx:else>盖了 {{poster.stats.stamped}} 枚邮戳 · 每一枚都是这一程的回信</view>
           <view class="m916-foot">
             <view class="poster-slogan">{{poster.slogan}}</view>
-            <view class="poster-qr big">QR</view>
+            <view class="poster-qr big">
+                <image wx:if="{{poster.qrSrc}}" class="poster-qr-img" src="{{poster.qrSrc}}" mode="aspectFit"/>
+                <text wx:else class="poster-qr-t">搜一搜</text>
+              </view>
           </view>
         </view>
 
@@ -206,7 +215,10 @@
           </view>
           <view class="poster-footer">
             <view class="poster-slogan">{{poster.slogan}}</view>
-            <view class="poster-qr">QR</view>
+            <view class="poster-qr">
+                <image wx:if="{{poster.qrSrc}}" class="poster-qr-img" src="{{poster.qrSrc}}" mode="aspectFit"/>
+                <text wx:else class="poster-qr-t">搜一搜</text>
+              </view>
           </view>
         </view>
 
@@ -264,7 +276,10 @@
             <view class="poster-slogan">万物皆可抽一签</view>
             <view class="weekly-foot-right">
               <view class="weekly-cta" wx:if="{{poster.ratio === '916'}}">扫码，抽你的一签</view>
-              <view class="poster-qr {{poster.ratio === '916' ? 'big' : ''}}">QR</view>
+              <view class="poster-qr {{poster.ratio === '916' ? 'big' : ''}}">
+                <image wx:if="{{poster.qrSrc}}" class="poster-qr-img" src="{{poster.qrSrc}}" mode="aspectFit"/>
+                <text wx:else class="poster-qr-t">搜一搜</text>
+              </view>
             </view>
           </view>
         </view>
@@ -324,7 +339,10 @@
             </block>
             <view class="poster-footer">
               <view class="poster-slogan">缺席不损失，卡不会过期</view>
-              <view class="poster-qr">QR</view>
+              <view class="poster-qr">
+                <image wx:if="{{poster.qrSrc}}" class="poster-qr-img" src="{{poster.qrSrc}}" mode="aspectFit"/>
+                <text wx:else class="poster-qr-t">搜一搜</text>
+              </view>
             </view>
           </view>
         </view>

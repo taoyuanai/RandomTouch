@@ -57,6 +57,12 @@ sec = `{ text: 'pass'|'pending'|'risky', media: 'pass'|'pending'|'risky'|'none' 
 ### unlock({ setId })
 模拟支付完成。返回 `{ set: SetPayload }`（unlocked=true）。
 
+### subscribeSet({ setId })
+订阅卡集：创建用户进度（drawn=0, got=[]）但不抽卡；幂等。返回 `{ set: SetPayload }`。
+
+### getPosterQR({ setId })
+生成卡集分享小程序码。返回 `{ path }`，path 为空表示当前环境未配置二维码服务。
+
 ### getComments(setId) / addComment({ setId, text })
 getComments 返回可见留言数组 `{id,name,avatar,text,time,creator}[]`。
 addComment 返回 `{ comment, status: 'visible'|'pending' }`。
