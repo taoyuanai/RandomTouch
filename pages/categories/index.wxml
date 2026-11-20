@@ -1,0 +1,42 @@
+<import src="/templates/common.wxml"/>
+<view class="phone" style="--statusbar:0px;--navtop:0px">
+  <view class="screen">
+    <view class="page" id="page-categories">
+      <include src="/templates/m-base.wxml"/>
+
+      <view class="cat-lead">
+        <view class="cat-lead-t">按主题找卡集</view>
+        <view class="cat-lead-s">{{categories.total}} 个卡集 · 九类</view>
+      </view>
+
+      <view class="skel-list" wx:if="{{booting}}">
+        <view class="skel-book" wx:for="{{[1,2,3,4,5,6]}}" wx:key="*this">
+          <view class="skel skel-cover"></view>
+          <view class="skel-book-txt">
+            <view class="skel skel-line" style="width:70%"></view>
+            <view class="skel skel-line" style="width:45%"></view>
+          </view>
+        </view>
+      </view>
+
+      <view class="cat-grid" wx:else>
+        <view class="cat-card {{item.empty ? 'empty' : ''}}" wx:for="{{categories.items}}"
+              wx:key="key" hover-class="cat-press" bindtap="tapCategory" data-key="{{item.key}}">
+          <view class="cat-cover {{item.empty ? 'is-empty' : ''}}" style="background:{{item.tintStyle}}">
+            <image wx:if="{{item.coverImage}}" class="cat-cover-img" src="{{item.coverImage}}" mode="aspectFill" />
+            <view wx:if="{{!item.empty}}" class="cat-cover-wash" style="background:{{item.tintStyle}}"></view>
+            <text wx:if="{{item.coverNo}}" class="cat-cover-no">{{item.coverNo}}</text>
+            <view wx:if="{{!item.empty}}" class="cat-cover-label">
+              <text style="color:{{item.ink}}">{{item.coverText}}</text>
+            </view>
+            <text wx:else class="cat-empty-t">待上新</text>
+          </view>
+          <view class="cat-info">
+            <view class="cat-name">{{item.name}}</view>
+            <view class="cat-count">{{item.countText}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

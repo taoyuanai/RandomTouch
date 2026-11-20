@@ -4550,6 +4550,37 @@ color:var(--ink);font-weight:600;text-shadow:0 1px 0 rgba(255,255,255,.8)}
 .cf-word.w5 .cf-word-row{font-size:calc(var(--cw,240px)*.0625);letter-spacing:.02em;line-height:1.65;
 color:var(--ink);font-weight:600;text-shadow:0 1px 0 rgba(255,255,255,.8)}
 
+/* ═══ 分类索引页（九类 · 2 列）═══ */
+#page-categories{padding-top:12px;padding-bottom:100px}
+.cat-lead{padding:2px 2px 16px}
+.cat-lead-t{font-family:var(--font-serif);font-size:17px;font-weight:600;color:var(--ink-1);letter-spacing:.06em}
+.cat-lead-s{margin-top:5px;font-size:11px;color:var(--text-tertiary);letter-spacing:.08em}
+.cat-grid{display:flex;flex-wrap:wrap;gap:12px}
+.cat-card{width:calc((100% - 12px)/2);min-height:114px;box-sizing:border-box;
+  display:flex;align-items:center;gap:10px;padding:12px;
+  background:var(--surface-card);border:1px solid var(--border-default);border-radius:14px;
+  box-shadow:var(--shadow-xs)}
+.cat-press{opacity:.78}
+.cat-card.empty{opacity:.62}
+.cat-cover{position:relative;width:64px;height:90px;flex:none;border-radius:6px;overflow:hidden;
+  background-color:var(--paper-face);background-image:var(--weave);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 2px 5px rgba(43,43,51,.10)}
+.cat-cover-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.72}
+.cat-cover-wash{position:absolute;inset:0;mix-blend-mode:multiply;opacity:.9}
+.cat-cover-no{position:absolute;top:6px;left:7px;font-size:7px;letter-spacing:.12em;
+  color:var(--ink);opacity:.55;font-variant-numeric:tabular-nums;z-index:2}
+.cat-cover-label{position:absolute;left:7px;right:7px;top:24px;padding:5px 3px;
+  background:rgba(255,255,255,.94);border:1px solid rgba(43,43,51,.16);border-radius:3px;
+  text-align:center;z-index:2}
+.cat-cover-label span{display:block;font-size:10px;font-weight:600;letter-spacing:.05em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cat-cover.is-empty{background:var(--surface-page);border:1px dashed var(--border-strong);
+  box-shadow:none;display:flex;align-items:center;justify-content:center}
+.cat-empty-t{font-size:9px;letter-spacing:.12em;color:var(--text-tertiary)}
+.cat-info{flex:1;min-width:0}
+.cat-name{font-size:16px;font-weight:600;color:var(--ink-1);letter-spacing:.06em}
+.cat-count{margin-top:6px;font-size:11px;color:var(--text-tertiary);letter-spacing:.04em}
+
 
 
 /* ── 浏览器预览适配 ── */
@@ -9870,6 +9901,7 @@ const PAGE_OPTS = {
             column: null, rows: [], emptyText: '', chipsStuck: false, sort: 'hot' },
     search: { q: '', rows: [], resultText: '', focus: true,
               suggestions: ['云', '白居易', '咖啡', '早点睡', '关系'] },
+    categories: { items: [], total: 0 },
     setPage: { exists: false, ctaShow: false, ctaFloating: false },
     draw: null,
     mapV: { cells: [], drawn: 0, count: 0, pct: 0 },
@@ -10293,9 +10325,60 @@ const PAGE_OPTS = {
     wx.pageScrollTo({ scrollTop: 0, duration: 200 });
   },
 
-  /* 三宫格：分类 → 滚动到 chips */
+  /* 三宫格：分类 → 九类索引页 */
   tapQuickCat() {
-    wx.pageScrollTo({ selector: '.chips', duration: 200 });
+    this.goCategories();
+  },
+
+  goCategories() {
+    wx.navigateTo({ url: '/pages/categories/index' });
+  },
+
+  renderCategories() {
+    const sets = this.S.sets || [];
+    const items = CATS.map(c => {
+      const pool = sets.filter(s => s.cat === c.key)
+        .sort((a, b) => (b.heat || 0) - (a.heat || 0)
+          || (b.date || '').localeCompare(a.date || ''));
+      const rep = pool[0] || null;
+      const cvm = rep ? core.setCoverVM(rep) : null;
+      const t = core.inkTints(c.key);
+      const count = pool.length;
+      return {
+        key: c.key,
+        name: c.name,
+        desc: c.desc,
+        count,
+        countText: count ? count + ' 个卡集' : '待上新',
+        empty: !count,
+        coverImage: rep ? (rep.coverImage || '') : '',
+        coverNo: cvm ? cvm.noText : '',
+        coverText: rep ? ((rep.covT || rep.title || '').slice(0, 4)) : '待上新',
+        tintStyle: cvm ? cvm.tintStyle : '',
+        ink: cvm ? cvm.ink : t.ink,
+      };
+    });
+    this.setData({ categories: { items, total: sets.length } });
+  },
+
+  tapCategory(e) {
+    const key = e.currentTarget.dataset.key;
+    const item = (this.data.categories.items || []).find(x => x.key === key);
+    if (!item || item.empty) {
+      this.toast('这个分类还没有卡集');
+      return;
+    }
+    this.S.pendingCat = key;
+    wx.navigateBack({ fail: () => wx.switchTab({ url: '/pages/home/index' }) });
+  },
+
+  consumePendingCat() {
+    const key = this.S && this.S.pendingCat;
+    if (!key) return false;
+    this.S.pendingCat = null;
+    this._hmCat = key;
+    this._hmDim = '';
+    return true;
   },
 
   /* 三宫格：热门活动 → 最热榜单 */
@@ -13648,9 +13731,11 @@ Object.assign(page, {
     if (!this.S) return;
     this.S.lastActive = Date.now();
     if (!this.S.booted) return;
+    const picked = this.consumePendingCat();
     core.syncOnShow().then(() => {
       this.renderHome();
       this.handleLaunchOptions(options);
+      if (picked) wx.pageScrollTo({ selector: '#squareList', duration: 220 });
     });
   },
   onShareAppMessage() {

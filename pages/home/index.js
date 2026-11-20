@@ -17,9 +17,11 @@ Object.assign(page, {
     if (!this.S) return;
     this.S.lastActive = Date.now();
     if (!this.S.booted) return;
+    const picked = this.consumePendingCat();
     core.syncOnShow().then(() => {
       this.renderHome();
       this.handleLaunchOptions(options);
+      if (picked) wx.pageScrollTo({ selector: '#squareList', duration: 220 });
     });
   },
   onShareAppMessage() {

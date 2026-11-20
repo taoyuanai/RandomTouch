@@ -4,6 +4,7 @@
     "pages/cards/index",
     "pages/create/index",
     "pages/me/index",
+    "pages/categories/index",
     "pages/search/index",
     "pages/set/index",
     "pages/draw/index",
