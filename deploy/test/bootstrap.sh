@@ -5,9 +5,14 @@
 #   sudo bash deploy/test/bootstrap.sh
 #
 # 前置：MySQL 与 Redis 已在本机运行。
+# 目标系统：CentOS 7 / RHEL 7（glibc 2.17）；也兼容 Ubuntu / Debian。
+# CentOS 7 无法运行官方 Node 20，脚本会自动安装 glibc-217 构建到 /opt/node20。
 # 产物：系统账号 rt-test、目录 /data/project/RandomTouch/test、库 randomtouch_test、
 #       Redis db 1 + 前缀 rt:test:、systemd 服务、Nginx 反代、.env 模板。
 set -euo pipefail
+
+# sudo 的 secure_path 通常不含 /usr/local/bin，先补上
+export PATH="/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH:-}"
 
 ENV="${ENV:-test}"
 SVC_USER="${SVC_USER:-rt-test}"
@@ -24,6 +29,10 @@ PORT="${PORT:-3000}"
 DOMAIN="${DOMAIN:-_}"
 MYSQL_ROOT_CMD="${MYSQL_ROOT_CMD:-mysql -uroot}"
 SERVICE="randomtouch-${ENV}-api"
+NODE_VERSION="${NODE_VERSION:-v20.20.2}"
+NODE_PREFIX="${NODE_PREFIX:-/opt/node20}"
+# 1 = 跳过系统包安装（服务器已手工装好 nginx/rsync/curl 等时使用）
+SKIP_INSTALL="${SKIP_INSTALL:-0}"
 
 SRC_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 log() { echo -e "\033[36m[$(date +%H:%M:%S)]\033[0m $*"; }
@@ -33,9 +42,13 @@ die() { echo -e "\033[31m[错误]\033[0m $*" >&2; exit 1; }
 [ -f "$SRC_DIR/server/package.json" ] || die "找不到 $SRC_DIR/server，请在仓库根目录运行"
 
 # ── 1. 系统账号与目录 ─────────────────────────────────────────────
+mkdir -p "$ROOT"
+if ! getent group "$SVC_USER" >/dev/null 2>&1; then
+  groupadd --system "$SVC_USER"
+fi
 if ! id -u "$SVC_USER" >/dev/null 2>&1; then
   log "创建系统账号 $SVC_USER"
-  useradd --system --home-dir "$ROOT" --shell /usr/sbin/nologin "$SVC_USER"
+  useradd --system --gid "$SVC_USER" --home-dir "$ROOT" --shell /usr/sbin/nologin "$SVC_USER"
 else
   log "系统账号 $SVC_USER 已存在"
 fi
@@ -43,43 +56,137 @@ mkdir -p "$CURRENT" "$SHARED" "$LOG_DIR"
 chown -R "$SVC_USER:$SVC_USER" "$ROOT"
 chmod 750 "$ROOT" "$APP_DIR"
 
-# ── 2. 依赖 ───────────────────────────────────────────────────────
-NODE_MAJOR=0
-command -v node >/dev/null 2>&1 && NODE_MAJOR="$(node -v | sed 's/^v//' | cut -d. -f1)"
-if [ "${NODE_MAJOR:-0}" -lt 20 ]; then
-  if command -v apt-get >/dev/null 2>&1; then
-    log "安装 Node 20（apt / NodeSource）"
-    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-    apt-get install -y nodejs
-  elif command -v dnf >/dev/null 2>&1; then
-    log "安装 Node 20（dnf）"
-    curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
-    dnf install -y nodejs
-  else
-    die "无法自动安装 Node 20，请手动安装后重试"
+# ── 2. 系统依赖（CentOS 7 用 yum；Ubuntu/Debian 用 apt） ─────────
+OS_FAMILY="unknown"
+if command -v apt-get >/dev/null 2>&1; then
+  OS_FAMILY="debian"
+elif command -v yum >/dev/null 2>&1; then
+  OS_FAMILY="rhel"
+elif command -v dnf >/dev/null 2>&1; then
+  OS_FAMILY="rhel"
+fi
+
+if [ "$SKIP_INSTALL" != "1" ]; then
+  if [ "$OS_FAMILY" = "debian" ]; then
+    apt-get update -y
+    apt-get install -y curl ca-certificates tar xz-utils rsync openssl
+  elif [ "$OS_FAMILY" = "rhel" ]; then
+    # CentOS 7 已 EOL；若 yum 源失效，先切到 vault.centos.org 或 SKIP_INSTALL=1
+    yum install -y curl ca-certificates tar xz rsync openssl || true
   fi
 fi
 
-if command -v apt-get >/dev/null 2>&1; then
-  apt-get update -y
-  apt-get install -y nginx curl ca-certificates rsync openssl redis-tools
-  apt-get install -y mysql-client 2>/dev/null || apt-get install -y default-mysql-client
-elif command -v dnf >/dev/null 2>&1; then
-  dnf install -y nginx curl ca-certificates rsync openssl redis
-  dnf install -y mysql 2>/dev/null || dnf install -y mariadb
+# ── 3. Node 20 ────────────────────────────────────────────────────
+NODE_MAJOR=0
+if command -v node >/dev/null 2>&1; then
+  # 自带的旧 node 可能因 glibc 不匹配而无法执行，失败时按 0 处理
+  NODE_MAJOR="$(node -v 2>/dev/null | sed 's/^v//' | cut -d. -f1)" || NODE_MAJOR=0
 fi
 
-systemctl enable --now redis-server 2>/dev/null || systemctl enable --now redis 2>/dev/null || true
-systemctl enable --now mysqld 2>/dev/null || systemctl enable --now mysql 2>/dev/null || true
+if [ "${NODE_MAJOR:-0}" -lt 20 ]; then
+  if [ "$OS_FAMILY" = "debian" ]; then
+    log "安装 Node 20（apt / NodeSource）"
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+    apt-get install -y nodejs
+  elif [ "$OS_FAMILY" = "rhel" ]; then
+    GLIBC_VER="$(ldd --version 2>/dev/null | head -n1 | awk '{print $NF}')"
+    GLIBC_MAJOR="${GLIBC_VER%%.*}"
+    GLIBC_REST="${GLIBC_VER#*.}"
+    GLIBC_MINOR="${GLIBC_REST%%.*}"
+    if [ "${GLIBC_MAJOR:-0}" -lt 2 ] || { [ "${GLIBC_MAJOR:-0}" -eq 2 ] && [ "${GLIBC_MINOR:-0}" -lt 28 ]; }; then
+      # CentOS/RHEL 7：glibc 2.17，官方 Node 20 需要 >= 2.28，使用 glibc-217 构建
+      [ "$(uname -m)" = "x86_64" ] || die "glibc-217 构建仅支持 x86_64，当前 $(uname -m)"
+      command -v xz >/dev/null 2>&1 || die "缺少 xz，请先安装 xz"
+      TARBALL="node-${NODE_VERSION}-linux-x64-glibc-217.tar.xz"
+      URL="https://unofficial-builds.nodejs.org/download/release/${NODE_VERSION}/${TARBALL}"
+      log "安装 Node ${NODE_VERSION}（glibc-217）到 $NODE_PREFIX"
+      curl -fL --retry 3 -o "/tmp/${TARBALL}" "$URL" || die "下载 Node 失败：$URL"
+      rm -rf "${NODE_PREFIX}.new"
+      mkdir -p "${NODE_PREFIX}.new"
+      tar -xJf "/tmp/${TARBALL}" -C "${NODE_PREFIX}.new" --strip-components=1
+      rm -rf "$NODE_PREFIX"
+      mv "${NODE_PREFIX}.new" "$NODE_PREFIX"
+      ln -sfn "$NODE_PREFIX/bin/node" /usr/local/bin/node
+      ln -sfn "$NODE_PREFIX/bin/npm" /usr/local/bin/npm
+      [ -x "$NODE_PREFIX/bin/npx" ] && ln -sfn "$NODE_PREFIX/bin/npx" /usr/local/bin/npx
+      printf 'export PATH=%s/bin:$PATH\n' "$NODE_PREFIX" >/etc/profile.d/node20.sh
+      chmod 644 /etc/profile.d/node20.sh
+      hash -r
+    else
+      log "安装 Node 20（NodeSource RPM）"
+      curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
+      if command -v dnf >/dev/null 2>&1; then dnf install -y nodejs; else yum install -y nodejs; fi
+    fi
+  else
+    die "无法识别包管理器，请手动安装 Node 20"
+  fi
+fi
 
-# ── 3. 同步代码 ───────────────────────────────────────────────────
+command -v node >/dev/null 2>&1 || die "Node 未安装成功"
+node -v >/dev/null 2>&1 || die "Node 无法执行（可能是 glibc 版本不匹配）"
+NODE_MAJOR="$(node -v | sed 's/^v//' | cut -d. -f1)"
+[ "${NODE_MAJOR:-0}" -ge 20 ] || die "Node 版本仍低于 20：$(node -v)"
+log "Node：$(node -v)（$(command -v node)）"
+
+# ── 4. Nginx / MySQL client ───────────────────────────────────────
+if [ "$SKIP_INSTALL" != "1" ]; then
+  if [ "$OS_FAMILY" = "debian" ]; then
+    command -v nginx >/dev/null 2>&1 || apt-get install -y nginx
+    if ! command -v mysql >/dev/null 2>&1; then
+      apt-get install -y mysql-client 2>/dev/null || apt-get install -y default-mysql-client
+    fi
+  elif [ "$OS_FAMILY" = "rhel" ]; then
+    if ! command -v nginx >/dev/null 2>&1; then
+      yum install -y epel-release || true
+      if ! yum install -y nginx; then
+        EL_VER="$(rpm -E '%{rhel}' 2>/dev/null || echo 7)"
+        log "EPEL 安装 nginx 失败，改用 nginx 官方 CentOS ${EL_VER} 源"
+        cat >/etc/yum.repos.d/nginx.repo <<NGINXEOF
+[nginx-stable]
+name=nginx stable repo
+baseurl=http://nginx.org/packages/centos/${EL_VER}/\$basearch/
+gpgcheck=1
+enabled=1
+gpgkey=https://nginx.org/keys/nginx_signing.key
+NGINXEOF
+        yum install -y nginx || die "nginx 安装失败；请手动安装 nginx 或使用 SKIP_INSTALL=1"
+      fi
+    fi
+    if ! command -v mysql >/dev/null 2>&1; then
+      log "未找到 mysql 客户端，尝试安装 mariadb 客户端"
+      yum install -y mariadb || log "mysql 客户端未安装；请手动安装 MySQL 8 client"
+    fi
+  fi
+fi
+
+command -v redis-cli >/dev/null 2>&1 || log "未找到 redis-cli（不影响 API；如需手工排查请自行安装）"
+
+command -v curl >/dev/null 2>&1 || die "缺少 curl，请先安装"
+command -v rsync >/dev/null 2>&1 || die "缺少 rsync，请先安装（yum install -y rsync）"
+command -v openssl >/dev/null 2>&1 || die "缺少 openssl，请先安装"
+command -v nginx >/dev/null 2>&1 || die "未找到 nginx，请先安装或使用 SKIP_INSTALL=1 并预装"
+
+# ── 5. CentOS 7：firewalld / SELinux ──────────────────────────────
+if systemctl is-active --quiet firewalld 2>/dev/null; then
+  log "firewalld：放行 80/443"
+  firewall-cmd --permanent --add-service=http >/dev/null 2>&1 || true
+  firewall-cmd --permanent --add-service=https >/dev/null 2>&1 || true
+  firewall-cmd --reload >/dev/null 2>&1 || true
+fi
+if command -v getenforce >/dev/null 2>&1 && [ "$(getenforce)" = "Enforcing" ]; then
+  log "SELinux：允许 Nginx 连接本机端口"
+  setsebool -P httpd_can_network_connect 1 2>/dev/null || \
+    log "SELinux 设置失败，请手动执行：setsebool -P httpd_can_network_connect 1"
+fi
+
+# ── 6. 同步代码 ───────────────────────────────────────────────────
 log "同步代码到 $CURRENT"
 rsync -a --delete --exclude node_modules --exclude .npm-cache --exclude .env "$SRC_DIR/server/" "$CURRENT/server/"
 mkdir -p "$CURRENT/services/mock"
 cp "$SRC_DIR/services/mock/seed.js" "$CURRENT/services/mock/seed.js"
 chown -R "$SVC_USER:$SVC_USER" "$CURRENT"
 
-# ── 4. .env（仅首次生成；已存在则保留） ───────────────────────────
+# ── 7. .env（仅首次生成；已存在则保留） ───────────────────────────
 ENV_FILE="$SHARED/.env"
 if [ ! -f "$ENV_FILE" ]; then
   log "生成 $ENV_FILE"
@@ -129,23 +236,26 @@ DB_PASS="$(grep '^DB_PASSWORD=' "$ENV_FILE" | cut -d= -f2-)"
 
 # 供人工执行 node 脚本时加载环境变量
 ENV_SH="$SHARED/env.sh"
-printf 'set -a\n. %s\nset +a\n' "$ENV_FILE" > "$ENV_SH"
+printf 'set -a\n. %s\nset +a\nexport PATH="%s/bin:$PATH"\n' "$ENV_FILE" "$NODE_PREFIX" > "$ENV_SH"
 chown "$SVC_USER:$SVC_USER" "$ENV_SH"
 chmod 600 "$ENV_SH"
 
-# ── 5. MySQL：库 / 用户 / 表 / 种子 ───────────────────────────────
+# ── 8. MySQL：库 / 用户 ───────────────────────────────────────────
+MYSQL_VER="$($MYSQL_ROOT_CMD -N -e 'SELECT VERSION()' 2>/dev/null || true)"
+[ -n "$MYSQL_VER" ] && log "MySQL 版本：$MYSQL_VER"
 log "初始化 MySQL 库 $DB_NAME"
 $MYSQL_ROOT_CMD <<SQL
 CREATE DATABASE IF NOT EXISTS \`$DB_NAME\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER IF NOT EXISTS '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASS';
 ALTER USER '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASS';
+CREATE USER IF NOT EXISTS '$DB_USER'@'127.0.0.1' IDENTIFIED BY '$DB_PASS';
+ALTER USER '$DB_USER'@'127.0.0.1' IDENTIFIED BY '$DB_PASS';
 GRANT ALL PRIVILEGES ON \`$DB_NAME\`.* TO '$DB_USER'@'localhost';
+GRANT ALL PRIVILEGES ON \`$DB_NAME\`.* TO '$DB_USER'@'127.0.0.1';
 FLUSH PRIVILEGES;
 SQL
 
-log "执行 schema.sql"
-mysql -u"$DB_USER" -p"$DB_PASS" "$DB_NAME" < "$CURRENT/server/db/schema.sql"
-
+# ── 9. 安装依赖 + 建表 + 种子 ─────────────────────────────────────
 log "安装服务端依赖"
 cd "$CURRENT/server"
 NPM_CACHE="$APP_DIR/.npm-cache"
@@ -157,14 +267,18 @@ else
 fi
 chown -R "$SVC_USER:$SVC_USER" "$CURRENT/server"
 
-log "导入种子数据"
 set -a
 # shellcheck disable=SC1090
 . "$ENV_FILE"
 set +a
+
+log "执行 schema（Node mysql2，避免 CentOS 7 旧客户端的认证插件问题）"
+node "$CURRENT/server/scripts/run-schema.js"
+
+log "导入种子数据"
 node "$CURRENT/server/db/seed.js"
 
-# ── 6. systemd ────────────────────────────────────────────────────
+# ── 10. systemd ───────────────────────────────────────────────────
 NODE_BIN="$(command -v node)"
 log "写入 systemd 服务 $SERVICE"
 cat > "/etc/systemd/system/${SERVICE}.service" <<EOF
@@ -179,11 +293,10 @@ Group=$SVC_USER
 WorkingDirectory=$CURRENT/server
 EnvironmentFile=$ENV_FILE
 Environment=TZ=Asia/Shanghai
-ExecStart=$NODE_BIN $CURRENT/server/src/index.js
+# CentOS 7 的 systemd 219 不支持 StandardOutput=append:，用 shell 重定向写日志
+ExecStart=/bin/sh -c 'exec $NODE_BIN $CURRENT/server/src/index.js >> $LOG_DIR/api.log 2>&1'
 Restart=always
 RestartSec=3
-StandardOutput=append:$LOG_DIR/api.log
-StandardError=append:$LOG_DIR/api.err.log
 NoNewPrivileges=true
 PrivateTmp=true
 
@@ -191,12 +304,16 @@ PrivateTmp=true
 WantedBy=multi-user.target
 EOF
 
+touch "$LOG_DIR/api.log" "$LOG_DIR/api.err.log"
+chown "$SVC_USER:$SVC_USER" "$LOG_DIR/api.log" "$LOG_DIR/api.err.log"
+
 systemctl daemon-reload
 systemctl enable "$SERVICE"
 systemctl restart "$SERVICE"
 
-# ── 7. Nginx ──────────────────────────────────────────────────────
+# ── 11. Nginx ─────────────────────────────────────────────────────
 log "写入 Nginx 站点"
+mkdir -p /etc/nginx/conf.d
 cat > "/etc/nginx/conf.d/randomtouch-${ENV}.conf" <<EOF
 server {
     listen 80;
@@ -217,11 +334,22 @@ server {
     }
 }
 EOF
+
+# 按 IP 访问时避免命中 Nginx 默认站点
+if [ -e /etc/nginx/sites-enabled/default ]; then
+  rm -f /etc/nginx/sites-enabled/default
+  log "已移除 Nginx 默认站点（sites-enabled/default）"
+fi
+if [ -f /etc/nginx/conf.d/default.conf ]; then
+  mv /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf.disabled
+  log "已禁用 Nginx 默认站点（conf.d/default.conf）"
+fi
+
 nginx -t
 systemctl enable --now nginx
 systemctl reload nginx
 
-# ── 8. 自检 ───────────────────────────────────────────────────────
+# ── 12. 自检 ──────────────────────────────────────────────────────
 log "等待 API 就绪"
 ok=0
 for _ in $(seq 1 20); do
@@ -231,7 +359,8 @@ done
 if [ "$ok" = "1" ]; then
   log "API 健康检查通过"
 else
-  log "API 未就绪，查看日志：journalctl -u $SERVICE -n 50 --no-pager"
+  log "API 未就绪，查看日志：tail -n 80 $LOG_DIR/api.log"
+  log "或：journalctl -u $SERVICE -n 50 --no-pager"
 fi
 
 cat <<EOF
@@ -243,6 +372,7 @@ cat <<EOF
   配置文件：$ENV_FILE   ← 必须补 WX_SECRET / COS_*
   日志目录：$LOG_DIR
   服务名  ：$SERVICE
+  Node    ：$(node -v)（$NODE_BIN）
   健康检查：curl http://127.0.0.1:$PORT/healthz
   Redis   ：db $REDIS_DB，前缀 $REDIS_PREFIX
 

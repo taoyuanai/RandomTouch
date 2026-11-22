@@ -11,10 +11,14 @@ APP_DIR="$ROOT/$ENV"
 
 [ "$(id -u)" = "0" ] || { echo "请用 root / sudo 运行" >&2; exit 1; }
 
+mkdir -p "$ROOT"
+if ! getent group "$SVC_USER" >/dev/null 2>&1; then
+  groupadd --system "$SVC_USER"
+fi
 if id -u "$SVC_USER" >/dev/null 2>&1; then
   echo "[ok] 系统账号已存在: $SVC_USER"
 else
-  useradd --system --home-dir "$ROOT" --shell /usr/sbin/nologin "$SVC_USER"
+  useradd --system --gid "$SVC_USER" --home-dir "$ROOT" --shell /usr/sbin/nologin "$SVC_USER"
   echo "[ok] 已创建系统账号: $SVC_USER"
 fi
 

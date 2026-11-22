@@ -31,6 +31,14 @@ scripts/
   run-schema.js  attach-demo.js  mint-token.js  smoke.js
 ```
 
+## 系统兼容
+
+- 目标测试机：CentOS 7 / RHEL 7（glibc 2.17）。官方 Node 20 需要 glibc ≥ 2.28，
+  `deploy/test/bootstrap.sh` 会自动安装 Node 20 的 **glibc-217** 构建到 `/opt/node20`。
+- Node ≥ 20；MySQL 需支持 JSON 字段（MySQL 5.7+ / MariaDB 10.2+）。
+- API 只监听 `127.0.0.1:3000`，由 Nginx 反代；CentOS 7 下需
+  `setsebool -P httpd_can_network_connect 1`（bootstrap 已处理）。
+
 ## 本地/服务器运行
 
 ```bash
