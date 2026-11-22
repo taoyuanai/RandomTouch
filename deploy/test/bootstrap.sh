@@ -203,7 +203,8 @@ chown -R "$SVC_USER:$SVC_USER" "$CURRENT"
 ENV_FILE="$SHARED/.env"
 if [ ! -f "$ENV_FILE" ]; then
   log "生成 $ENV_FILE"
-  DB_PASS="$(openssl rand -hex 16)"
+  # MySQL validate_password 常要求大小写+数字+特殊字符；hex 会被拒绝
+  DB_PASS="Aa1!$(openssl rand -hex 16)"
   JWT_SECRET="$(openssl rand -hex 32)"
   cat > "$ENV_FILE" <<EOF
 APP_ENV=$ENV
@@ -246,6 +247,20 @@ else
 fi
 DB_PASS="$(grep '^DB_PASSWORD=' "$ENV_FILE" | cut -d= -f2-)" || true
 [ -n "$DB_PASS" ] || die ".env 缺少 DB_PASSWORD"
+
+# 旧脚本生成的是 32 位小写 hex，MySQL validate_password 策略会拒绝；
+# 自动轮换成含大小写/数字/特殊字符的密码，并同步写回 .env。
+if [[ "$DB_PASS" =~ ^[0-9a-f]{32}$ ]]; then
+  log "数据库密码不符合 MySQL 密码策略，自动重新生成"
+  DB_PASS="Aa1!$(openssl rand -hex 16)"
+  {
+    grep -v '^DB_PASSWORD=' "$ENV_FILE" || true
+    printf 'DB_PASSWORD=%s\n' "$DB_PASS"
+  } > "${ENV_FILE}.tmp"
+  mv "${ENV_FILE}.tmp" "$ENV_FILE"
+  chown "$SVC_USER:$SVC_USER" "$ENV_FILE"
+  chmod 600 "$ENV_FILE"
+fi
 
 # 供人工执行 node 脚本时加载环境变量
 ENV_SH="$SHARED/env.sh"
