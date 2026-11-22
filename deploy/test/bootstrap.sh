@@ -5,13 +5,13 @@
 #   sudo bash deploy/test/bootstrap.sh
 #
 # 前置：MySQL 与 Redis 已在本机运行。
-# 产物：系统账号 rt-test、目录 /data/project/randomtouch/test、库 randomtouch_test、
+# 产物：系统账号 rt-test、目录 /data/project/RandomTouch/test、库 randomtouch_test、
 #       Redis db 1 + 前缀 rt:test:、systemd 服务、Nginx 反代、.env 模板。
 set -euo pipefail
 
 ENV="${ENV:-test}"
 SVC_USER="${SVC_USER:-rt-test}"
-ROOT="${ROOT:-/data/project/randomtouch}"
+ROOT="${ROOT:-/data/project/RandomTouch}"
 APP_DIR="$ROOT/$ENV"
 CURRENT="$APP_DIR/current"
 SHARED="$APP_DIR/shared"

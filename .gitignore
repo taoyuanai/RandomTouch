@@ -1,18 +1,53 @@
+# macOS / 编辑器
 .DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
+
+# Node
 node_modules/
 miniprogram_npm/
-project.private.config.json
-*.log
-dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+coverage/
+.npm/
+.pnpm-store/
 
-# 服务端（Node API）
+# 本地 / 私有配置（示例文件仍提交）
+.env
+.env.*
+!.env.example
+project.private.config.json
+
+# 构建产物 / 日志
+dist/
+logs/
+*.log
+
+# 服务端
 server/node_modules/
 server/.npm-cache/
 server/.env
 server/.env.*
 !server/.env.example
 server/logs/
+server/coverage/
+server/uploads/
 
-# 部署脚本里的真实密钥
+# 部署密钥与证书
 deploy/**/.env
 deploy/**/shared/.env
+deploy/**/certs/
+*.pem
+*.key
+*.p12
+*.pfx
+
+# 数据库备份（server/db/schema.sql 仍然提交）
+backup_*.sql
+*.sql.gz
+*.dump

@@ -13,7 +13,7 @@ sudo bash deploy/test/bootstrap.sh
 脚本是幂等的，可重复执行。首次执行会：
 
 1. 创建系统账号 `rt-test`
-2. 创建目录 `/data/project/randomtouch/test/{current,shared,logs}`
+2. 创建目录 `/data/project/RandomTouch/test/{current,shared,logs}`
 3. 安装 Node 20 / Nginx / MySQL client（缺失时）
 4. 创建库 `randomtouch_test` 与用户 `rt_test`
 5. 执行 `server/db/schema.sql` 并导入种子内容
@@ -36,14 +36,14 @@ sudo systemctl restart randomtouch-test-api
 
 ```bash
 # 1. 填微信 AppSecret 与 COS 密钥
-sudo vi /data/project/randomtouch/test/shared/.env
+sudo vi /data/project/RandomTouch/test/shared/.env
 sudo systemctl restart randomtouch-test-api
 
 # 2. 加载环境变量（每个终端执行一次）
-. /data/project/randomtouch/test/shared/env.sh
+. /data/project/RandomTouch/test/shared/env.sh
 
 # 3. 生成测试 token（openid 可任意填，如 dev-openid-1）
-cd /data/project/randomtouch/test/current/server
+cd /data/project/RandomTouch/test/current/server
 node scripts/mint-token.js dev-openid-1
 
 # 4. 冒烟
@@ -80,7 +80,7 @@ request / uploadFile / downloadFile 合法域名（COS 域名也要加）。
 ```bash
 systemctl status randomtouch-test-api
 journalctl -u randomtouch-test-api -n 100 --no-pager
-tail -f /data/project/randomtouch/test/logs/api.log
+tail -f /data/project/RandomTouch/test/logs/api.log
 curl http://127.0.0.1:3000/healthz
 mysql -u rt_test -p randomtouch_test -e 'select count(*) from set_cards'
 ```

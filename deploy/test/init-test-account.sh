@@ -5,7 +5,7 @@
 set -euo pipefail
 
 SVC_USER="${SVC_USER:-rt-test}"
-ROOT="${ROOT:-/data/project/randomtouch}"
+ROOT="${ROOT:-/data/project/RandomTouch}"
 ENV="${ENV:-test}"
 APP_DIR="$ROOT/$ENV"
 

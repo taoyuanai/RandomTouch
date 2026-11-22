@@ -91,7 +91,7 @@
 | D087 | P2 后端 | SetPayload.count 统一为 set_cards 行数（pool.length）；种子 count>pool 的历史数据待运营修 | 完成判定只能基于实际卡池，否则永远抽不空 |
 | D088 | P2 后端 | uploadImage v1 = 小程序 multipart 上传到 API → 服务端写 COS → 返回 object key；rec.img 为 COS URL | 先跑通全链路；后续可换 STS 直传，只改 real/index.js 与 /upload |
 | D089 | P2 后端 | 评论 time 由服务端生成展示串（今天/昨天/MM-DD HH:mm），同时保留 created_ts | 客户端直接显示 time；契约 ts 另存，记入偏离日志 |
-| D090 | P2 后端 | 测试环境：系统账号 rt-test、目录 /data/project/randomtouch/test、库 randomtouch_test、Redis db1 前缀 rt:test: | 生产复用同一脚本换参数 |
+| D090 | P2 后端 | 测试环境：系统账号 rt-test、目录 /data/project/RandomTouch/test、库 randomtouch_test、Redis db1 前缀 rt:test: | 生产复用同一脚本换参数 |
 | D091 | P2 后端 | Redis 只做幂等快路径/缓存/锁；正确性以 MySQL 事务 + draw_requests 唯一键为准 | Redis 故障不影响抽卡正确性 |
 | D092 | P2 后端 | 幂等以 (user_id, request_id) 为主键落库；同 requestId 重放返回同一结果且 result='already' | 覆盖「服务端已处理但响应丢失」 |
 | D093 | P2 后端 | unlock / withdraw v1 仍为模拟支付（契约定义）；正式收款必须改为支付回调驱动 | 避免把「模拟成功」误当真实收款上线 |

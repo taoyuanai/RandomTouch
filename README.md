@@ -36,7 +36,7 @@
 
 - 服务端：`server/` —— Node 20 + Express + MySQL + Redis + 腾讯云 COS，实现 `contract.md` v1 全部 22 个方法。
 - 接入层：`services/real/index.js`；开关在 `services/config.js`（`USE_MOCK` / `API_BASE`），页面与 `lib/` 零改动。
-- 部署：`deploy/test/bootstrap.sh` 幂等脚本 —— 建系统账号 `rt-test`、测试目录 `/data/project/randomtouch/test`、库 `randomtouch_test`、Redis db1 前缀 `rt:test:`、systemd 与 Nginx。
+- 部署：`deploy/test/bootstrap.sh` 幂等脚本 —— 建系统账号 `rt-test`、测试目录 `/data/project/RandomTouch/test`、库 `randomtouch_test`、Redis db1 前缀 `rt:test:`、systemd 与 Nginx。
 - 详见 [server/README.md](server/README.md) 与 [deploy/test/README.md](deploy/test/README.md)。
 - v1 说明：`unlock` / `withdraw` 为模拟支付（契约定义）；图片上传经服务端写 COS，后续可换 STS 直传。
 

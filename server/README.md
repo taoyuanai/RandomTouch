@@ -61,7 +61,7 @@ npm start
 
 ```bash
 # 服务器上（先加载 bootstrap 生成的环境变量）
-. /data/project/randomtouch/test/shared/env.sh
+. /data/project/RandomTouch/test/shared/env.sh
 node scripts/mint-token.js <openid>          # 输出 JWT
 node scripts/smoke.js --base=http://127.0.0.1:3000 --token=<jwt>
 ```
@@ -90,7 +90,7 @@ node scripts/attach-demo.js --openid=<openid>
 ```bash
 systemctl status randomtouch-test-api
 journalctl -u randomtouch-test-api -n 100 --no-pager
-tail -f /data/project/randomtouch/test/logs/api.log
+tail -f /data/project/RandomTouch/test/logs/api.log
 curl http://127.0.0.1:3000/healthz
 ```
 
