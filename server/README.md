@@ -65,6 +65,15 @@ npm start
 | `COS_*` | 图片存储；`COS_PUBLIC_BASE` 需加入小程序 downloadFile 合法域名 |
 | `SEC_MODE` | `mock`（测试放行）/ `real`（调微信内容安全） |
 
+### COS 权限
+
+- `COS_BUCKET` 必须是完整桶名：`<name>-<appid>`（例如 `random-touch-1450639415`）。
+- 桶可以保持「私有读写」；代码在上传时给对象设置 `ACL: public-read`，
+  小程序 `<image>` 可直接使用 `COS_PUBLIC_BASE/<key>`。
+- 因此 COS 子账号需要 `cos:PutObject` + `cos:PutObjectACL`（桶用户权限里的「完全控制」也可，
+  但正式环境建议收窄到这两个动作）。
+- 如果不想对象公开，改用 CDN 回源或服务端签发临时 URL，并相应调整 `rec.img`。
+
 ## 冒烟
 
 ```bash
