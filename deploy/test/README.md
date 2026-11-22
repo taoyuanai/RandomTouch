@@ -1,0 +1,86 @@
+# 测试环境部署
+
+在腾讯云轻量服务器（MySQL、Redis 已安装并运行）上，进入仓库根目录执行：
+
+```bash
+# 只先建测试系统账号与目录（可选，bootstrap 也会做）
+sudo bash deploy/test/init-test-account.sh
+
+# 完整部署（建库/种子/systemd/Nginx）
+sudo bash deploy/test/bootstrap.sh
+```
+
+脚本是幂等的，可重复执行。首次执行会：
+
+1. 创建系统账号 `rt-test`
+2. 创建目录 `/data/project/randomtouch/test/{current,shared,logs}`
+3. 安装 Node 20 / Nginx / MySQL client（缺失时）
+4. 创建库 `randomtouch_test` 与用户 `rt_test`
+5. 执行 `server/db/schema.sql` 并导入种子内容
+6. 生成 `shared/.env`（自动生成 DB 密码与 JWT_SECRET）
+7. 安装并启动 `randomtouch-test-api.service`
+8. 写入 Nginx 反代（80，`/api/` + `/healthz`）
+
+## 如果 MySQL / Redis 有密码
+
+```bash
+# MySQL root 需要密码时，用环境变量传入 root 连接命令
+sudo MYSQL_ROOT_CMD="mysql -uroot -p你的root密码" bash deploy/test/bootstrap.sh
+
+# Redis 有 requirepass 时，部署后编辑 shared/.env：
+# REDIS_URL=redis://:你的密码@127.0.0.1:6379
+sudo systemctl restart randomtouch-test-api
+```
+
+## 首次部署后必做
+
+```bash
+# 1. 填微信 AppSecret 与 COS 密钥
+sudo vi /data/project/randomtouch/test/shared/.env
+sudo systemctl restart randomtouch-test-api
+
+# 2. 加载环境变量（每个终端执行一次）
+. /data/project/randomtouch/test/shared/env.sh
+
+# 3. 生成测试 token（openid 可任意填，如 dev-openid-1）
+cd /data/project/randomtouch/test/current/server
+node scripts/mint-token.js dev-openid-1
+
+# 4. 冒烟
+node scripts/smoke.js --base=http://127.0.0.1:3000 --token=<上一步的 token>
+
+# 5. 可选：把测试账号绑定到演示创作者，回填演示进度
+node scripts/attach-demo.js --openid=dev-openid-1
+```
+
+## 腾讯云安全组
+
+- 放行 `80` / `443`（以及你自己的 SSH 端口）。
+- **不要**对公网放行 `3000` / `3306` / `6379`；API 只监听 `127.0.0.1`，MySQL/Redis 应绑定本机。
+- 正式环境必须走 HTTPS（微信要求），并完成域名备案。
+
+## 小程序侧
+
+编辑 `services/config.js`：
+
+```js
+API_BASE: 'https://你的域名/api/v1',   // 本地可 http://127.0.0.1:3000/api/v1
+```
+
+把 `USE_MOCK` 改为 `false`。开发者工具里勾选「不校验合法域名、web-view」；
+正式环境需要已备案的 HTTPS 域名，并在小程序后台配置
+request / uploadFile / downloadFile 合法域名（COS 域名也要加）。
+
+## 回滚
+
+`USE_MOCK = true` 即回到本地 mock，前端零风险。
+
+## 常用命令
+
+```bash
+systemctl status randomtouch-test-api
+journalctl -u randomtouch-test-api -n 100 --no-pager
+tail -f /data/project/randomtouch/test/logs/api.log
+curl http://127.0.0.1:3000/healthz
+mysql -u rt_test -p randomtouch_test -e 'select count(*) from set_cards'
+```

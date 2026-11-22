@@ -147,3 +147,9 @@ DraftPayload = { id, title, intro, type, cat, price, trial, coverImage,
 ## 3. 偏离日志（后端进场后填写）
 | 日期 | 方法 | 偏离内容 | 适配方案（real/index.js） |
 |---|---|---|---|
+| P2 | auth | 前端 `auth()` 无参数；真实登录需 `wx.login` code | 适配层内部 `wx.login` → `POST /auth/login` 换 JWT 并本地缓存；对外仍返回 `{ok:true}` |
+| P2 | uploadImage | 返回额外 `url`（COS 展示地址） | 调用方仍只取 `fileID`；`url` 供 submitCraft 封面直接落库 |
+| P2 | saveStamp | `rec.img` 为 COS URL；`imgFileID` 为 COS object key | 与 mock 同形，仅值来源不同 |
+| P2 | getComments | 额外返回服务端生成的展示串 `time`（今天/昨天/MM-DD HH:mm），同时保留内部 `created_ts` | 客户端直接显示 `time`；不依赖客户端时区 |
+| P2 | getPosterQR | `path` 直接返回 COS HTTPS URL（不再是本地临时文件） | posterKit helper 已支持 https → getImageInfo |
+| P2 | listSets/getSet | `count` 以实际卡池行数下发（修正种子 count>pool 的历史数据） | 完成判定与 UI 进度一致 |

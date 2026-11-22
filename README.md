@@ -32,19 +32,28 @@
 - **我的 / 创作者主页**：身份头、旅程统计、今日状态、「怎么玩」摘要卡（打开完整规则半屏）、菜单、作品/被抽/关注者、关注与作品列表；卡集详情保留一行玩法摘要，不再铺开五条规则。
 - **海报 / 纪念册**：单卡高亮海报（题眼金章 / 普通卡无概率视觉）、抽空纪念海报、双档纪念册（基础版 / 满页纪念版）。
 
+## 自建后端（Phase 2，测试环境先行）
+
+- 服务端：`server/` —— Node 20 + Express + MySQL + Redis + 腾讯云 COS，实现 `contract.md` v1 全部 22 个方法。
+- 接入层：`services/real/index.js`；开关在 `services/config.js`（`USE_MOCK` / `API_BASE`），页面与 `lib/` 零改动。
+- 部署：`deploy/test/bootstrap.sh` 幂等脚本 —— 建系统账号 `rt-test`、测试目录 `/data/project/randomtouch/test`、库 `randomtouch_test`、Redis db1 前缀 `rt:test:`、systemd 与 Nginx。
+- 详见 [server/README.md](server/README.md) 与 [deploy/test/README.md](deploy/test/README.md)。
+- v1 说明：`unlock` / `withdraw` 为模拟支付（契约定义）；图片上传经服务端写 COS，后续可换 STS 直传。
+
 ## 内容安全 P0-1（Phase 2 接入）
 
-- 客户端 Phase 1 已移除 `utils/security.js`；留言、邮戳、封面、投稿统一走 `services/api.js`（当前 mock）。
-- 云端脚手架保留：`cloudfunctions/auth`、`cloudfunctions/sec`、`cloudfunctions/sec-callback`。
-- Phase 2 在 `services/real/index.js` 实现 `addComment / saveStamp / submitCraft / uploadImage` 的审核状态；`DEBUG=false` 后才能提审。
+- 客户端 Phase 1 已移除 `utils/security.js`；留言、邮戳、封面、投稿统一走 `services/api.js`。
+- 自建后端在 `server/src/services/sec.js` 直连微信 OpenAPI（msgSecCheck / mediaCheckAsync）；
+  `SEC_MODE=mock` 供测试环境放行，正式环境改 `real`。
+- 云端脚手架保留：`cloudfunctions/auth`、`cloudfunctions/sec`、`cloudfunctions/sec-callback`、`cloudfunctions/qrcode`（不再依赖，可择机下线）。
 - 私有邮戳 fail-open、留言 fail-closed、卡集机审/人工队列规则保持不变，由服务端返回状态。
 
 上线前需要：
-1. 完成 `services/real/index.js`，在 `services/config.js` 设 `USE_MOCK=false`
-2. 在云开发控制台创建 `sec_traces` 集合
-3. 配置消息推送事件 `wxa_media_check` 到 `sec-callback`
+1. 完成 `services/real/index.js`（已提供），在 `services/config.js` 设 `USE_MOCK=false` 并填 `API_BASE`
+2. 在服务器 `.env` 填 `WX_SECRET` / `COS_*`，`SEC_MODE=real`
+3. 在小程序后台配置 request / uploadFile / downloadFile 合法域名（含 COS 域名）
 4. 在公众平台完成用户隐私保护指引声明（相册/摄像头/保存相册/裁剪）
-5. 用真实模板与云环境联调文本与图片样本
+5. 用真实模板联调文本与图片样本；`DEBUG=false` 后方可提审
 
 ## 文件结构
 
@@ -54,6 +63,9 @@ lib/core.js                       常量 / 纯函数 / S 单例 / api 同步层
 lib/shared.js                     共享方法层（createPage，D3 过渡期单一来源）
 services/api.js                   页面唯一数据出口（mock / real 切换）
 services/mock/*                   影子后端（seed / store / index）
+services/real/index.js            自建后端适配层（wx.request + JWT + 上传）
+server/                           Node API + MySQL schema + 种子 + 冒烟脚本
+deploy/test/*                     测试环境幂等部署（账号/目录/库/服务/Nginx）
 pages/home|cards|create|me/*      4 个原生 tab 页
 pages/set|draw/*                  卡集详情 / 抽卡独立页
 pages/map|edit|income|author/*     全图 / 编辑审核 / 收益 / 创作者

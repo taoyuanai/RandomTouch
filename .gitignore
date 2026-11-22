@@ -4,3 +4,15 @@ miniprogram_npm/
 project.private.config.json
 *.log
 dist/
+
+# 服务端（Node API）
+server/node_modules/
+server/.npm-cache/
+server/.env
+server/.env.*
+!server/.env.example
+server/logs/
+
+# 部署脚本里的真实密钥
+deploy/**/.env
+deploy/**/shared/.env
