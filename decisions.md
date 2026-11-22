@@ -99,3 +99,4 @@
 | D095 | P2 后端 | 评论新增 status 映射：内容安全 pass→visible，pending→pending，risky→拒绝 | 安全状态与留言可见性解耦 |
 | D096 | P2 后端 | 图片异步审核回调 v1 未实现：sec.media 先落 pending；正式环境需补公网回调或轮询 | 私有邮戳 fail-open，不阻塞主流程；上线前补齐 |
 | D097 | P2 后端 | `tools/validate-content.js` 仍校验卡面 `w<=8`，与 D081 的 24 字不一致；本次不改 | 待内容工具统一时修正；后端不做该校验 |
+| D098 | P2 后端 | 测试机为 CentOS 7（glibc 2.17）：Node 20 改用 glibc-217 构建装到 `/opt/node20`；包管理用 yum + EPEL；systemd 219 用 shell 重定向写日志；schema/seed 改由 Node mysql2 执行 | 官方 Node 20 需 glibc≥2.28；EL7 自带旧 mysql 客户端可能不支持 MySQL 8 认证插件 |

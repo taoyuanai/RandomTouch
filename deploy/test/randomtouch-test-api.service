@@ -1,4 +1,5 @@
-# 参考单元（bootstrap.sh 按实际路径生成 /etc/systemd/system/randomtouch-test-api.service）
+# 参考单元。bootstrap.sh 会按实际 node 路径生成 /etc/systemd/system/randomtouch-test-api.service。
+# 注意：CentOS 7 的 systemd 219 不支持 StandardOutput=append:，这里用 shell 重定向写文件。
 [Unit]
 Description=RandomTouch API (test)
 After=network.target
@@ -10,11 +11,9 @@ Group=rt-test
 WorkingDirectory=/data/project/RandomTouch/test/current/server
 EnvironmentFile=/data/project/RandomTouch/test/shared/.env
 Environment=TZ=Asia/Shanghai
-ExecStart=/usr/bin/node /data/project/RandomTouch/test/current/server/src/index.js
+ExecStart=/bin/sh -c 'exec /opt/node20/bin/node /data/project/RandomTouch/test/current/server/src/index.js >> /data/project/RandomTouch/test/logs/api.log 2>&1'
 Restart=always
 RestartSec=3
-StandardOutput=append:/data/project/RandomTouch/test/logs/api.log
-StandardError=append:/data/project/RandomTouch/test/logs/api.err.log
 NoNewPrivileges=true
 PrivateTmp=true
 

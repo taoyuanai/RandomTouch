@@ -16,10 +16,40 @@ sudo bash deploy/test/bootstrap.sh
 2. 创建目录 `/data/project/RandomTouch/test/{current,shared,logs}`
 3. 安装 Node 20 / Nginx / MySQL client（缺失时）
 4. 创建库 `randomtouch_test` 与用户 `rt_test`
-5. 执行 `server/db/schema.sql` 并导入种子内容
+5. 用 Node（mysql2）执行 `server/db/schema.sql` 并导入种子内容
 6. 生成 `shared/.env`（自动生成 DB 密码与 JWT_SECRET）
 7. 安装并启动 `randomtouch-test-api.service`
-8. 写入 Nginx 反代（80，`/api/` + `/healthz`）
+8. 写入 Nginx 反代（80，`/api/` + `/healthz`；禁用默认站点）
+9. firewalld 放行 80/443；SELinux 允许 Nginx 反代本机端口（CentOS 7）
+
+## CentOS 7 / RHEL 7 说明
+
+目标机 `3.10.0-1160.el7.x86_64` 是 EL7，脚本已按以下方式适配：
+
+- **Node 20**：EL7 的 glibc 是 2.17，官方 Node 20 需要 glibc ≥ 2.28，无法直接运行。
+  脚本会自动下载 Node `v20.20.2` 的 **glibc-217** 构建，解压到 `/opt/node20`，
+  并软链到 `/usr/local/bin/{node,npm,npx}`。
+- **包管理**：使用 `yum`（不是 `dnf`）；Nginx 优先 EPEL，失败时自动切到 nginx 官方 CentOS 7 源。
+- 若 `curl` 报 CA 证书错误，先执行 `sudo yum update -y ca-certificates`。
+- **CentOS 7 已 EOL**：如果 `yum` 源失效，先把源切到 `vault.centos.org`，
+  或手动装好 nginx/rsync/curl 后执行 `sudo SKIP_INSTALL=1 bash deploy/test/bootstrap.sh`。
+- **systemd 219**：不支持 `StandardOutput=append:`，脚本用 `sh -c 'exec node ... >> api.log'` 写日志。
+- **SELinux**：脚本会执行 `setsebool -P httpd_can_network_connect 1`；
+  **firewalld**：脚本会放行 `http/https`。若仍被拦截，可先 `sudo setenforce 0`
+  验证是否为 SELinux 策略问题，再决定是否长期关闭或配置策略。
+- **MySQL 客户端**：schema/seed 由 Node `mysql2` 执行，避免 EL7 自带旧客户端
+  不支持 MySQL 8 `caching_sha2_password` 的问题。建库/建用户仍使用服务器上的
+  `mysql` root 命令（`MYSQL_ROOT_CMD` 可覆盖）。
+
+可选参数：
+
+```bash
+# 指定 Node 版本 / 安装目录
+sudo NODE_VERSION=v20.20.2 NODE_PREFIX=/opt/node20 bash deploy/test/bootstrap.sh
+
+# 跳过 yum/apt 安装（服务器已手工装好依赖）
+sudo SKIP_INSTALL=1 bash deploy/test/bootstrap.sh
+```
 
 ## 如果 MySQL / Redis 有密码
 
@@ -39,7 +69,8 @@ sudo systemctl restart randomtouch-test-api
 sudo vi /data/project/RandomTouch/test/shared/.env
 sudo systemctl restart randomtouch-test-api
 
-# 2. 加载环境变量（每个终端执行一次）
+# 2. 加载环境变量与 Node PATH（每个终端执行一次）
+#    shared/.env 是 600，后续 node 命令需用 root 或 rt-test 执行
 . /data/project/RandomTouch/test/shared/env.sh
 
 # 3. 生成测试 token（openid 可任意填，如 dev-openid-1）
