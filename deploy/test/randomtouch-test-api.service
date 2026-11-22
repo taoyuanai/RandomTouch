@@ -1,0 +1,22 @@
+# 参考单元（bootstrap.sh 按实际路径生成 /etc/systemd/system/randomtouch-test-api.service）
+[Unit]
+Description=RandomTouch API (test)
+After=network.target
+
+[Service]
+Type=simple
+User=rt-test
+Group=rt-test
+WorkingDirectory=/data/project/RandomTouch/test/current/server
+EnvironmentFile=/data/project/RandomTouch/test/shared/.env
+Environment=TZ=Asia/Shanghai
+ExecStart=/usr/bin/node /data/project/RandomTouch/test/current/server/src/index.js
+Restart=always
+RestartSec=3
+StandardOutput=append:/data/project/RandomTouch/test/logs/api.log
+StandardError=append:/data/project/RandomTouch/test/logs/api.err.log
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

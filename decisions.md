@@ -85,3 +85,17 @@
 | D081 | 第二批 | 卡面词上限从 8 字放宽到 24 字，与 w4/w5 长句渲染一致；编辑器 maxlength 同步 24 | 内容库已有 18–24 字卡面，旧 8 字校验会自相矛盾 |
 | D082 | 第二批 | 卡集订阅 = subscribeSet 创建零进度 user；不自动抽、不解锁；暂不做取消订阅 | 订阅页需有主动入口，抽卡仍是自动订阅 |
 | D083 | 第二批 | QR 回流 = cloudfunctions/qrcode 生成小程序码；CLOUD_ENV 未配置时界面用「搜一搜」兜底，posterKit 不改 | QR 必须服务端生成，不能在前端伪造 |
+| D084 | P2 后端 | 自建后端：单台腾讯云轻量服务器跑 Node API + MySQL + Redis；图片走 COS，读取不经服务器 | 成本大头是图片流量；结构数据量小 |
+| D085 | P2 后端 | 登录：wx.login code → 服务端 jscode2session → JWT；AppSecret 只存服务器 .env | 契约 auth() 不变，适配在 real/index.js |
+| D086 | P2 后端 | 不做保底/权重：collect 在未收集卡里均匀随机，resident 全池均匀随机 | 与现行产品一致，不新增玩法 |
+| D087 | P2 后端 | SetPayload.count 统一为 set_cards 行数（pool.length）；种子 count>pool 的历史数据待运营修 | 完成判定只能基于实际卡池，否则永远抽不空 |
+| D088 | P2 后端 | uploadImage v1 = 小程序 multipart 上传到 API → 服务端写 COS → 返回 object key；rec.img 为 COS URL | 先跑通全链路；后续可换 STS 直传，只改 real/index.js 与 /upload |
+| D089 | P2 后端 | 评论 time 由服务端生成展示串（今天/昨天/MM-DD HH:mm），同时保留 created_ts | 客户端直接显示 time；契约 ts 另存，记入偏离日志 |
+| D090 | P2 后端 | 测试环境：系统账号 rt-test、目录 /data/project/RandomTouch/test、库 randomtouch_test、Redis db1 前缀 rt:test: | 生产复用同一脚本换参数 |
+| D091 | P2 后端 | Redis 只做幂等快路径/缓存/锁；正确性以 MySQL 事务 + draw_requests 唯一键为准 | Redis 故障不影响抽卡正确性 |
+| D092 | P2 后端 | 幂等以 (user_id, request_id) 为主键落库；同 requestId 重放返回同一结果且 result='already' | 覆盖「服务端已处理但响应丢失」 |
+| D093 | P2 后端 | unlock / withdraw v1 仍为模拟支付（契约定义）；正式收款必须改为支付回调驱动 | 避免把「模拟成功」误当真实收款上线 |
+| D094 | P2 后端 | 平台分成只归属运营账号（app_config.platform_creator_id = 演示创作者），不发给每个创作者 | 收益口径正确；测试环境仍保持演示数据 |
+| D095 | P2 后端 | 评论新增 status 映射：内容安全 pass→visible，pending→pending，risky→拒绝 | 安全状态与留言可见性解耦 |
+| D096 | P2 后端 | 图片异步审核回调 v1 未实现：sec.media 先落 pending；正式环境需补公网回调或轮询 | 私有邮戳 fail-open，不阻塞主流程；上线前补齐 |
+| D097 | P2 后端 | `tools/validate-content.js` 仍校验卡面 `w<=8`，与 D081 的 24 字不一致；本次不改 | 待内容工具统一时修正；后端不做该校验 |
