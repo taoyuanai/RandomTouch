@@ -25,13 +25,22 @@ app.use(express.json({ limit: '2mb' }));
 app.use(pinoHttp({ logger, autoLogging: config.appEnv !== 'test' }));
 
 app.get('/healthz', async (req, res) => {
+  const out = { ok: true, env: config.appEnv, db: 'ok', redis: 'ok' };
   try {
     await ping();
-    const pong = await redis.ping();
-    res.json({ ok: true, env: config.appEnv, db: 'ok', redis: pong });
   } catch (e) {
-    res.status(503).json({ ok: false, env: config.appEnv, error: 'dependency down' });
+    out.ok = false;
+    out.db = 'down';
+    logger.error({ err: e }, '[healthz] mysql down');
   }
+  try {
+    out.redis = await redis.ping();
+  } catch (e) {
+    out.ok = false;
+    out.redis = 'down';
+    logger.warn({ err: e }, '[healthz] redis down');
+  }
+  res.status(out.ok ? 200 : 503).json(out);
 });
 
 const api = express.Router();
