@@ -33,6 +33,8 @@ NODE_VERSION="${NODE_VERSION:-v20.20.2}"
 NODE_PREFIX="${NODE_PREFIX:-/opt/node20}"
 # 1 = 跳过系统包安装（服务器已手工装好 nginx/rsync/curl 等时使用）
 SKIP_INSTALL="${SKIP_INSTALL:-0}"
+# 1 = 跳过建库/建用户（已用 root 手工创建，使用 .env 中已有 DB 账号）
+SKIP_DB_INIT="${SKIP_DB_INIT:-0}"
 
 SRC_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 log() { echo -e "\033[36m[$(date +%H:%M:%S)]\033[0m $*"; }
@@ -252,12 +254,30 @@ chown "$SVC_USER:$SVC_USER" "$ENV_SH"
 chmod 600 "$ENV_SH"
 
 # ── 8. MySQL：库 / 用户 ───────────────────────────────────────────
-MYSQL_VER="$($MYSQL_ROOT_CMD -N -e 'SELECT VERSION()' 2>/dev/null || true)"
-if [ -n "$MYSQL_VER" ]; then
+if [ "$SKIP_DB_INIT" = "1" ]; then
+  log "SKIP_DB_INIT=1：跳过建库/建用户，使用 $ENV_FILE 中已有账号"
+else
+  if ! MYSQL_VER="$($MYSQL_ROOT_CMD -N -e 'SELECT VERSION()' 2>/dev/null)"; then
+    cat >&2 <<MSG
+[错误] 无法以 root 连接 MySQL（当前命令：$MYSQL_ROOT_CMD）。
+请任选一种方式后重跑：
+
+  1) 指定 root 密码（密码不含空格/特殊字符）：
+     sudo MYSQL_ROOT_CMD="mysql -uroot -p你的root密码" bash deploy/test/bootstrap.sh
+
+  2) 写 /root/.my.cnf（推荐，避免密码出现在命令行）：
+     sudo bash -c 'printf "[client]\\nuser=root\\npassword=你的root密码\\n" > /root/.my.cnf && chmod 600 /root/.my.cnf'
+     然后重新执行 sudo bash deploy/test/bootstrap.sh
+
+  3) 已手工建库/建用户：加 SKIP_DB_INIT=1
+     sudo SKIP_DB_INIT=1 bash deploy/test/bootstrap.sh
+     账号密码见：$ENV_FILE 里的 DB_PASSWORD
+MSG
+    exit 1
+  fi
   log "MySQL 版本：$MYSQL_VER"
-fi
-log "初始化 MySQL 库 $DB_NAME"
-$MYSQL_ROOT_CMD <<SQL
+  log "初始化 MySQL 库 $DB_NAME"
+  $MYSQL_ROOT_CMD <<SQL
 CREATE DATABASE IF NOT EXISTS \`$DB_NAME\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER IF NOT EXISTS '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASS';
 ALTER USER '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASS';
@@ -267,6 +287,7 @@ GRANT ALL PRIVILEGES ON \`$DB_NAME\`.* TO '$DB_USER'@'localhost';
 GRANT ALL PRIVILEGES ON \`$DB_NAME\`.* TO '$DB_USER'@'127.0.0.1';
 FLUSH PRIVILEGES;
 SQL
+fi
 
 # ── 9. 安装依赖 + 建表 + 种子 ─────────────────────────────────────
 log "安装服务端依赖"

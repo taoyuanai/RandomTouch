@@ -54,12 +54,32 @@ sudo SKIP_INSTALL=1 bash deploy/test/bootstrap.sh
 ## 如果 MySQL / Redis 有密码
 
 ```bash
-# MySQL root 需要密码时，用环境变量传入 root 连接命令
+# 方式 A：root 需要密码时，用环境变量传入 root 连接命令
 sudo MYSQL_ROOT_CMD="mysql -uroot -p你的root密码" bash deploy/test/bootstrap.sh
+
+# 方式 B（推荐）：写 /root/.my.cnf，避免密码出现在命令行
+sudo bash -c 'printf "[client]\nuser=root\npassword=你的root密码\n" > /root/.my.cnf && chmod 600 /root/.my.cnf'
+sudo bash deploy/test/bootstrap.sh
+
+# 方式 C：已手工建库/建用户，跳过 root 初始化
+# 账号密码见 shared/.env 的 DB_PASSWORD
+sudo SKIP_DB_INIT=1 bash deploy/test/bootstrap.sh
 
 # Redis 有 requirepass 时，部署后编辑 shared/.env：
 # REDIS_URL=redis://:你的密码@127.0.0.1:6379
 sudo systemctl restart randomtouch-test-api
+```
+
+手工建库/建用户（方式 C 前置）：
+
+```sql
+CREATE DATABASE IF NOT EXISTS randomtouch_test
+  DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER IF NOT EXISTS 'rt_test'@'localhost' IDENTIFIED BY '<shared/.env 的 DB_PASSWORD>';
+CREATE USER IF NOT EXISTS 'rt_test'@'127.0.0.1' IDENTIFIED BY '<shared/.env 的 DB_PASSWORD>';
+GRANT ALL PRIVILEGES ON randomtouch_test.* TO 'rt_test'@'localhost';
+GRANT ALL PRIVILEGES ON randomtouch_test.* TO 'rt_test'@'127.0.0.1';
+FLUSH PRIVILEGES;
 ```
 
 ## 首次部署后必做
