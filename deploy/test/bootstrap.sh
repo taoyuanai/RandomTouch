@@ -37,6 +37,8 @@ SKIP_INSTALL="${SKIP_INSTALL:-0}"
 SRC_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 log() { echo -e "\033[36m[$(date +%H:%M:%S)]\033[0m $*"; }
 die() { echo -e "\033[31m[错误]\033[0m $*" >&2; exit 1; }
+# 任何未预期的命令失败都打印行号，避免 set -e 静默退出
+trap 'rc=$?; echo -e "\033[31m[错误]\033[0m 第 ${LINENO} 行命令失败（exit $rc）" >&2' ERR
 
 [ "$(id -u)" = "0" ] || die "请用 root / sudo 运行"
 [ -f "$SRC_DIR/server/package.json" ] || die "找不到 $SRC_DIR/server，请在仓库根目录运行"
@@ -82,6 +84,7 @@ if command -v node >/dev/null 2>&1; then
   # 自带的旧 node 可能因 glibc 不匹配而无法执行，失败时按 0 处理
   NODE_MAJOR="$(node -v 2>/dev/null | sed 's/^v//' | cut -d. -f1)" || NODE_MAJOR=0
 fi
+log "系统类型：$OS_FAMILY；已安装 Node 主版本：${NODE_MAJOR:-0}"
 
 if [ "${NODE_MAJOR:-0}" -lt 20 ]; then
   if [ "$OS_FAMILY" = "debian" ]; then
@@ -89,7 +92,13 @@ if [ "${NODE_MAJOR:-0}" -lt 20 ]; then
     curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
     apt-get install -y nodejs
   elif [ "$OS_FAMILY" = "rhel" ]; then
-    GLIBC_VER="$(ldd --version 2>/dev/null | head -n1 | awk '{print $NF}')"
+    # 优先用 getconf，不依赖 awk/head，避免 pipefail 下的静默退出
+    GCONF="$(getconf GNU_LIBC_VERSION 2>/dev/null)" || GCONF=""
+    GLIBC_VER="${GCONF#glibc }"
+    if [ -z "$GLIBC_VER" ]; then
+      GLIBC_VER="$(ldd --version 2>/dev/null | sed -n '1s/.* //p')" || GLIBC_VER=""
+    fi
+    log "检测到 glibc ${GLIBC_VER:-未知}"
     GLIBC_MAJOR="${GLIBC_VER%%.*}"
     GLIBC_REST="${GLIBC_VER#*.}"
     GLIBC_MINOR="${GLIBC_REST%%.*}"
@@ -108,7 +117,9 @@ if [ "${NODE_MAJOR:-0}" -lt 20 ]; then
       mv "${NODE_PREFIX}.new" "$NODE_PREFIX"
       ln -sfn "$NODE_PREFIX/bin/node" /usr/local/bin/node
       ln -sfn "$NODE_PREFIX/bin/npm" /usr/local/bin/npm
-      [ -x "$NODE_PREFIX/bin/npx" ] && ln -sfn "$NODE_PREFIX/bin/npx" /usr/local/bin/npx
+      if [ -x "$NODE_PREFIX/bin/npx" ]; then
+        ln -sfn "$NODE_PREFIX/bin/npx" /usr/local/bin/npx
+      fi
       printf 'export PATH=%s/bin:$PATH\n' "$NODE_PREFIX" >/etc/profile.d/node20.sh
       chmod 644 /etc/profile.d/node20.sh
       hash -r
@@ -231,7 +242,7 @@ EOF
 else
   log "保留已有 $ENV_FILE"
 fi
-DB_PASS="$(grep '^DB_PASSWORD=' "$ENV_FILE" | cut -d= -f2-)"
+DB_PASS="$(grep '^DB_PASSWORD=' "$ENV_FILE" | cut -d= -f2-)" || true
 [ -n "$DB_PASS" ] || die ".env 缺少 DB_PASSWORD"
 
 # 供人工执行 node 脚本时加载环境变量
@@ -242,7 +253,9 @@ chmod 600 "$ENV_SH"
 
 # ── 8. MySQL：库 / 用户 ───────────────────────────────────────────
 MYSQL_VER="$($MYSQL_ROOT_CMD -N -e 'SELECT VERSION()' 2>/dev/null || true)"
-[ -n "$MYSQL_VER" ] && log "MySQL 版本：$MYSQL_VER"
+if [ -n "$MYSQL_VER" ]; then
+  log "MySQL 版本：$MYSQL_VER"
+fi
 log "初始化 MySQL 库 $DB_NAME"
 $MYSQL_ROOT_CMD <<SQL
 CREATE DATABASE IF NOT EXISTS \`$DB_NAME\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
