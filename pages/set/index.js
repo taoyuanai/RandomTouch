@@ -12,7 +12,12 @@ Object.assign(page, {
       this._setRecTab = 'related';
     }
     if (this.S.cur == null) { wx.switchTab({ url: '/pages/home/index' }); return; }
-    this.setData({ statusBarHeight: 0, navTop: 0 });
+    let statusBarHeight = 20;
+    try {
+      const info = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
+      statusBarHeight = info.statusBarHeight || 20;
+    } catch (e) { /* noop */ }
+    this.setData({ statusBarHeight, navTop: 0 });
     core.ensureBoot()
       .then(() => { this.renderSetPage(); this.setData({ booting: false }); })
       .catch(() => this.setData({ bootError: true, booting: false }));
@@ -24,6 +29,9 @@ Object.assign(page, {
     core.syncOnShow().then(() => this.renderSetPage());
   },
   onUnload() { this.teardownSetObservers(); },
+  backSetPage() {
+    wx.navigateBack({ fail: () => wx.switchTab({ url: '/pages/home/index' }) });
+  },
   onShareAppMessage() {
     const s = this.S.sets.find(x => x.id === this.S.cur);
     if (s) return { title: `《${s.title}》 · 今天来抽一签`, path: `/pages/set/index?sid=${s.id}&from=share` };

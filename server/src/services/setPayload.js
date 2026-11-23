@@ -61,6 +61,16 @@ async function buildPayloads(db, userId, rows) {
     [userId, ids]
   );
 
+  const creatorIds = Array.from(new Set(rows.map(r => r.creator_id)));
+  let fanMap = new Map();
+  if (creatorIds.length) {
+    const [fanRows] = await db.query(
+      'SELECT creator_id, COUNT(*) AS n FROM follows WHERE creator_id IN (?) GROUP BY creator_id',
+      [creatorIds]
+    );
+    fanMap = new Map(fanRows.map(r => [r.creator_id, Number(r.n || 0)]));
+  }
+
   const cardMap = new Map();
   for (const c of cards) {
     if (!cardMap.has(c.set_id)) cardMap.set(c.set_id, []);
@@ -153,6 +163,7 @@ async function buildPayloads(db, userId, rows) {
       buyers: Number(row.buyers || 0),
       likes: Number(row.likes || 0),
       liked: likedSet.has(row.id),
+      fans: Number(row.creator_base_fans || 0) + (fanMap.get(row.creator_id) || 0),
       progress,
     };
   });

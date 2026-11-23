@@ -1,44 +1,106 @@
 <view class="phone" style="--statusbar:0px;--navtop:0px">
 <!-- ═══════════════════ 我的 ═══════════════════ -->
-    <view class="page" id="page-me">
+  <view class="v6-lib-nav" style="padding-top:{{statusBarHeight}}px">
+    <view class="v6-lib-nav-inner" style="padding-right:{{menuPad}}px">
+      <view class="v6-lib-head">
+        <text class="v6-kicker">MY SPACE</text>
+        <text class="v6-lib-title">我的</text>
+      </view>
+      <view class="v6-icon-btn" hover-class="hm-press" bindtap="openRemind">
+        <image class="v6-icon" src="/assets/icons/v6/bell-ink.png" mode="aspectFit" />
+      </view>
+    </view>
+  </view>
+
+    <view class="page v6-me-page" id="page-me">
 <include src="/templates/m-base.wxml"/>
 
       <view id="meBody">
-        <view class="panel me-profile" bindtap="meToAuthor">
-          <view class="avatar">我</view>
-          <view class="mp-info">
-            <view class="t-b">@{{me.name}}</view>
-            <text class="t-span">做卡人</text>
+        <view class="v6-me-profile" hover-class="hm-press" bindtap="meToAuthor">
+          <view class="v6-me-avatar-wrap" catchtap="chooseMyAvatar">
+            <image wx:if="{{me.avatarImg}}" class="v6-me-avatar-img" src="{{me.avatarImg}}" mode="aspectFill" />
+            <view wx:else class="v6-me-avatar">我</view>
+            <view class="v6-me-avatar-edit">
+              <image class="v6-icon" src="/assets/icons/v6/image-plus-ink.png" mode="aspectFit" />
+            </view>
           </view>
-          <text class="mp-go">主页 ›</text>
-        </view>
-
-        <view class="stats">
-          <view class="stat"><view class="t-b">{{me.cardN}}</view><text class="t-span">点亮图鉴</text></view>
-          <view class="stat"><view class="t-b orange">{{me.stampN}}</view><text class="t-span">已盖邮戳</text></view>
-          <view class="stat"><view class="t-b">{{me.emptied}}</view><text class="t-span">已抽空</text></view>
-        </view>
-        <view class="t-p me-today">{{me.todayLine}}</view>
-
-        <view class="rules-entry" hover-class="rules-entry-press" bindtap="openRules">
-          <view class="rules-entry-head">
-            <view class="t-b">怎么玩</view>
-            <view class="rules-entry-more">完整规则 <text class="rules-entry-go">›</text></view>
+          <view class="v6-me-info">
+            <view class="v6-me-name">@{{me.name}}</view>
+            <view class="v6-me-role">做卡人</view>
           </view>
-          <view class="rules-entry-line">每天 1 张 · 0 点重置</view>
-          <view class="rules-entry-line">收藏集抽完即空 / 常驻集天天可抽</view>
-          <view class="rules-entry-line">付费集前 1 张免费试抽</view>
-          <view class="rules-entry-line muted">缺席不损失，卡不会过期</view>
+          <image class="v6-icon" src="/assets/icons/v6/chevron-right-ink.png" mode="aspectFit" />
         </view>
 
-        <view class="panel" style="padding:6px 18px;margin-bottom:12px">
-          <view class="li" bindtap="backToCreate">创作中心<text class="t-span li-val">{{me.craftN}} 个作品</text><text class="t-span">›</text></view>
-          <view class="li" style="border:none" bindtap="goIncome">收益看板<text class="t-span li-val">{{me.availText}}</text><text class="t-span">›</text></view>
+        <view class="v6-lib-stats">
+          <view><strong>{{me.cardN}}</strong><span>收集卡片</span></view>
+          <view><strong>{{me.stampN}}</strong><span>已盖邮戳</span></view>
+          <view><strong>{{me.emptied}}</strong><span>已抽空</span></view>
         </view>
+        <view class="v6-me-today">{{me.todayLine}}</view>
+
+        <view class="v6-me-group">
+          <view class="v6-me-row" hover-class="hm-press" bindtap="backToCreate">
+            <image class="v6-icon" src="/assets/icons/v6/pen-line-brand.png" mode="aspectFit" />
+            <text class="v6-me-row-t">创作中心</text>
+            <text class="v6-me-row-v">{{me.craftN}} 个作品</text>
+            <image class="v6-icon" src="/assets/icons/v6/chevron-right-ink.png" mode="aspectFit" />
+          </view>
+          <view class="v6-me-row" hover-class="hm-press" bindtap="goIncome">
+            <image class="v6-icon" src="/assets/icons/v6/wallet-brand.png" mode="aspectFit" />
+            <text class="v6-me-row-t">收益看板</text>
+            <text class="v6-me-row-v">{{me.availText}}</text>
+            <image class="v6-icon" src="/assets/icons/v6/chevron-right-ink.png" mode="aspectFit" />
+          </view>
+          <view class="v6-me-row" hover-class="hm-press" bindtap="openRules">
+            <image class="v6-icon" src="/assets/icons/v6/book-open-brand.png" mode="aspectFit" />
+            <text class="v6-me-row-t">怎么玩</text>
+            <text class="v6-me-row-v">每天 1 张</text>
+            <image class="v6-icon" src="/assets/icons/v6/chevron-right-ink.png" mode="aspectFit" />
+          </view>
+        </view>
+
+        <view class="v6-me-group">
+          <view class="v6-me-row" hover-class="hm-press" bindtap="openRemind">
+            <image class="v6-icon" src="/assets/icons/v6/bell-brand.png" mode="aspectFit" />
+            <text class="v6-me-row-t">每日提醒</text>
+            <text class="v6-me-row-v">{{me.remindText}}</text>
+            <image class="v6-icon" src="/assets/icons/v6/chevron-right-ink.png" mode="aspectFit" />
+          </view>
+        </view>
+
+        <view class="v6-me-foot">把内容过成日子，把日子收进卡册。</view>
       </view>
     </view>
 
-    
+    <!-- 每日提醒 -->
+    <view class="modal centered {{remind.show ? 'show' : ''}}" id="remindModal">
+      <view class="sheet v6-sheet">
+        <view class="v6-sheet-head">
+          <text class="v6-sheet-title">每日提醒</text>
+          <view class="v6-icon-btn" hover-class="hm-press" bindtap="closeRemind">
+            <image class="v6-icon" src="/assets/icons/v6/x-ink.png" mode="aspectFit" />
+          </view>
+        </view>
+        <view class="v6-setting-row">
+          <view>
+            <text class="v6-setting-t">提醒我抽今日卡</text>
+            <text class="v6-setting-s">每天留一分钟给自己</text>
+          </view>
+          <view class="v6-switch {{remind.enabled ? 'on' : ''}}" bindtap="toggleRemindPage">
+            <view class="v6-switch-knob"></view>
+          </view>
+        </view>
+        <view class="v6-time-options">
+          <text class="v6-time-label">提醒时间</text>
+          <view class="v6-time-grid">
+            <view class="v6-time {{item.on ? 'on' : ''}}" wx:for="{{remind.times}}" wx:key="key"
+                  data-key="{{item.key}}" bindtap="pickRemindTime">{{item.label}}</view>
+          </view>
+        </view>
+        <view class="v6-btn primary" hover-class="hm-press" bindtap="enableRemind">保存设置</view>
+      </view>
+    </view>
+
 <!-- ═══════════════════ 怎么玩 · 完整规则 ═══════════════════ -->
   <view class="modal {{rulesSheet.show ? 'show' : ''}}" id="rulesModal">
     <view class="sheet rules-sheet">

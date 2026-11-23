@@ -1,72 +1,88 @@
 <view class="phone" style="--statusbar:0px;--navtop:0px">
-  <view class="screen">
-<view class="page" id="page-income">
-<include src="/templates/m-base.wxml"/>
-
-      <view id="incomeBody">
-        <view class="panel" style="text-align:center">
-          <view class="modal-kind" style="margin-bottom:var(--space-2)">累 计 收 益</view>
-          <view class="hero-num">{{income.totalText}}<text class="t-small">税前</text></view>
-          <view class="t-p modal-body" style="margin-top:var(--space-2)">定价卡集 · 创作者份额 80% · 平台激励另计</view>
-          <view class="stats">
-            <view class="stat"><view class="t-b orange">{{income.availText}}</view><text class="t-span">可提现</text></view>
-            <view class="stat"><view class="t-b">{{income.pendingText}}</view><text class="t-span">处理中</text></view>
-            <view class="stat"><view class="t-b">{{income.withdrawnText}}</view><text class="t-span">已提现</text></view>
-          </view>
-          <view class="withdraw-bar"><view class="t-i" style="width:{{income.withdrawPct}}%"></view></view>
-          <view class="withdraw-label">
-            <view class="t-span">{{income.withdrawLabel}}</view>
-            <view class="t-span">目标 ¥{{income.threshold}}</view>
-          </view>
-          <view style="margin-top:var(--space-3)">
-            <button wx:if="{{income.canWithdraw}}" class="cta solid" bindtap="doWithdraw">{{income.withdrawBtn}}</button>
-            <button wx:else class="cta" disabled style="opacity:0.5">{{income.withdrawBtn}}</button>
-          </view>
-          <view class="t-p draw-tail" style="margin-top:var(--space-3)">提现 1–3 个工作日到账</view>
-        </view>
-
-        <view class="panel" wx:if="{{income.showComposition}}" style="margin-top:var(--space-3)">
-          <view class="panel-head"><view class="t-b">收益构成</view><view class="t-span">{{income.paidSetN}} 个定价集</view></view>
-          <view class="income-card" wx:for="{{income.bySet}}" wx:key="title">
-            <view class="ic-icon">📦</view>
-            <view class="ic-info">
-              <view class="t-b">{{item.title}}</view>
-              <view class="t-span">{{item.meta}}</view>
-            </view>
-            <view class="ic-val">{{item.val}}</view>
-          </view>
-          <view class="income-card">
-            <view class="ic-icon">✦</view>
-            <view class="ic-info">
-              <view class="t-b">平台激励</view>
-              <view class="t-span">免费卡集按抽签量结算 · 本周</view>
-            </view>
-            <view class="ic-val">{{income.platformText}}</view>
-          </view>
-        </view>
-
-        <view class="panel" wx:if="{{income.showDetail}}" style="margin-top:var(--space-3)">
-          <view class="panel-head"><view class="t-b">明细</view><view class="t-span">近 7 天</view></view>
-          <view class="txnwrap">
-            <view class="txn" wx:for="{{income.txns}}" wx:key="d">
-              <text class="t-span td">{{item.d}}</text>
-              <text class="t-span tl">{{item.title}}<text class="t-em">{{item.meta}}</text></text>
-              <text class="t-span ta">{{item.amt}}</text>
-            </view>
-            <view class="txn sum" wx:if="{{income.buyersTotal > 0}}">
-              <text class="t-span td"></text>
-              <text class="t-span tl">定价解锁 · {{income.buyersTotal}} 笔</text>
-              <text class="t-span ta">{{income.paidTotalText}}</text>
-            </view>
-          </view>
-        </view>
-
-        <view class="t-p sub-tail">免费卡集按抽签量获得平台激励 · 付费卡集按解锁分成（80%）。免费试抽与退款不计入。</view>
+  <view class="v6-topbar" style="padding-top:{{statusBarHeight}}px">
+    <view class="v6-topbar-inner">
+      <view class="v6-icon-btn" hover-class="hm-press" bindtap="backIncome">
+        <image class="v6-icon" src="/assets/icons/v6/arrow-left-ink.png" mode="aspectFit" />
       </view>
+      <text class="v6-topbar-title">收益看板</text>
+      <view class="v6-topbar-spacer"></view>
     </view>
+  </view>
 
-    <!-- ═══════════════════ 创作者主页 ═══════════════════ -->
+  <view class="page v6-income-page" id="page-income">
+    <include src="/templates/m-base.wxml"/>
+
+    <view id="incomeBody">
+      <view class="v6-income-hero">
+        <text class="v6-income-kicker">累 计 收 益</text>
+        <view class="v6-income-total">{{income.totalText}}<text class="v6-income-tax">税前</text></view>
+        <text class="v6-income-sub">定价卡集 · 创作者份额 80% · 平台激励另计</text>
+
+        <view class="v6-income-stats">
+          <view><strong>{{income.availText}}</strong><span>可提现</span></view>
+          <view><strong>{{income.pendingText}}</strong><span>处理中</span></view>
+          <view><strong>{{income.withdrawnText}}</strong><span>已提现</span></view>
+        </view>
+
+        <view class="v6-income-track"><view class="t-i" style="width:{{income.withdrawPct}}%"></view></view>
+        <view class="v6-income-withdraw">
+          <text>{{income.withdrawLabel}}</text>
+          <text>目标 ¥{{income.threshold}}</text>
+        </view>
+
+        <view wx:if="{{income.canWithdraw}}" class="v6-btn primary" hover-class="hm-press" bindtap="doWithdraw">{{income.withdrawBtn}}</view>
+        <view wx:else class="v6-btn secondary is-disabled">{{income.withdrawBtn}}</view>
+        <text class="v6-income-note">提现 1–3 个工作日到账</text>
       </view>
 
+      <block wx:if="{{income.showComposition}}">
+        <view class="v6-list-head">
+          <text class="v6-h2">收益构成</text>
+          <text class="v6-count">{{income.paidSetN}} 个定价集</text>
+        </view>
+        <view class="v6-income-list">
+          <view class="v6-income-row" wx:for="{{income.bySet}}" wx:key="title">
+            <image class="v6-icon" src="/assets/icons/v6/wallet-ink.png" mode="aspectFit" />
+            <view class="v6-income-row-info">
+              <text class="v6-income-row-t">{{item.title}}</text>
+              <text class="v6-income-row-s">{{item.meta}}</text>
+            </view>
+            <text class="v6-income-row-v">{{item.val}}</text>
+          </view>
+          <view class="v6-income-row">
+            <image class="v6-icon" src="/assets/icons/v6/sparkles-brand.png" mode="aspectFit" />
+            <view class="v6-income-row-info">
+              <text class="v6-income-row-t">平台激励</text>
+              <text class="v6-income-row-s">免费卡集按抽签量结算 · 本周</text>
+            </view>
+            <text class="v6-income-row-v">{{income.platformText}}</text>
+          </view>
+        </view>
+      </block>
 
+      <block wx:if="{{income.showDetail}}">
+        <view class="v6-list-head">
+          <text class="v6-h2">收益明细</text>
+          <text class="v6-count">近 7 天</text>
+        </view>
+        <view class="v6-income-list">
+          <view class="v6-txn" wx:for="{{income.txns}}" wx:key="d">
+            <text class="v6-txn-d">{{item.d}}</text>
+            <view class="v6-txn-info">
+              <text class="v6-txn-t">{{item.title}}</text>
+              <text class="v6-txn-s">{{item.meta}}</text>
+            </view>
+            <text class="v6-txn-a">{{item.amt}}</text>
+          </view>
+          <view class="v6-txn sum" wx:if="{{income.buyersTotal > 0}}">
+            <text class="v6-txn-d"></text>
+            <view class="v6-txn-info"><text class="v6-txn-t">定价解锁 · {{income.buyersTotal}} 笔</text></view>
+            <text class="v6-txn-a">{{income.paidTotalText}}</text>
+          </view>
+        </view>
+      </block>
+
+      <view class="v6-income-foot">免费卡集按抽签量获得平台激励 · 付费卡集按解锁分成（80%）。免费试抽与退款不计入。</view>
+    </view>
+  </view>
 </view>

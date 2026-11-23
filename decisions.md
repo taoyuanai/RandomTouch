@@ -127,3 +127,27 @@
 | D123 | V5 | 兼容兜底：aspect-ratio / clip-path 的 `@supports` fallback；mask/backdrop 依赖既有纯色底 | 低端安卓不破版 |
 | D124 | V5 | 文件拆分（tokens/base/comp/pages/motion/archive）暂缓，回归稳定后单独排期 | 本批只做覆盖层，避免大 diff |
 | D125 | 运维 | 真机加载失败：`API_BASE` 为 `http://IP`，微信真机禁止 HTTP/IP 请求；临时 `USE_MOCK=true` 保证 UI 可回归，boot 失败页补 HTTPS 提示 | 远端服务健康（/healthz、/sets 已验证）；恢复远端需 HTTPS 域名 + request 合法域名白名单 |
+| D126 | V6 | 视觉方向定为 Demo 的冷灰橙白换皮：覆盖 V2.7/V5 暖纸语义；旧纸品/哑金让位，回归通过后归档旧视觉层 | 用户六点确认① |
+| D127 | V6 | 底部导航改自定义 `custom-tab-bar`（Demo 线框图标 + 毛玻璃）；原生 tabBar 仅保留 list 兜底 | 用户确认②；原生 tabBar 无法还原毛玻璃与线框图标 |
+| D128 | V6 | 封面采用 Demo 几何 `cover-art`（sun/arch/blocks/orbit/wave 五变体）；9 分类映射，`coverImage` 优先 | 用户确认③ |
+| D129 | V6 | V4 纸品/钢印语言让位白底橙卡；抽卡/盖戳的状态机与交互保留 | 用户确认④ |
+| D130 | V6 | 新建 lucide 风格 SVG→PNG 图标资产（`assets/icons/v6/`），墨色/品牌/灰色三档 | 用户确认⑤ |
+| D131 | V6 | 范围扩至 categories/map/author/海报；posterKit Canvas 改动需单独授权（铁律 4） | 用户确认⑥ |
+| D132 | V6 | 兼容转换：oklch→hex、dvh→vh、backdrop 纯色兜底；装饰小字除外，信息字不低于 12px | 小程序 WebView 与可读性约束 |
+| D133 | V6 | V6-2b/3：home/search/categories 改自定义导航；首页头部按 Demo 用「卡集」wordmark + 搜索；九分类保留，首 chip 改「推荐」；首页移除热门/最新切换，保留分类索引入口 | 用户要求完全还原 Demo；九分类不能退化为五类，排序入口暂由数据默认 hot |
+| D134 | V6 | V6-4：cards/set/map/author 改自定义导航；收藏册采用 Demo 三 tab（订阅中/已收集/盖戳记录）；详情页换几何封面 hero；全图改 4 列卡格；作者页换封面作品行 | 用户确认全量换皮；保留九分类、题眼/进度/互动等业务能力 |
+| D135 | V6 | V6-5：抽卡页改 5:7 小卡（橙背 / 白词面 / 解读面），保留 idle/drawn/flipped/visited/sealed 状态机；盖戳页改 Demo 卡片版式（照片 banner + 纸条 + 日期章），裁剪仍 3:4 | 用户确认 V4 纸品/钢印让位；状态机与盖戳能力不变 |
+| D136 | V6 | V6-6：create/me/income/edit 改自定义导航；创作中心与我的页复用收藏册组件；新增每日提醒 sheet；pay/comments/rules/stats 弹层统一 V6；poster/share sheet 留待海报批 | 用户确认全量换皮；12 页全部改 custom 导航，4 tab 由 custom-tab-bar 承载 |
+| D137 | V6 | posterKit Canvas 仍冻结（铁律 4）；分享弹层外层可 V6，但海报画布金色/墨色未同步，待单独授权 | 避免本轮触碰 Canvas 内部 |
+| D138 | V6 | V6-7：分享海报 sheet 外层 V6（卡片/比例/按钮），Canvas 输出保持原样；V2.7/V4/V5 旧视觉层暂留作回滚安全网，真机回归后再物理归档 | 海报是可打印物，Canvas 换色需单独授权；先保证外壳一致 |
+| D139 | V6 | V6-8：大卡弹层改 5:7 白卡（词面 / 解读面 + 已盖戳纸条），收藏册统计卡改 V6 迷你卡；删除 card.wxml 旧 V1 POST CARD 模板 | 用户指出大卡仍回退旧纸品卡；旧模板已无引用 |
+| D140 | V6 | 全图格子：已抽索引合并 got/todayIdx/drawnLog，按 count 生成格子；新增「最近抽到」条与已抽格橙色底 | 修复「1/30 已抽到但全图全空」 |
+| D141 | V6 | 用户授权修改 posterKit：colors.js 切 V6 冷灰橙白，衬线统一回退系统无衬线；题眼/集齐哑金映射品牌橙；海报预览 sig 顶条同步橙色；Canvas 布局/导出流不变 | 铁律 4 的显式例外；只换色与字体，不改版面与导出参数 |
+| D142 | V6 | 「我的」头像支持相册/拍照选择，压缩后本地保存（wx.saveFile + dsm_me_avatar）；本人作者页同步展示；当前无用户资料接口，暂不上传后端 | 用户要求可上传头像；本地保存先保证可见与跨启动，接资料接口后再换远程 URL |
+| D143 | V6 | 单卡分享海报改为「海报框 + 中央分享卡」：无照片时卡上半为词（居中）、下半解签；有照片时卡上半为照片、下半解签/回信；日期钢戳压卡右上；预览与 Canvas 同构 | 用户要求图一版式，并按有无照片分流；3:4 与 9:16 共用 drawCard |
+| D144 | V6 | 分享海报预览重写为 v6-poster；比例切换对 highlight 始终可见；stampText/wordCls 加入 buildHighlightData，预览/导出共用 | 旧 poster-h916/poster-highlight 分支不再用于单卡分享 |
+| D145 | V6 | 分享卡 No. 从视觉区右上移到卡底 meta 行（左 @作者 / 右 No.），避免与日期钢戳重叠；预览与 Canvas 同步 | 用户指出 No.08/08 与盖章冲突 |
+| D146 | V6 | 大卡翻面：已上传照片时改为「照片上半 + 解签/回信/作者下半」，照片不再只做小缩略图；无照片仍保留词 + 解签面 | 用户指出大卡背面看不到照片，要求照片占上、文字占下 |
+| D147 | V6 | 分享海报去重：保留卡底 @作者，页脚来源不再重复 @；保留大 CTA「扫码，抽你的一签」，删除小字 slogan「扫码抽一张」 | 用户指出 @ 与扫码文案各重复一次 |
+| D148 | V6 | 卡集三处统一 meta：`fans` 进入 list payload（mock + server buildPayloads），applySetPayload 写入 S.fans；首页/搜索/详情/收藏册统一显示「作者 · N 订阅 · M 心动」；详情 refreshSetMeta 同步 fansShort/likesShort | 用户要求搜索、首页、收藏册与详情在真实数据上同源一致 |
+| D149 | V6 | 盖戳记录卡的照片模块改为 3:4（aspect-ratio，含 @supports 回退），上传裁剪的 3:4 原图不再被压成横向 banner；隐藏照片仍用占位块 | 用户要求上传 3:4 照片保持原比例 |

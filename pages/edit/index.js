@@ -5,6 +5,12 @@ const page = createPage('edit');
 Object.assign(page, {
   onLoad() {
     this.S = core.getS();
+    let statusBarHeight = 20;
+    try {
+      const info = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
+      statusBarHeight = info.statusBarHeight || 20;
+    } catch (e) { /* noop */ }
+    this.setData({ statusBarHeight });
     if (!this.S.ed && !this.S.rv) { wx.switchTab({ url: '/pages/create/index' }); return; }
     this._applyNavTitle();
     if (this.S.rv) this.renderReview(); else this.renderEdit();
@@ -16,7 +22,12 @@ Object.assign(page, {
   },
   onUnload() { this._flushDrafts(); },
   _applyNavTitle() {
-    wx.setNavigationBarTitle({ title: this.S.rv ? '审核中' : '编辑卡集' });
+    const title = this.S.rv ? '审核中' : '编辑卡集';
+    this.setData({ navTitle: title });
+    wx.setNavigationBarTitle({ title });
+  },
+  backEdit() {
+    wx.navigateBack({ fail: () => wx.switchTab({ url: '/pages/create/index' }) });
   },
 });
 Page(page);

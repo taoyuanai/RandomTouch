@@ -1,36 +1,42 @@
-<import src="/templates/common.wxml"/>
-<import src="/templates/card.wxml"/>
 <view class="phone" style="--statusbar:0px;--navtop:0px">
-  <view class="screen">
-<view class="page" id="page-map">
-<include src="/templates/m-base.wxml"/>
+  <view class="v6-topbar" style="padding-top:{{statusBarHeight}}px">
+    <view class="v6-topbar-inner">
+      <view class="v6-icon-btn" hover-class="hm-press" bindtap="backMap">
+        <image class="v6-icon" src="/assets/icons/v6/arrow-left-ink.png" mode="aspectFit" />
+      </view>
+      <text class="v6-topbar-title">全图</text>
+      <view class="v6-topbar-spacer"></view>
+    </view>
+  </view>
 
-      <view id="mapBody">
-        <view class="panel">
-          <view class="panel-head"><text class="t-b">全图</text><text class="t-span">{{mapV.drawn}} / {{mapV.count}} 已抽到</text></view>
-          <view class="progress"><view class="t-i" style="width:{{mapV.pct}}%"></view></view>
-          <view class="t-p tiny" style="text-align:left;padding:0 2px;margin-top:8px">暗格不显示任何字——没抽到之前，它只是空的。</view>
-          <view class="sheet">
-            <view class="sheet-row" wx:for="{{mapV.rows}}" wx:key="index" wx:for-index="ri">
-              <view class="stamp-cell {{cell.state}}" wx:for="{{item.cells}}" wx:for-item="cell" wx:key="idx"
-                    bindtap="mapCellTap" data-idx="{{cell.idx}}" hover-class="cell-press">
-                <view class="cell-in" style="--cw:105px;--ch:148px;--ink:{{cell.ink}};--ink-line:{{cell.inkLine}};--ink-faint:{{cell.inkFaint}}">
-                  <block wx:if="{{cell.state !== 'blank'}}">
-                    <template is="cardFront" data="{{c: cell.card}}"/>
-                  </block>
-                  <view wx:else class="blank-cell"><text class="blank-no">{{cell.no}}</text></view>
-                  <view class="cell-pmk {{cell.pmkState}}" wx:if="{{cell.pmkState}}"/>
-                </view>
-              </view>
-            </view>
-          </view>
+  <view class="page v6-map-page" id="page-map">
+    <include src="/templates/m-base.wxml"/>
+
+    <view class="v6-map-summary">
+      <view class="v6-map-sum-head">
+        <text class="v6-h2">收集进度</text>
+        <text class="v6-count">{{mapV.drawn}} / {{mapV.count}} 已抽到</text>
+      </view>
+      <view class="v6-progress"><view class="t-i" style="width:{{mapV.pct}}%"></view></view>
+      <view class="v6-map-note">暗格不显示任何字——没抽到之前，它只是空的。</view>
+      <view class="v6-map-drawn" wx:if="{{mapV.drawnWords.length}}">
+        <text class="v6-map-drawn-label">已抽到</text>
+        <view class="v6-map-drawn-chips">
+          <text class="v6-map-drawn-chip" wx:for="{{mapV.drawnWords}}" wx:key="idx">{{item.w}}</text>
         </view>
       </view>
     </view>
 
-    <!-- ═══════════════════ 编辑器 / 审核 ═══════════════════ -->
+    <view class="v6-map-grid">
+      <view class="v6-map-cell {{cell.full ? 'is-full' : 'is-blank'}} {{cell.pmkState}}"
+            wx:for="{{mapV.cells}}" wx:key="idx"
+            data-idx="{{cell.idx}}" bindtap="mapCellTap" hover-class="hm-press">
+        <view wx:if="{{cell.full}}" class="v6-map-word {{cell.card.wCls}}">{{cell.card.word}}</view>
+        <view wx:else class="v6-map-no">{{cell.no}}</view>
+        <view wx:if="{{cell.pmkState}}" class="v6-map-pmk"></view>
       </view>
-
+    </view>
+  </view>
 
 <include src="/templates/m-flow.wxml"/>
 </view>

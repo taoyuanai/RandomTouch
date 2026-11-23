@@ -1,1 +1,4 @@
-{ "navigationBarTitleText": "全图", "usingComponents": {} }
+{
+  "navigationStyle": "custom",
+  "usingComponents": {}
+}

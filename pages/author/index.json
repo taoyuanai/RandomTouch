@@ -1,1 +1,4 @@
-{ "navigationBarTitleText": "创作者", "usingComponents": {} }
+{
+  "navigationStyle": "custom",
+  "usingComponents": {}
+}

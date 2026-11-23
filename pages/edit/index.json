@@ -1,1 +1,4 @@
-{ "navigationBarTitleText": "编辑卡集", "usingComponents": {} }
+{
+  "navigationStyle": "custom",
+  "usingComponents": {}
+}

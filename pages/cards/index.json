@@ -1,4 +1,4 @@
 {
-  "navigationBarTitleText": "订阅",
+  "navigationStyle": "custom",
   "usingComponents": {}
 }

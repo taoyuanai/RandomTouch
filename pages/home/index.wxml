@@ -1,48 +1,58 @@
+<import src="/templates/cover.wxml"/>
 <view class="phone" style="--statusbar:0px;--navtop:0px">
 <!-- ═══════════════════ 发现 ═══════════════════ -->
-    <view class="page" id="page-home">
+    <view class="v6-home-nav" style="padding-top:{{statusBarHeight}}px">
+      <view class="v6-home-nav-inner">
+        <view class="v6-brand">
+          <view class="v6-brand-mark"><view></view><view></view></view>
+          <text>卡集</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="page v6-home" id="page-home">
 <include src="/templates/m-base.wxml"/>
-      <view class="page-head">
-        <view class="search-bar" bindtap="goSearch">
-          <image class="t-svg" src="/assets/icons/search.png" mode="aspectFit" />
-          <text class="t-span">搜索卡集、做卡人…</text>
-        </view>
-        <view class="quick-row">
-          <view class="quick-card white" hover-class="hm-press" bindtap="tapQuickCat">
-            <view class="qc-icon">⊞</view>
-            <view>
-              <view class="qc-label">分类</view>
-              <view class="qc-sub">按主题找卡集</view>
-            </view>
+      <view class="v6-home-intro">
+        <text class="v6-home-date">{{home.dateText}}</text>
+        <view class="v6-home-title">今天也对这个世界</view>
+        <view class="v6-home-title">做出一点点探索</view>
+      </view>
+
+      <view class="v6-search" hover-class="hm-press" bindtap="goSearch">
+        <image class="v6-icon" src="/assets/icons/v6/search-ink.png" mode="aspectFit" />
+        <text>搜索卡集、做卡人或关键词</text>
+      </view>
+
+      <view class="v6-daily" wx:if="{{home.daily}}" hover-class="hm-press" bindtap="tapDaily" data-id="{{home.daily.id}}">
+        <view class="v6-daily-copy">
+          <view class="v6-daily-label">
+            <image class="v6-icon" src="/assets/icons/v6/sparkles-brand.png" mode="aspectFit" /> 今日一卡
           </view>
-          <view class="quick-card highlight" hover-class="hm-press" bindtap="tapQuickHot">
-            <view class="qc-icon">✦</view>
-            <view>
-              <view class="qc-label">热门榜单</view>
-              <view class="qc-sub">按热度看一看</view>
-            </view>
+          <view class="v6-daily-title">给此刻的自己</view>
+          <view class="v6-daily-title">一句刚刚好的话</view>
+          <view class="v6-daily-btn">
+            {{home.daily.canDraw ? '抽今日卡' : '去看看'}}
+            <image class="v6-icon" src="/assets/icons/v6/arrow-right-brand.png" mode="aspectFit" />
           </view>
         </view>
-        <view class="shelf-slogan">今天对这个世界做出<text class="accent">一点点</text>探索</view>
-        <view class="tagline">万物皆可抽一签。</view>
-        <view class="chips">
-          <view class="chip {{item.color}} {{item.on ? 'on' : ''}}"
-                wx:for="{{home.chips}}" wx:key="key"
-                hover-class="hm-press" data-key="{{item.key}}" bindtap="setCat">{{item.chip}}</view>
-        </view>
-        <view class="list-head">
-          <text class="count">{{home.rows.length}} 个卡集</text>
-          <view class="sortseg">
-            <button id="sort-hot" size="mini" class="{{home.sort === 'hot' ? 'on' : ''}}" bindtap="setSort" data-sort="hot">热门</button>
-            <button id="sort-new" size="mini" class="{{home.sort === 'new' ? 'on' : ''}}" bindtap="setSort" data-sort="new">最新</button>
-          </view>
+        <view class="v6-daily-art"><view></view><view></view><view></view></view>
+      </view>
+
+      <view class="v6-chips">
+        <view class="chip {{item.on ? 'on' : ''}}"
+              wx:for="{{home.chips}}" wx:key="key"
+              hover-class="hm-press" data-key="{{item.key}}" bindtap="setCat">{{item.chip}}</view>
+      </view>
+
+      <view class="v6-list-head">
+        <text class="v6-h2">{{home.title}}</text>
+        <view class="v6-list-right">
+          <text class="v6-cat-link" bindtap="goCategories">分类</text>
+          <text class="v6-count">{{home.rows.length}} 个卡集</text>
         </view>
       </view>
 
-      <!-- 冷启动失败兜底 -->
-
-      <!-- 卡集列表：浮起的方框卡 -->
-            <view class="skel-list" wx:if="{{booting}}">
+      <view class="skel-list" wx:if="{{booting}}">
         <view class="skel-book" wx:for="{{[1,2,3,4]}}" wx:key="*this">
           <view class="skel skel-cover"></view>
           <view class="skel-book-txt">
@@ -52,25 +62,29 @@
           </view>
         </view>
       </view>
-<view id="squareList">
-        <view class="hb-book" wx:for="{{home.rows}}" wx:key="id" bindtap="openSet"
-              data-id="{{item.id}}" data-from="home" hover-class="hb-press">
-          <view class="hb-cover" style="background:{{item.tintStyle}}">
-            <image wx:if="{{item.coverImage}}" class="hb-cover-img" src="{{item.coverImage}}" mode="aspectFill" />
-            <view class="hb-cover-wash" style="background:{{item.tintStyle}}"></view>
-            <text class="hb-no" style="color:{{item.ink}}">{{item.noText}}</text>
-            <view class="hb-label"><text class="hb-label-t">{{item.title}}</text></view>
-            <view class="hb-resident" wx:if="{{item.isResident}}">常驻</view>
-            <view class="hb-done-seal" wx:if="{{item.done}}"><text>完</text></view>
-          </view>
-          <view class="hb-meta">
-            <text class="hb-title">{{item.title}}</text>
-            <text class="hb-creator">@{{item.creator}}</text>
+
+      <view id="squareList" class="v6-set-list">
+        <view class="v6-set-row" wx:for="{{home.rows}}" wx:key="id" bindtap="openSet"
+              data-id="{{item.id}}" data-from="home" hover-class="hm-press">
+          <template is="coverArt" data="{{item: item.cover}}" />
+          <view class="v6-set-content">
+            <view class="v6-set-top">
+              <text class="v6-set-cat">{{item.catName}}</text>
+              <text class="v6-set-price">{{item.priceText}}</text>
+            </view>
+            <text class="v6-set-title">{{item.title}}</text>
+            <text class="v6-set-sub">{{item.subText}}</text>
+            <text class="v6-set-meta">{{item.metaText}}</text>
           </view>
         </view>
       </view>
 
-      <view class="shelf-tail"><text class="t-span">更多卡集，正在上架</text></view>
+      <view class="v6-page-end" wx:if="{{!booting}}">
+        <view class="v6-brand-mark">
+          <view></view><view></view>
+        </view>
+        <text>今天也有好好照顾自己</text>
+      </view>
     </view>
 
     

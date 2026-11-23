@@ -1,0 +1,7 @@
+<view class="vtb">
+  <view class="vtb-item {{selected === index ? 'on' : ''}}" wx:for="{{list}}" wx:key="pagePath"
+        data-index="{{index}}" bindtap="switchTab">
+    <image class="vtb-ico" src="{{selected === index ? item.iconOn : item.icon}}" mode="aspectFit" />
+    <text class="vtb-txt">{{item.text}}</text>
+  </view>
+</view>

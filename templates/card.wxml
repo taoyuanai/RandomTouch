@@ -1,73 +1,50 @@
-<!-- templates/card.wxml · V1 纸品卡
-     缩放：--cw/--ch（默认 240×340）；单色印刷：一切颜色经 --ink 三件套 -->
-<import src="/templates/common.wxml"/>
-
-<template name="cardFront">
-  <view class="cf {{c.isKey ? 'k' : ''}} {{c.sigBar ? 'sig-bar' : ''}} {{c.sigStamp ? 'sig-stamp' : ''}}"
-        style="--ink:{{c.ink}};--ink-line:{{c.inkLine}};--ink-faint:{{c.inkFaint}}">
-    <view class="cf-frame"></view>
-    <view class="cf-head">
-      <text class="cf-no">No.{{c.no}}</text>
-      <text class="cf-series">{{c.series}}</text>
-    </view>
-    <view class="cf-rule"></view>
-    <block wx:if="{{c.isKey}}">
-      <view class="cf-wordv">
-        <text class="cf-wordv-t" wx:for="{{c.wordChars}}" wx:key="*this">{{item}}</text>
-      </view>
-      <view class="cf-keyseal"><text>题</text><text>眼</text></view>
-    </block>
-    <view wx:else class="cf-word {{c.wCls}}">
-      <block wx:if="{{c.row1}}">
-        <text class="cf-word-row">{{c.row1}}</text>
-        <text class="cf-word-row">{{c.row2}}</text>
-      </block>
-      <text wx:else class="cf-word-t">{{c.word}}</text>
-    </view>
-  </view>
+<!-- templates/card.wxml · V6 卡面（大卡 / 统计卡） -->
+<!-- V6 · 大卡 / 统计卡：白底橙字，替代旧 POST CARD 纸品面 -->
+<template name="v6CardWord">
+  <text class="v6-card-no">NO. {{c.no}}</text>
+  <text class="v6-card-word {{c.kwCls}}">{{c.word}}</text>
+  <text class="v6-card-hint">轻触卡片，看看解读</text>
+  <text class="v6-card-set">{{c.series}}</text>
+  <view class="v6-big-keymark" wx:if="{{c.isKey}}">题眼</view>
 </template>
 
-<template name="cardBack">
-  <view class="cw {{c.photoMode ? 'cw-b' : 'cw-a'}}"
-        style="--ink:{{c.ink}};--ink-line:{{c.inkLine}};--ink-faint:{{c.inkFaint}}">
-    <view class="cw-frame"></view>
-    <view class="cw-head">
-      <text class="cw-series">{{c.series}}</text>
-      <text class="cw-tag">POST CARD</text>
+<template name="v6CardExplain">
+  <block wx:if="{{c.photoMode}}">
+    <view class="v6-big-photo-top">
+      <image class="v6-big-photo-img" src="{{c.photo}}" mode="aspectFill"/>
+      <view class="v6-big-keymark" wx:if="{{c.isKey}}">题眼</view>
+      <view class="v6-big-photo-date" wx:if="{{c.pmkDate}}">{{c.pmkDate}}</view>
     </view>
+    <view class="v6-big-photo-body">
+      <text class="v6-big-photo-explain">{{c.backText}}</text>
+      <text class="v6-big-photo-note" wx:if="{{c.note}}">「{{c.note}}」</text>
+      <view class="v6-big-photo-meta">
+        <text>@{{c.creator}}</text>
+        <text>{{c.title}}</text>
+      </view>
+    </view>
+  </block>
+  <block wx:else>
+    <text class="v6-card-no">TODAY'S CARD</text>
+    <text class="v6-exp-word">{{c.word}}</text>
+    <text class="v6-exp-text v6-big-exp-text">{{c.backText}}</text>
+    <view class="v6-big-note" wx:if="{{c.stamped}}">
+      <image wx:if="{{c.photo}}" class="v6-big-note-img" src="{{c.photo}}" mode="aspectFill"/>
+      <view class="v6-big-note-main">
+        <text class="v6-big-note-date">{{c.pmkDate}} · 已盖戳</text>
+        <text class="v6-big-note-t">{{c.note || '今天盖了一个戳。'}}</text>
+      </view>
+    </view>
+    <text wx:else class="v6-big-note-empty">还没盖戳 · 留一句话给今天</text>
+    <text class="v6-exp-source">@{{c.creator}} · {{c.title}}</text>
+    <view class="v6-big-keymark" wx:if="{{c.isKey}}">题眼</view>
+  </block>
+</template>
 
-    <block wx:if="{{!c.photoMode}}">
-      <view class="cw-hrule"></view>
-      <view class="cw-slotrow">
-        <view class="cw-slot" wx:if="{{!c.stamped}}"><text class="cw-slot-t">待盖戳</text></view>
-        <view wx:if="{{c.stamped}}" class="cw-pmk {{c.stampAnim ? 'pop' : ''}}">
-          <text class="cw-pmk-date">{{c.pmkDate}}</text>
-          <text class="cw-pmk-day">{{c.pmkDay}}</text>
-        </view>
-      </view>
-      <view class="cw-in"><text class="cw-in-t">{{c.backText}}</text></view>
-      <view class="cw-mid">
-        <view class="cw-mid-l"></view><text class="cw-mid-x">❦</text><view class="cw-mid-l"></view>
-      </view>
-      <view class="cw-out">
-        <text wx:if="{{c.note}}" class="cw-out-t">{{c.note}}</text>
-        <text wx:else class="cw-out-ph">在背面写下今天</text>
-      </view>
-    </block>
-
-    <block wx:else>
-      <view class="cw-photo">
-        <image class="cw-photo-img" src="{{c.photo}}" mode="aspectFill"/>
-        <view class="cw-pmk on-img {{c.stampAnim ? 'pop' : ''}}">
-          <text class="cw-pmk-date">{{c.pmkDate}}</text>
-          <text class="cw-pmk-day">{{c.pmkDay}}</text>
-        </view>
-      </view>
-      <view class="cw-cap"><text class="cw-cap-t">{{c.note}}</text></view>
-      <view class="cw-src">
-        <text class="cw-src-t">{{c.backText}}</text>
-        <text class="cw-src-mark">·官方</text>
-      </view>
-    </block>
+<template name="v6CardMini">
+  <view class="v6-mini {{c.isKey ? 'is-key' : ''}}">
+    <text class="v6-mini-no">NO.{{c.no}}</text>
+    <text class="v6-mini-word {{c.kwCls}}">{{c.word}}</text>
+    <view class="v6-mini-key" wx:if="{{c.isKey}}">题</view>
   </view>
 </template>

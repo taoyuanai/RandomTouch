@@ -1,0 +1,15 @@
+<!-- V6 · 几何封面（9 分类 → sun/arch/blocks/orbit/wave） -->
+<template name="coverArt">
+  <view class="cv-art cv-{{item.variant}} {{item.compact ? 'is-compact' : ''}} {{item.hasImg ? 'has-img' : ''}}">
+    <image wx:if="{{item.hasImg}}" class="cv-img" src="{{item.coverImage}}" mode="aspectFill" />
+    <view wx:if="{{item.hasImg}}" class="cv-shade"></view>
+    <text class="cv-index">CARD SET · {{item.countText}}</text>
+    <view class="cv-geo">
+      <view class="cv-shape a"></view>
+      <view class="cv-shape b"></view>
+      <view class="cv-shape c"></view>
+    </view>
+    <text class="cv-title">{{item.title}}</text>
+    <text class="cv-creator">{{item.creator}}</text>
+  </view>
+</template>

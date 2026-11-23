@@ -1,36 +1,60 @@
+<import src="/templates/cover.wxml"/>
 <view class="phone" style="--statusbar:0px;--navtop:0px">
-  <view class="screen">
-<view class="page" id="page-author">
-<include src="/templates/m-base.wxml"/>
+  <view class="v6-topbar" style="padding-top:{{statusBarHeight}}px">
+    <view class="v6-topbar-inner">
+      <view class="v6-icon-btn" hover-class="hm-press" bindtap="backAuthor">
+        <image class="v6-icon" src="/assets/icons/v6/arrow-left-ink.png" mode="aspectFit" />
+      </view>
+      <text class="v6-topbar-title">创作者</text>
+      <view class="v6-topbar-spacer"></view>
+    </view>
+  </view>
 
-      <view id="authorBody">
-        <view class="panel" style="text-align:center;padding:26px 18px 22px">
-          <view class="avatar" style="margin:0 auto 12px">{{author.avatar}}</view>
-          <view class="t-b" style="font-size:17px;font-weight:600;letter-spacing:.5px">@{{author.name}}</view>
-          <view class="t-p" style="font-size:12px;color:var(--ink-soft);margin-top:6px;letter-spacing:1px">做卡人</view>
-          <view class="stats" style="margin:18px 0 0">
-            <view class="stat"><view class="t-b">{{author.worksN}}</view><text class="t-span">作品</text></view>
-            <view class="stat"><view class="t-b">{{author.drawnText}}</view><text class="t-span">被抽</text></view>
-            <view class="stat"><view class="t-b">{{author.fansText}}</view><text class="t-span">关注者</text></view>
+  <view class="page v6-author-page" id="page-author">
+    <include src="/templates/m-base.wxml"/>
+
+    <view id="authorBody">
+      <view class="v6-author-profile">
+        <view class="v6-author-avatar">
+          <image wx:if="{{author.avatarImg}}" class="v6-author-avatar-img" src="{{author.avatarImg}}" mode="aspectFill" />
+          <text wx:else>{{author.avatar}}</text>
+        </view>
+        <view class="v6-author-name">@{{author.name}}</view>
+        <view class="v6-author-role">做卡人</view>
+        <view class="v6-author-stats">
+          <view><strong>{{author.worksN}}</strong><span>作品</span></view>
+          <view><strong>{{author.drawnText}}</strong><span>被抽</span></view>
+          <view><strong>{{author.fansText}}</strong><span>关注者</span></view>
+        </view>
+      </view>
+
+      <view class="v6-author-follow">
+        <view wx:if="{{author.own}}" class="v6-btn primary" hover-class="hm-press" bindtap="backToCreate">去创作中心</view>
+        <view wx:else class="v6-btn {{author.followed ? 'secondary' : 'primary'}}" hover-class="hm-press" bindtap="toggleFollowPage">
+          {{author.followed ? '已关注 · 每日更新' : '+ 关注'}}
+        </view>
+      </view>
+
+      <view class="v6-list-head">
+        <text class="v6-h2">{{author.own ? '我的卡集' : 'TA 的卡集'}}</text>
+        <text class="v6-count">{{author.worksN}} 个</text>
+      </view>
+
+      <view class="v6-set-list">
+        <view class="v6-set-row" wx:for="{{author.works}}" wx:key="id" bindtap="openSet"
+              data-id="{{item.id}}" data-from="author" hover-class="hm-press">
+          <template is="coverArt" data="{{item: item.cover}}" />
+          <view class="v6-set-content">
+            <view class="v6-set-top">
+              <text class="v6-set-cat">{{item.meta1}}</text>
+              <text class="v6-set-price">{{item.meta2}}</text>
+            </view>
+            <text class="v6-set-title">{{item.title}}</text>
           </view>
         </view>
-
-        <view class="au-followbar">
-          <button wx:if="{{author.own}}" class="cta solid" bindtap="backToCreate">去创作中心</button>
-          <button wx:else size="mini" class="follow {{author.followed ? 'on' : ''}}" bindtap="toggleFollowPage">{{author.followed ? '已关注 · 每日更新' : '+ 关注'}}</button>
-        </view>
-
-        <view class="group-head"><view class="t-b">{{author.own ? '我的卡集' : 'TA 的卡集'}}</view><text class="t-span">{{author.worksN}} 个</text></view>
-        <view class="card-row" wx:for="{{author.works}}" wx:key="id" bindtap="openSet" data-id="{{item.id}}" data-from="author">
-          <view class="cover-sm {{item.cover}}"><text class="t-span">{{item.covT2}}</text></view>
-          <view class="w">{{item.title}}</view>
-          <view class="s"><view class="t-span">{{item.meta1}}</view><view class="t-span">{{item.meta2}}</view></view>
-        </view>
-        <view class="t-p tiny" wx:if="{{!author.own}}">关注后，TA 的新卡集会出现在你的订阅流。</view>
       </view>
+
+      <view class="v6-author-note" wx:if="{{!author.own}}">关注后，TA 的新卡集会出现在你的订阅流。</view>
     </view>
-
-      </view>
-
-
+  </view>
 </view>

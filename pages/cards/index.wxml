@@ -1,183 +1,166 @@
 <import src="/templates/common.wxml"/>
 <import src="/templates/card.wxml"/>
+<import src="/templates/cover.wxml"/>
 <view class="phone" style="--statusbar:0px;--navtop:0px">
-<!-- ═══════════════════ 订阅 v2 ═══════════════════ -->
-    <view class="page sb2-page" id="page-cards">
-<include src="/templates/m-base.wxml"/>
-
-      <view class="page-head">
-        <view class="brand-row">
-          <text class="wordmark">订阅</text>
-          <text class="today">{{subs.date}}</text>
-        </view>
+  <view class="v6-lib-nav" style="padding-top:{{statusBarHeight}}px">
+    <view class="v6-lib-nav-inner" style="padding-right:{{menuPad}}px">
+      <view class="v6-lib-head">
+        <text class="v6-kicker">MY COLLECTION</text>
+        <text class="v6-lib-title">我的收藏册</text>
       </view>
+      <image class="v6-lib-ico" src="/assets/icons/v6/book-open-brand.png" mode="aspectFit" />
+    </view>
+  </view>
 
-      <view class="sb2-body">
-        <view class="skel-list" wx:if="{{booting}}">
-          <view class="skel-sub" wx:for="{{[1,2,3]}}" wx:key="*this">
-            <view class="skel skel-sign"></view>
-            <view style="flex:1">
-              <view class="skel skel-line" style="width:68%"></view>
-              <view class="skel skel-line" style="width:42%"></view>
-            </view>
-          </view>
+  <view class="page v6-lib-page" id="page-cards">
+    <include src="/templates/m-base.wxml"/>
+
+    <view class="skel-list" wx:if="{{booting}}">
+      <view class="skel-sub" wx:for="{{[1,2,3]}}" wx:key="*this">
+        <view class="skel skel-sign"></view>
+        <view style="flex:1">
+          <view class="skel skel-line" style="width:68%"></view>
+          <view class="skel skel-line" style="width:42%"></view>
         </view>
-        <!-- 久别问候卡 -->
-        <view class="sb2-greet" wx:if="{{subs.greeting}}" hover-class="sb2-press" bindtap="tapGreeting">
-          <view class="sb2-greet-head">
-            <view class="sb2-greet-title">好久不见</view>
-            <view class="sb2-greet-days">{{subs.greeting.days}} 天没见</view>
-          </view>
-          <view class="sb2-greet-sub">{{subs.greeting.sub}}</view>
-          <view class="sb2-greet-cta">{{subs.greeting.cta}} ›</view>
-        </view>
-
-        <!-- 本周目标卡 -->
-        <view class="sb2-week-goal {{subs.weekGoal.full ? 'full' : ''}}" wx:if="{{subs.weekGoal}}" hover-class="sb2-press" bindtap="tapWeekGoal">
-          <view class="swg-head">
-            <view class="swg-title">{{subs.weekGoal.title}}</view>
-            <view class="swg-count">{{subs.weekGoal.done}} / {{subs.weekGoal.total}}</view>
-          </view>
-          <view class="swg-dots">
-            <view class="swg-dot {{item.cls}}" wx:for="{{subs.weekGoal.dots}}" wx:key="index">
-              <text class="swg-dot-l">{{item.label}}</text>
-            </view>
-          </view>
-          <view class="swg-sub">{{subs.weekGoal.sub}}</view>
-        </view>
-
-        <!-- ① 行动提醒卡 -->
-        <view class="sb2-remind" wx:if="{{subs.remindDraw}}" hover-class="sb2-press" bindtap="tapRemindDraw">
-          <view class="sb2-remind-deco"></view>
-          <view class="sb2-remind-ico"><text>🔔</text></view>
-          <view class="sb2-remind-mid">
-            <view class="sb2-remind-title">{{subs.remindDraw.n}} 个卡集，今天的卡到了</view>
-            <view class="sb2-remind-sub">点这里去抽<view class="sb2-arrow"></view></view>
-          </view>
-          <view class="sb2-remind-go"><view class="sb2-chev"></view></view>
-        </view>
-
-        <view class="sb2-remind soft" wx:if="{{subs.remindStamp}}" hover-class="sb2-press" bindtap="tapRemindStamp">
-          <view class="sb2-remind-deco"></view>
-          <view class="sb2-remind-ico"><text>✉️</text></view>
-          <view class="sb2-remind-mid">
-            <view class="sb2-remind-title">{{subs.remindStamp.n}} 张卡在等你回信</view>
-            <view class="sb2-remind-sub">拍下今天 · 点这里去盖邮戳<view class="sb2-arrow"></view></view>
-          </view>
-          <view class="sb2-remind-go"><view class="sb2-chev"></view></view>
-        </view>
-
-        <!-- ② 统计 -->
-        <view class="sb2-stats" wx:if="{{subs.total}}">
-          <view class="sb2-stat" hover-class="sb2-stat-press" bindtap="tapStat" data-kind="today"><view class="sb2-stat-n orange">{{subs.statCan}}</view><text class="sb2-stat-l">今日可抽</text></view>
-          <view class="sb2-stat" hover-class="sb2-stat-press" bindtap="tapStat" data-kind="cards"><view class="sb2-stat-n">{{subs.statCards}}</view><text class="sb2-stat-l">累计抽卡</text></view>
-          <view class="sb2-stat" hover-class="sb2-stat-press" bindtap="tapStat" data-kind="empty"><view class="sb2-stat-n">{{subs.statEmpty}}</view><text class="sb2-stat-l">已抽空</text></view>
-        </view>
-
-        <!-- ③ 今日可抽 -->
-        <block wx:if="{{subs.today.length}}">
-          <view class="sb2-group-head" id="subsToday">
-            <view class="sb2-group-title"><view class="sb2-gdot"></view><text>今日可抽</text></view>
-            <view class="sb2-badge">{{subs.today.length}}</view>
-          </view>
-          <view class="sb2-card" wx:for="{{subs.today}}" wx:key="id" hover-class="sb2-card-press"
-                data-sid="{{item.id}}" data-tap="{{item.tap}}" data-idx="{{item.idx}}" data-from="cards" bindtap="tapSubsRow">
-            <view class="sb2-sign"><text class="sb2-char">{{item.charA}}</text><text class="sb2-char" wx:if="{{item.charB}}">{{item.charB}}</text></view>
-            <view class="sb2-mid">
-              <view class="sb2-name">{{item.title}}</view>
-              <view class="sb2-status {{item.statusCls}}"><view class="sb2-sdot"></view><text>{{item.status}}</text><text class="sb2-prog"> · {{item.prog}}</text></view>
-            </view>
-            <view class="sb2-right">
-              <view class="sb2-todo" wx:if="{{item.todo}}"></view>
-              <view class="sb2-go"><view class="sb2-chev"></view></view>
-            </view>
-          </view>
-        </block>
-
-        <!-- ④ 已订阅 -->
-        <block wx:if="{{subs.subscribed.length}}">
-          <view class="sb2-group-head">
-            <view class="sb2-group-title"><view class="sb2-gdot gray"></view><text>已订阅</text></view>
-            <view class="sb2-badge">{{subs.subscribed.length}}</view>
-          </view>
-          <view class="sb2-card" wx:for="{{subs.subscribed}}" wx:key="id" hover-class="sb2-card-press"
-                data-sid="{{item.id}}" data-tap="{{item.tap}}" data-idx="{{item.idx}}" data-from="cards" bindtap="tapSubsRow">
-            <view class="sb2-sign"><text class="sb2-char">{{item.charA}}</text><text class="sb2-char" wx:if="{{item.charB}}">{{item.charB}}</text></view>
-            <view class="sb2-mid">
-              <view class="sb2-name">{{item.title}}</view>
-              <view class="sb2-status {{item.statusCls}}"><view class="sb2-sdot"></view><text>{{item.status}}</text><text class="sb2-prog"> · {{item.prog}}</text></view>
-            </view>
-            <view class="sb2-right">
-              <view class="sb2-todo" wx:if="{{item.todo}}"></view>
-              <view class="sb2-go"><view class="sb2-chev"></view></view>
-            </view>
-          </view>
-        </block>
-
-        <!-- ⑤ 已集齐 -->
-        <block wx:if="{{subs.done.length}}">
-          <view class="sb2-group-head">
-            <view class="sb2-group-title"><view class="sb2-gdot gold"></view><text>已集齐</text></view>
-            <view class="sb2-badge">{{subs.done.length}}</view>
-          </view>
-          <view class="sb2-card" wx:for="{{subs.done}}" wx:key="id" hover-class="sb2-card-press"
-                data-sid="{{item.id}}" data-tap="{{item.tap}}" data-from="cards" bindtap="tapSubsRow">
-            <view class="sb2-sign gold"><text class="sb2-char">{{item.charA}}</text><text class="sb2-char" wx:if="{{item.charB}}">{{item.charB}}</text></view>
-            <view class="sb2-mid">
-              <view class="sb2-name">{{item.title}}</view>
-              <view class="sb2-status {{item.statusCls}}"><view class="sb2-sdot"></view><text>✦ {{item.status}}</text><text class="sb2-prog"> · {{item.prog}}</text></view>
-            </view>
-            <view class="sb2-right">
-              <view class="sb2-go"><view class="sb2-chev"></view></view>
-            </view>
-          </view>
-        </block>
-
-        <!-- 周记入口 -->
-        <view class="sb2-weekly" wx:if="{{subs.weekly}}" hover-class="sb2-press" bindtap="openWeekly" data-id="{{subs.weekly.sid}}">
-          <text class="sb2-weekly-t">✦ 本周周记 · {{subs.weekly.title}} · 第 {{subs.weekly.weekNo}} 周</text>
-          <view class="sb2-go sm"><view class="sb2-chev"></view></view>
-        </view>
-
-        <!-- 空态 -->
-        <view class="sb-empty" wx:if="{{!subs.total}}">
-          <view class="sb-empty-title">还没有订阅的卡集</view>
-          <view class="sb-empty-sub">每天拆一封 · 慢慢点亮</view>
-          <button class="sb-btn ghost" hover-class="sb-btn-press" bindtap="tapSubsBrowse">去逛逛</button>
-        </view>
-
-        <view class="sb2-foot" wx:if="{{subs.total}}">缺席不损失 · 卡不会过期</view>
       </view>
     </view>
 
-    <!-- 统计集合包：我抽过的卡 / 已抽空 -->
-    <view class="modal centered {{statsSheet.show ? 'show' : ''}}" id="statsModal">
-      <view class="sheet stats-sheet">
-        <button class="close-btn" bindtap="closeStats">✕</button>
-        <view class="stats-sheet-kicker">{{statsSheet.kind === 'empty' ? '空 集' : '我 的 卡'}}</view>
-        <view class="stats-sheet-title">{{statsSheet.title}}</view>
-        <view class="stats-sheet-sub">{{statsSheet.sub}}</view>
-        <scroll-view class="stats-scroll" scroll-y enhanced show-scrollbar="{{false}}">
-          <view wx:if="{{statsSheet.kind === 'cards'}}" class="stats-grid">
-            <view class="stats-card" wx:for="{{statsSheet.cards}}" wx:key="key"
-                  data-sid="{{item.sid}}" bindtap="openStatSet" hover-class="stats-card-press">
-              <view class="stats-card-face" style="--cw:76px;--ch:108px">
-                <template is="cardFront" data="{{c: item.card}}" />
+    <view class="v6-empty" wx:elif="{{!subs.total}}">
+      <view class="v6-empty-symbol">
+        <image class="v6-icon" src="/assets/icons/v6/book-open-brand.png" mode="aspectFit" />
+      </view>
+      <view class="v6-empty-t">还没有订阅的卡集</view>
+      <view class="v6-empty-p">每天拆一封，慢慢点亮。</view>
+      <view class="v6-btn secondary compact" hover-class="hm-press" bindtap="tapSubsBrowse">去逛逛</view>
+    </view>
+
+    <block wx:else>
+      <view class="v6-weekly" wx:if="{{subs.weekGoal}}" hover-class="hm-press" bindtap="tapWeekGoal">
+        <view class="v6-weekly-head">
+          <view class="v6-weekly-copy">
+            <text class="v6-weekly-k">本周小目标</text>
+            <text class="v6-weekly-t">{{subs.weekGoal.title}}</text>
+          </view>
+          <view class="v6-weekly-n">{{subs.weekGoal.done}}<text>/{{subs.weekGoal.total}}</text></view>
+        </view>
+        <view class="v6-progress"><view class="t-i" style="width:{{subs.weekPct}}%"></view></view>
+        <text class="v6-weekly-sub">{{subs.weekGoal.sub}}</text>
+      </view>
+
+      <view class="v6-lib-stats">
+        <view hover-class="hm-press" bindtap="tapStat" data-kind="cards">
+          <strong>{{subs.statCards}}</strong><span>已收集</span>
+        </view>
+        <view>
+          <strong>{{subs.statStreak}}</strong><span>连续天数</span>
+        </view>
+        <view hover-class="hm-press" bindtap="switchLibTab" data-tab="records">
+          <strong>{{subs.statStamps}}</strong><span>盖戳记录</span>
+        </view>
+      </view>
+
+      <view class="v6-lib-tabs">
+        <view class="v6-lib-tab {{subs.tab === 'subscribed' ? 'on' : ''}}" data-tab="subscribed" bindtap="switchLibTab">订阅中</view>
+        <view class="v6-lib-tab {{subs.tab === 'collected' ? 'on' : ''}}" data-tab="collected" bindtap="switchLibTab">已收集</view>
+        <view class="v6-lib-tab {{subs.tab === 'records' ? 'on' : ''}}" data-tab="records" bindtap="switchLibTab">盖戳记录</view>
+      </view>
+
+      <block wx:if="{{subs.tab === 'subscribed'}}">
+        <view id="subsToday" class="v6-lib-list">
+          <view class="v6-set-row" wx:for="{{subs.rows}}" wx:key="id" hover-class="hm-press"
+                data-sid="{{item.id}}" data-tap="{{item.tap}}" data-idx="{{item.idx}}" data-from="cards" bindtap="tapSubsRow">
+            <template wx:if="{{item.cover}}" is="coverArt" data="{{item: item.cover}}" />
+            <view class="v6-set-content">
+              <view class="v6-set-top">
+                <text class="v6-set-cat">{{item.catName}}</text>
+                <text class="v6-lib-prog">{{item.prog}}</text>
               </view>
-              <view class="stats-card-title">{{item.title}}</view>
+              <text class="v6-set-title">{{item.title}}</text>
+              <view class="v6-lib-status {{item.statusCls}}">
+                <view class="v6-lib-dot"></view>
+                <text>{{item.status}}</text>
+              </view>
+              <text class="v6-lib-meta">{{item.metaText}}</text>
             </view>
           </view>
-          <view wx:else class="stats-empty-list">
-            <view class="stats-empty-row" wx:for="{{statsSheet.sets}}" wx:key="id"
-                  data-sid="{{item.id}}" bindtap="openStatSet" hover-class="stats-card-press">
-              <view class="stats-empty-sign"><text>{{item.charA}}</text><text wx:if="{{item.charB}}">{{item.charB}}</text></view>
-              <view class="stats-empty-info"><view class="stats-empty-t">{{item.title}}</view><view class="stats-empty-s">{{item.prog}} · 全部点亮</view></view>
-              <view class="sb2-go"><view class="sb2-chev"></view></view>
-            </view>
+        </view>
+        <view class="v6-empty" wx:if="{{!subs.rows.length}}">
+          <view class="v6-empty-t">今天没有待办</view>
+          <view class="v6-empty-p">去发现页逛逛，遇见新的卡集。</view>
+          <view class="v6-btn secondary compact" hover-class="hm-press" bindtap="tapSubsBrowse">去逛逛</view>
+        </view>
+      </block>
+
+      <block wx:elif="{{subs.tab === 'collected'}}">
+        <view class="v6-collect-grid" wx:if="{{subs.done.length}}">
+          <view class="v6-collect-card" wx:for="{{subs.done}}" wx:key="id" hover-class="hm-press"
+                data-sid="{{item.id}}" data-tap="booklet" data-from="cards" bindtap="tapSubsRow">
+            <template is="coverArt" data="{{item: item.cover}}" />
+            <view class="v6-collect-title">{{item.title}}</view>
+            <view class="v6-collect-sub">已集齐 · {{item.prog}}</view>
+            <text class="v6-collect-meta">{{item.metaText}}</text>
           </view>
-        </scroll-view>
-      </view>
+        </view>
+        <view class="v6-empty" wx:else>
+          <view class="v6-empty-t">还没有集齐的卡集</view>
+          <view class="v6-empty-p">每天一张，慢慢把一集收好。</view>
+        </view>
+      </block>
+
+      <block wx:else>
+        <view class="v6-record-card" wx:if="{{subs.record}}" hover-class="hm-press"
+              data-id="{{subs.record.sid}}" data-from="cards" bindtap="openSet">
+          <view class="v6-record-head">
+            <text>{{subs.record.dateText}}</text>
+            <text class="v6-record-status">已盖戳</text>
+          </view>
+          <image wx:if="{{subs.record.img}}" class="v6-record-img" src="{{subs.record.img}}" mode="aspectFill" />
+          <view class="v6-record-word">{{subs.record.word}}</view>
+          <view class="v6-record-note">{{subs.record.note || '这一天，做过了'}}</view>
+          <view class="v6-record-src">{{subs.record.setTitle}}{{subs.record.dayText ? ' · ' + subs.record.dayText : ''}}</view>
+        </view>
+        <view class="v6-empty" wx:else>
+          <view class="v6-empty-symbol">
+            <image class="v6-icon" src="/assets/icons/v6/stamp-brand.png" mode="aspectFit" />
+          </view>
+          <view class="v6-empty-t">第一条记录，等你写下</view>
+          <view class="v6-empty-p">抽到一张有感觉的卡，再留下一句今天的心情。</view>
+          <view class="v6-btn secondary compact" hover-class="hm-press" bindtap="tapSubsBrowse">去抽今日卡</view>
+        </view>
+      </block>
+
+      <view class="v6-lib-foot">缺席不损失 · 卡不会过期</view>
+    </block>
+  </view>
+
+  <!-- 统计集合包：我抽过的卡 / 已抽空 -->
+  <view class="modal centered {{statsSheet.show ? 'show' : ''}}" id="statsModal">
+    <view class="sheet stats-sheet">
+      <button class="close-btn" bindtap="closeStats">✕</button>
+      <view class="stats-sheet-kicker">{{statsSheet.kind === 'empty' ? '空 集' : '我 的 卡'}}</view>
+      <view class="stats-sheet-title">{{statsSheet.title}}</view>
+      <view class="stats-sheet-sub">{{statsSheet.sub}}</view>
+      <scroll-view class="stats-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+        <view wx:if="{{statsSheet.kind === 'cards'}}" class="stats-grid">
+          <view class="stats-card" wx:for="{{statsSheet.cards}}" wx:key="key"
+                data-sid="{{item.sid}}" bindtap="openStatSet" hover-class="stats-card-press">
+            <view class="stats-card-face">
+              <template is="v6CardMini" data="{{c: item.card}}" />
+            </view>
+            <view class="stats-card-title">{{item.title}}</view>
+          </view>
+        </view>
+        <view wx:else class="stats-empty-list">
+          <view class="stats-empty-row" wx:for="{{statsSheet.sets}}" wx:key="id"
+                data-sid="{{item.id}}" bindtap="openStatSet" hover-class="stats-card-press">
+            <view class="stats-empty-sign"><text>{{item.charA}}</text><text wx:if="{{item.charB}}">{{item.charB}}</text></view>
+            <view class="stats-empty-info"><view class="stats-empty-t">{{item.title}}</view><view class="stats-empty-s">{{item.prog}} · 全部点亮</view></view>
+            <view class="sb2-go"><view class="sb2-chev"></view></view>
+          </view>
+        </view>
+      </scroll-view>
     </view>
+  </view>
 
 <include src="/templates/m-flow.wxml"/>
 </view>

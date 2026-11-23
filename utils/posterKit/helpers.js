@@ -9,11 +9,11 @@
 const P = require('./colors.js');
 
 /* ──────────────── 字体 ──────────────── */
-const SERIF = `'PosterSerif','Songti SC','Noto Serif SC',serif`;
+const SERIF = `'PingFang SC','HarmonyOS Sans SC','Noto Sans SC',sans-serif`; // V6：统一无衬线
 const SANS  = `'PingFang SC','HarmonyOS Sans SC','Noto Sans SC',sans-serif`;
 const MONO  = `'Courier New',Courier,monospace`;
 
-const serifFont = (size, weight = 400) => `${weight} ${size}px ${SERIF}`;
+const serifFont = (size, weight = 400) => `${weight} ${size}px ${SANS}`;
 const sansFont  = (size, weight = 400) => `${weight} ${size}px ${SANS}`;
 const monoFont  = (size, weight = 700) => `${weight} ${size}px ${MONO}`;
 
@@ -246,7 +246,7 @@ function drawPolaroid(ctx, img, x, y, w, h, opts = {}) {
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(rotate * Math.PI / 180);
-  ctx.shadowColor = 'rgba(176,128,74,0.14)';  // 纸的暖投影
+  ctx.shadowColor = 'rgba(32,33,36,0.12)';  // V6 冷投影
   ctx.shadowBlur = 12;
   ctx.shadowOffsetY = 4;
   ctx.fillStyle = '#FFFFFF';
@@ -254,7 +254,7 @@ function drawPolaroid(ctx, img, x, y, w, h, opts = {}) {
   ctx.shadowColor = 'transparent';
   ctx.shadowBlur = 0;
   ctx.shadowOffsetY = 0;
-  ctx.strokeStyle = 'rgba(176,128,74,0.10)';
+  ctx.strokeStyle = 'rgba(32,33,36,0.08)';
   ctx.lineWidth = 1;
   ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
   coverDraw(ctx, img, border, border, w - border * 2, h - border - bottom);

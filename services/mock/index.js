@@ -63,6 +63,7 @@ function setPayload(s) {
     buyers: s.buyers || 0,
     likes: soc.likes,
     liked: !!soc.liked,
+    fans: store.state.fans[s.creator] || 0,
     progress: progressOf(s),
   };
 }

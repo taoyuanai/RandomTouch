@@ -1,56 +1,75 @@
+<import src="/templates/cover.wxml"/>
 <view class="phone" style="--statusbar:0px;--navtop:0px">
-<view class="page" id="page-create">
-<include src="/templates/m-base.wxml"/>
-
-      <view id="craftBody">
-        <view class="empty" wx:if="{{craft.empty}}">
-          <view class="empty-icon">✨</view>
-          <view class="t-h3">把你喜欢的东西，做成一个卡集</view>
-          <view class="t-p empty-examples">书里触动你的点滴、城市里用脚丈量的好去处、打工人必备的摸鱼小技巧、冬日暖心的美食合集，所有你想分享的，都可以整合成集。</view>
-          <view class="t-p empty-emphasis">有人打开，有人看见，有人为此欢喜</view>
-          <view class="t-p">八张起步，审核通过就能上架。可以免费，也可以定价。</view>
-          <button class="cta solid" bindtap="newCraft">新建卡集</button>
-        </view>
-
-        <block wx:else>
-          <view class="stats">
-            <view class="stat"><view class="t-b orange">{{craft.pubN}}</view><text class="t-span">上架中</text></view>
-            <view class="stat"><view class="t-b">{{craft.fansText}}</view><text class="t-span">关注者</text></view>
-            <view class="stat"><view class="t-b">{{craft.likeText}}</view><text class="t-span">获赞</text></view>
-          </view>
-
-          <view class="income-entry" wx:if="{{craft.earn > 0}}" bindtap="goIncome">
-            <view class="ie-icon">💰</view>
-            <view class="ie-text">
-              <view class="t-b">收益看板</view>
-              <text class="t-span">明细与提现</text>
-            </view>
-            <view class="ie-val">{{craft.incomeText}}</view>
-            <view class="ie-arrow">›</view>
-          </view>
-
-          <button class="newcraft-btn" bindtap="newCraft"><text class="t-span">＋ 新建卡集</text></button>
-
-          <view class="craft-group" wx:for="{{craft.groups}}" wx:for-item="group" wx:key="name">
-            <view class="craft-group-head">
-              <view class="t-b"><view class="cg-status {{group.status}}"></view>{{group.name}}</view>
-              <text class="t-span cg-count">{{group.count}}</text>
-            </view>
-            <view class="work-row" wx:for="{{group.rows}}" wx:key="id" bindtap="craftRowTap" data-kind="{{group.kind}}" data-id="{{item.id}}">
-              <view class="wr-info">
-                <view class="t-b">{{item.title}}<text class="wr-badge {{item.badge}}">{{item.badgeText}}</text></view>
-                <text class="t-span">{{item.meta}}</text>
-              </view>
-              <text class="go">›</text>
-            </view>
-          </view>
-
-          <view class="t-p sub-tail">收益来自定价卡集解锁分成与免费卡集平台激励，明细见收益看板</view>
-        </block>
+  <view class="v6-lib-nav" style="padding-top:{{statusBarHeight}}px">
+    <view class="v6-lib-nav-inner" style="padding-right:{{menuPad}}px">
+      <view class="v6-lib-head">
+        <text class="v6-kicker">CREATOR CENTER</text>
+        <text class="v6-lib-title">创作中心</text>
+      </view>
+      <view class="v6-icon-btn" hover-class="hm-press" bindtap="newCraft">
+        <image class="v6-icon" src="/assets/icons/v6/plus-ink.png" mode="aspectFit" />
       </view>
     </view>
+  </view>
 
-    
+  <view class="page v6-create-page" id="page-create">
+    <include src="/templates/m-base.wxml"/>
 
+    <view id="craftBody">
+      <view class="v6-empty" wx:if="{{craft.empty}}">
+        <view class="v6-empty-symbol">
+          <image class="v6-icon" src="/assets/icons/v6/sparkles-brand.png" mode="aspectFit" />
+        </view>
+        <view class="v6-empty-t">把你喜欢的东西，做成一个卡集</view>
+        <view class="v6-empty-p">书里触动你的点滴、城市里用脚丈量的好去处、打工人必备的摸鱼小技巧、冬日暖心的美食合集，所有你想分享的，都可以整合成集。</view>
+        <view class="v6-empty-p">八张起步，审核通过就能上架。可以免费，也可以定价。</view>
+        <view class="v6-btn primary" hover-class="hm-press" bindtap="newCraft">新建卡集</view>
+      </view>
 
+      <block wx:else>
+        <view class="v6-btn primary v6-create-new" hover-class="hm-press" bindtap="newCraft">
+          <image class="v6-icon" src="/assets/icons/v6/plus-ink.png" mode="aspectFit" /> 新建卡集
+        </view>
+
+        <view class="v6-lib-stats">
+          <view><strong>{{craft.pubN}}</strong><span>上架中</span></view>
+          <view><strong>{{craft.fansText}}</strong><span>关注者</span></view>
+          <view><strong>{{craft.likeText}}</strong><span>获赞</span></view>
+        </view>
+
+        <view class="v6-income-entry" wx:if="{{craft.earn > 0}}" hover-class="hm-press" bindtap="goIncome">
+          <image class="v6-icon" src="/assets/icons/v6/wallet-brand.png" mode="aspectFit" />
+          <view class="v6-income-copy">
+            <text class="v6-income-t">收益看板</text>
+            <text class="v6-income-s">明细与提现</text>
+          </view>
+          <text class="v6-income-val">{{craft.incomeText}}</text>
+          <image class="v6-icon" src="/assets/icons/v6/chevron-right-ink.png" mode="aspectFit" />
+        </view>
+
+        <view class="v6-create-group" wx:for="{{craft.groups}}" wx:for-item="group" wx:key="name">
+          <view class="v6-list-head">
+            <text class="v6-h2">{{group.name}}</text>
+            <text class="v6-count">{{group.count}}</text>
+          </view>
+          <view class="v6-set-list">
+            <view class="v6-set-row" wx:for="{{group.rows}}" wx:key="id" hover-class="hm-press"
+                  bindtap="craftRowTap" data-kind="{{group.kind}}" data-id="{{item.id}}">
+              <template is="coverArt" data="{{item: item.cover}}" />
+              <view class="v6-set-content">
+                <view class="v6-set-top">
+                  <text class="v6-set-cat">{{item.badgeText}}</text>
+                  <text class="v6-set-price">{{group.name}}</text>
+                </view>
+                <text class="v6-set-title">{{item.title}}</text>
+                <text class="v6-set-sub">{{item.meta}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <view class="v6-create-foot">收益来自定价卡集解锁分成与免费卡集平台激励，明细见收益看板</view>
+      </block>
+    </view>
+  </view>
 </view>

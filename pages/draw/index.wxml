@@ -7,40 +7,44 @@
     <view class="page" id="page-draw" wx:if="{{draw}}">
       <view class="dw {{draw.stateCls}} {{draw.sealed ? 'is-sealed' : ''}} {{draw.unsealing ? 'unsealing' : ''}}">
         <view class="dk-top">
-          <view class="dw-back" bindtap="backToSet">‹</view>
-          <view class="dk-title">{{draw.title}}</view>
+          <view class="v6-icon-btn" hover-class="hm-press" bindtap="backToSet">
+            <image class="v6-icon" src="/assets/icons/v6/arrow-left-ink.png" mode="aspectFit" />
+          </view>
+          <text class="dk-title">{{draw.title}}</text>
+          <view class="v6-icon-btn" hover-class="hm-press" bindtap="shareDraw">
+            <image class="v6-icon" src="/assets/icons/v6/share-2-ink.png" mode="aspectFit" />
+          </view>
         </view>
 
-        <view class="dk-stage" style="--dk-h:{{dkH}}px">
-          <view class="dk-card" bindtap="tapCard"
-                style="--ink:{{draw.front.ink}};--ink-line:{{draw.front.inkLine}};--ink-faint:{{draw.front.inkFaint}}">
+        <view class="v6-draw-intro">
+          <text class="v6-draw-kicker">{{draw.sealed ? '拆开封条，解锁全集' : (draw.stateCls === 'is-idle' ? '今天的卡，正等着你' : '今日关键词')}}</text>
+          <text class="v6-draw-sub">{{draw.sealed ? '全集未拆封' : (draw.stateCls === 'is-idle' ? '深呼吸一次，然后轻轻点开' : (draw.title + ' · ' + draw.front.noLabel))}}</text>
+        </view>
+
+        <view class="dk-stage">
+          <view class="dk-card" bindtap="tapCard">
             <view class="dk-edge {{item}}" wx:for="{{draw.edges}}" wx:key="*this"></view>
             <view class="dk-flip {{draw.flipped ? 'on' : ''}}">
-              <view class="dk-face back">
-                <view class="dk-frame"></view>
-                <view class="dk-star"></view>
-                <view class="dk-bk-line"></view>
-                <text class="dk-bk-name">{{draw.back.name}}</text>
-                <text class="dk-bk-sub">{{draw.back.sub}}</text>
-                <text class="dk-bk-date">{{draw.back.date}}</text>
+              <view class="dk-face back {{draw.backMode}}">
+                <block wx:if="{{draw.backMode === 'idle'}}">
+                  <view class="v6-cardback-mark"><view></view><view></view></view>
+                  <text class="v6-cardback-title">卡集</text>
+                  <text class="v6-cardback-copy">今天，也为自己抽一张</text>
+                  <view class="v6-cardback-orbit"><view></view><view></view></view>
+                </block>
+                <block wx:else>
+                  <text class="v6-card-no">{{draw.front.noLabel}}</text>
+                  <text class="v6-card-word {{draw.front.kwCls}}">{{draw.front.word}}</text>
+                  <text class="v6-card-hint">轻触卡片，看看解读</text>
+                  <text class="v6-card-set">{{draw.title}}</text>
+                </block>
               </view>
               <view class="dk-face front {{draw.front.isKey ? 'sig' : ''}}">
-                <view class="dk-frame"></view>
-                <view class="dk-fr-head">
-                  <text class="dk-no">{{draw.front.noText}}</text>
-                  <text class="dk-fr-set">{{draw.front.series}}</text>
-                </view>
-                <view class="dk-fr-rule"></view>
-                <view class="dk-fr-word">
-                  <text class="dk-word {{draw.front.kwCls}}">{{draw.front.word}}</text>
-                  <view class="dk-keyline"></view>
-                </view>
-                <text class="dk-fr-explain">{{draw.front.explain}}</text>
-                <view class="dk-goldmark"><text>题</text><text>眼</text></view>
-                <view class="dk-fr-foot">
-                  <text>{{draw.front.source}}</text>
-                  <text class="dk-no">{{draw.front.date}}</text>
-                </view>
+                <text class="v6-card-no">TODAY'S CARD</text>
+                <text class="v6-exp-word">{{draw.front.word}}</text>
+                <text class="v6-exp-text">{{draw.front.explain}}</text>
+                <text class="v6-exp-source">{{draw.front.source}} · {{draw.title}}</text>
+                <view class="dk-goldmark" wx:if="{{draw.front.isKey}}"><text>题</text><text>眼</text></view>
               </view>
             </view>
             <view class="dk-seal" wx:if="{{draw.sealed}}">
@@ -51,62 +55,61 @@
           </view>
         </view>
 
-          <!-- 组②：一行 mono 提示 -->
-          <view class="dw-hint">{{draw.hint}}</view>
+        <view class="v6-draw-helper">{{draw.helper}}</view>
 
-          <view class="dw-error" wx:if="{{draw.error}}">
-            <text class="dw-error-msg">{{draw.error.message}}</text>
-            <view class="dw-error-retry" hover-class="dw-btn-press" bindtap="tapEnvelope">再试一次</view>
-          </view>
+        <view class="dw-error" wx:if="{{draw.error}}">
+          <text class="dw-error-msg">{{draw.error.message}}</text>
+          <view class="dw-error-retry" hover-class="dw-btn-press" bindtap="tapEnvelope">再试一次</view>
+        </view>
 
-          <!-- 抽卡回响：心动 + 留一句（无记录也可参与） -->
-          <view class="dw-echo" wx:if="{{draw.stage === 'after'}}">
-            <view class="dw-echo-like {{draw.social.liked ? 'on' : ''}} {{draw.likePop ? 'pop' : ''}}"
-                  hover-class="dw-echo-press" bindtap="toggleSetLike">
-              <text class="dw-echo-heart">{{draw.social.liked ? '♥' : '♡'}}</text>
-              <text class="dw-echo-n">{{draw.social.likesText}}</text>
-              <text class="dw-echo-l">心动</text>
-            </view>
-            <view class="dw-echo-comment" hover-class="dw-echo-press" bindtap="openComments">
-              <text class="dw-echo-pen">✎</text>
-              <text>留一句</text>
-            </view>
+        <view class="dw-echo" wx:if="{{draw.stage === 'after'}}">
+          <view class="dw-echo-like {{draw.social.liked ? 'on' : ''}} {{draw.likePop ? 'pop' : ''}}"
+                hover-class="dw-echo-press" bindtap="toggleSetLike">
+            <text class="dw-echo-heart">{{draw.social.liked ? '♥' : '♡'}}</text>
+            <text class="dw-echo-n">{{draw.social.likesText}}</text>
+            <text class="dw-echo-l">心动</text>
           </view>
+          <view class="dw-echo-comment" hover-class="dw-echo-press" bindtap="openComments">
+            <text class="dw-echo-pen">✎</text>
+            <text>留一句</text>
+          </view>
+        </view>
 
-          <!-- 组③：动作（按状态切换 idle / done 两组） -->
-          <view class="dw-actions">
-            <view class="dk-act dk-act-idle">
-              <button wx:if="{{draw.cta2}}" class="dw-btn {{draw.cta2.kind}}" hover-class="dw-btn-press"
-                      bindtap="tapDrawCta" data-act="cta2">{{draw.cta2.text}}</button>
-              <button wx:if="{{draw.cta}}" class="dw-btn {{draw.cta.kind}}" hover-class="dw-btn-press"
-                      bindtap="tapDrawCta" data-act="cta">{{draw.cta.text}}</button>
-            </view>
-            <view class="dk-act dk-act-done">
-              <button wx:if="{{draw.ctaDone2}}" class="dw-btn {{draw.ctaDone2.kind}}" hover-class="dw-btn-press"
-                      bindtap="tapDrawCta" data-act="ctaDone2">{{draw.ctaDone2.text}}</button>
-              <button wx:if="{{draw.ctaDone}}" class="dw-btn {{draw.ctaDone.kind}} {{draw.ctaDone.disabled ? 'is-disabled' : ''}}"
-                      disabled="{{draw.ctaDone.disabled}}" hover-class="dw-btn-press"
-                      bindtap="tapDrawCta" data-act="ctaDone">{{draw.ctaDone.text}}</button>
-            </view>
+        <view class="dw-actions">
+          <view class="dk-act dk-act-idle">
+            <button wx:if="{{draw.cta2}}" class="dw-btn {{draw.cta2.kind}}" hover-class="dw-btn-press"
+                    bindtap="tapDrawCta" data-act="cta2">{{draw.cta2.text}}</button>
+            <button wx:if="{{draw.cta}}" class="dw-btn {{draw.cta.kind}}" hover-class="dw-btn-press"
+                    bindtap="tapDrawCta" data-act="cta">{{draw.cta.text}}</button>
           </view>
+          <view class="dk-act dk-act-flip">
+            <button class="dw-btn brand" hover-class="dw-btn-press" bindtap="tapDrawCta" data-act="ctaFlip">{{draw.ctaFlip.text}}</button>
+          </view>
+          <view class="dk-act dk-act-done">
+            <button wx:if="{{draw.ctaDone2}}" class="dw-btn {{draw.ctaDone2.kind}}" hover-class="dw-btn-press"
+                    bindtap="tapDrawCta" data-act="ctaDone2">{{draw.ctaDone2.text}}</button>
+            <button wx:if="{{draw.ctaDone}}" class="dw-btn {{draw.ctaDone.kind}} {{draw.ctaDone.disabled ? 'is-disabled' : ''}}"
+                    disabled="{{draw.ctaDone.disabled}}" hover-class="dw-btn-press"
+                    bindtap="tapDrawCta" data-act="ctaDone">{{draw.ctaDone.text}}</button>
+          </view>
+        </view>
 
-          <!-- 再抽抽看：只推荐今天还能抽的卡集 -->
-          <view class="draw-rec" wx:if="{{draw.stage === 'after'}}">
-            <block wx:if="{{draw.recs && draw.recs.items.length}}">
-              <view class="rec-head rec-head-compact">
-                <view class="rec-head-t">再抽抽看</view>
-                <view class="rec-refresh" bindtap="refreshDrawRecs">换一批 ›</view>
-              </view>
-              <view class="rec-grid">
-                <block wx:for="{{draw.recs.items}}" wx:key="id">
-                  <template is="recCard" data="{{item: item}}" />
-                </block>
-              </view>
-            </block>
-            <view class="draw-rec-empty" wx:else bindtap="backToHome">
-              今天的签都抽过了，去发现逛逛 ›
+        <view class="draw-rec" wx:if="{{draw.stage === 'after'}}">
+          <block wx:if="{{draw.recs && draw.recs.items.length}}">
+            <view class="rec-head rec-head-compact">
+              <view class="rec-head-t">再抽抽看</view>
+              <view class="rec-refresh" bindtap="refreshDrawRecs">换一批 ›</view>
             </view>
+            <view class="rec-grid">
+              <block wx:for="{{draw.recs.items}}" wx:key="id">
+                <template is="recCard" data="{{item: item}}" />
+              </block>
+            </view>
+          </block>
+          <view class="draw-rec-empty" wx:else bindtap="backToHome">
+            今天的签都抽过了，去发现逛逛 ›
           </view>
+        </view>
       </view>
     </view>
 
