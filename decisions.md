@@ -100,3 +100,30 @@
 | D096 | P2 后端 | 图片异步审核回调 v1 未实现：sec.media 先落 pending；正式环境需补公网回调或轮询 | 私有邮戳 fail-open，不阻塞主流程；上线前补齐 |
 | D097 | P2 后端 | `tools/validate-content.js` 仍校验卡面 `w<=8`，与 D081 的 24 字不一致；本次不改 | 待内容工具统一时修正；后端不做该校验 |
 | D098 | P2 后端 | 测试机为 CentOS 7（glibc 2.17）：Node 20 改用 glibc-217 构建装到 `/opt/node20`；包管理用 yum + EPEL；systemd 219 用 shell 重定向写日志；schema/seed 改由 Node mysql2 执行 | 官方 Node 20 需 glibc≥2.28；EL7 自带旧 mysql 客户端可能不支持 MySQL 8 认证插件 |
+| D099 | V4 | 抽卡页卡本位：信封退役；统一卡背 + 满幅 5:7 印刷正面；`--dk-h` 进页锁高 | 用户拍板；卡是主角，信封叙事退场 |
+| D100 | V4 | 题眼：收藏集固定最后一张（收官）；常驻集由数据侧 `isKeyEye` 标记（契约暂未含，先兼容可选字段） | 用户四点确认①；数据字段待后续补 |
+| D101 | V4 | 回访态：今日已抽重进页面，正面朝上 -1deg 平放，不重播抽出/金印动画 | 用户四点确认② |
+| D102 | V4 | 盖戳照片裁剪 4:3→3:4（批次②执行）；历史 4:3 图在满幅卡背以 cover 自动裁切 | 用户确认③；cover 不破版 |
+| D103 | V4 | 例外记录：卡面字档改用 `--dk-h` 缩放（规则 19 的 `--cw/--ch` 例外）；分类墨经内联 `--ink` 注入 | 新卡架构由用户给定；保持 D062 一墨到底 |
+| D104 | V4 | `is-drawn` 隐藏动作区，轻触卡面翻面；翻面后轻触卡面开大卡，补回被移除的「看看今天的卡」入口 | 避免「抽今日一签」重复触发；保留看大卡路径 |
+| D105 | V4 | 抽卡最小节奏 360ms；满幅卡去左右内边距，提示/动作/回响/推荐各自补 24px | 信封 920/400ms 随退役删除；防文案贴边 |
+| D106 | V4 | 付费墙金封条使用哑金渐变（规则 18 的例外：视作金属封印） | 用户给定卡本位封条方案；金只出现在卡面题眼/集齐/封条三处 |
+| D107 | V4② | 盖戳页沿用共享 modal 满幅化（不新建页面）；cards 页打开时 hideTabBar、关闭时 showTabBar | 小 diff；原生导航栏无法被页面元素覆盖，set/cards/map 以页面视口为满幅边界 |
+| D108 | V4② | 盖戳状态类改为 `is-empty/is-photo/is-stamped`；`.st-photo` 只给图片、`.st-empty` 只给无图 fallback | 原方案状态类与子元素类同名会互相污染 |
+| D109 | V4② | `.st-page` 以 `inset:0` 填满 modal；铭牌/钢印/关闭仍按 `--navtop` 下移 | 避免 draw 自定义导航下 `100vh-navtop` 产生空带/双重偏移 |
+| D110 | V4② | 保留纯文字盖戳：st-empty 提供「拍一张今天 / 只写一句」；新增关闭 ×（铭牌右移让位）、点图换图、× 移除照片；纸条上移至 140px 避让双按钮 | 不丢旧产品能力；st-stamped 只读 |
+| D111 | V4② | 保存后停留 st-stamped，stampIn 380ms 落印；「收进册子」关闭返回，分享接既有 openPoster | 用户拍板三态；分享视觉统一留待下批 |
+| D112 | V4② | 常驻集不做 st-stamped（可多次盖戳）；仅收藏集已有记录时进页直显已盖 | 与 resident 多记录语义一致 |
+| D113 | V4② | 解锁封条后严格回 is-idle，不自动续抽；visited 未盖 CTA 文案改「去盖邮戳」，翻面后仍为「印上今天」 | 对齐九态回归表 |
+| D114 | V4② | 稀有度清理：chip tone `blossom`→`rose`；chip 渐变内联实色；`--rar-*` 映射改字面量；posterKit 内 `rar*`/drawRarityBar 因铁律 4 冻结 | 保证 home chips 不破；Canvas 清理待单独授权 |
+| D115 | V4② | 信封 CSS 剪切至末尾 ARCHIVE 注释段（本批仅归档，彩蛋实现待后续）；先剥离块内注释；`.cf.k` 金框链归档，小卡题眼仅保留金印 `.cf.sig-stamp` | 避免注释提前闭合；bigCard/map 小卡金框改由金印承担 |
+| D116 | V4② | 盖戳照片裁剪 4:3→3:4（JS 1 处 + WXSS 4 处）；历史 4:3 图由 aspectFill/cover 自动填充 | 用户确认③ |
+| D117 | V4② | 盖戳日期统一取 YYYY.MM.DD（mock 的 dateText / real 的 stampDate 哪个是长格式取哪个）；`.card-face.front::after` 顶条改 `--ink-line` | 避免出现 "11-23" 短日期与橙色顶条（规则 18） |
+| D118 | V5 | 对比度 token：`--ink-3:#77777D`、`--orange-700:#CC4A24`；`ink-4` 仅限 disabled/占位/装饰线 | 一处别名层修复 80% 文本对比度 |
+| D119 | V5 | 按压统一：删除全部 `:active` 与散落 `-press` 旧规则，改为“下沉 1px + opacity .86”单套 `-press` | 小程序真机 `:active` 基本不生效；印刷物是压下去不是缩下去 |
+| D120 | V5 | token 终版：暖灰 paper-deep / 暖黑阴影；z-index 收敛为 `--z-*` 阶梯（dp 100 > poster 90 > modal 80 > tabbar 50，toast 140） | 冷灰/中性黑与暖纸并置发灰；13 个散值收敛 |
+| D121 | V5 | 字号归位：stat/hero/dp/m916/h916/weekly 数字与标题改用 `--num-*` / `--text-*`；h916 bw-6/7 同步 | 22–49px 显示字号走同一梯度 |
+| D122 | V5 | 金底按钮改深金渐变 + 米白字；`.dk-bk-sub/date` 改 ink-2 且 opacity 1 | 金底白字 2.3:1 → 最深端 6.8:1；卡背日期可读 |
+| D123 | V5 | 兼容兜底：aspect-ratio / clip-path 的 `@supports` fallback；mask/backdrop 依赖既有纯色底 | 低端安卓不破版 |
+| D124 | V5 | 文件拆分（tokens/base/comp/pages/motion/archive）暂缓，回归稳定后单独排期 | 本批只做覆盖层，避免大 diff |
+| D125 | 运维 | 真机加载失败：`API_BASE` 为 `http://IP`，微信真机禁止 HTTP/IP 请求；临时 `USE_MOCK=true` 保证 UI 可回归，boot 失败页补 HTTPS 提示 | 远端服务健康（/healthz、/sets 已验证）；恢复远端需 HTTPS 域名 + request 合法域名白名单 |

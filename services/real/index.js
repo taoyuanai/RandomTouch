@@ -63,8 +63,16 @@ function rawRequest(path, data, opts) {
         }
         reject({ code: 'INTERNAL', message: '服务暂不可用', retryable: true });
       },
-      fail() {
-        reject({ code: 'INTERNAL', message: '网络开小差了，稍后再试', retryable: true });
+      fail(err) {
+        const url = base() + path;
+        console.error('[api] request failed', method, url, (err && err.errMsg) || err);
+        reject({
+          code: 'INTERNAL',
+          message: '网络开小差了，稍后再试',
+          retryable: true,
+          detail: (err && err.errMsg) || '',
+          url,
+        });
       },
     });
   });

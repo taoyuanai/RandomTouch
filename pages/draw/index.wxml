@@ -5,41 +5,48 @@
   <view class="screen">
 <!-- ═══════════════════ 抽卡 ═══════════════════ -->
     <view class="page" id="page-draw" wx:if="{{draw}}">
-      <view class="dw {{draw.stage}} {{draw.fast ? 'fast' : ''}}">
-        <view class="dw-back" bindtap="backToSet">‹</view>
-        <view class="dw-stage">
-          <view class="dw-env" wx:if="{{draw.stage !== 'after'}}" bindtap="tapEnvelope">
-            <view class="dw-env-shadow"></view>
-            <view class="dw-env-back"></view>
-            <view class="dw-env-letter"></view>
-            <view class="dw-env-front">
-              <view class="dw-env-stamp">
-                <view class="dw-env-stamp-in" style="background:{{draw.env.tint}}">
-                  <view class="dw-env-stamp-name">
-                    <text class="dw-env-stamp-ch" wx:for="{{draw.env.seriesV}}" wx:key="*this"
-                          style="color:{{draw.env.ink}}">{{item}}</text>
-                  </view>
-                  <text class="dw-env-stamp-val" style="color:{{draw.env.ink}}">今日</text>
+      <view class="dw {{draw.stateCls}} {{draw.sealed ? 'is-sealed' : ''}} {{draw.unsealing ? 'unsealing' : ''}}">
+        <view class="dk-top">
+          <view class="dw-back" bindtap="backToSet">‹</view>
+          <view class="dk-title">{{draw.title}}</view>
+        </view>
+
+        <view class="dk-stage" style="--dk-h:{{dkH}}px">
+          <view class="dk-card" bindtap="tapCard"
+                style="--ink:{{draw.front.ink}};--ink-line:{{draw.front.inkLine}};--ink-faint:{{draw.front.inkFaint}}">
+            <view class="dk-edge {{item}}" wx:for="{{draw.edges}}" wx:key="*this"></view>
+            <view class="dk-flip {{draw.flipped ? 'on' : ''}}">
+              <view class="dk-face back">
+                <view class="dk-frame"></view>
+                <view class="dk-star"></view>
+                <view class="dk-bk-line"></view>
+                <text class="dk-bk-name">{{draw.back.name}}</text>
+                <text class="dk-bk-sub">{{draw.back.sub}}</text>
+                <text class="dk-bk-date">{{draw.back.date}}</text>
+              </view>
+              <view class="dk-face front {{draw.front.isKey ? 'sig' : ''}}">
+                <view class="dk-frame"></view>
+                <view class="dk-fr-head">
+                  <text class="dk-no">{{draw.front.noText}}</text>
+                  <text class="dk-fr-set">{{draw.front.series}}</text>
+                </view>
+                <view class="dk-fr-rule"></view>
+                <view class="dk-fr-word">
+                  <text class="dk-word {{draw.front.kwCls}}">{{draw.front.word}}</text>
+                  <view class="dk-keyline"></view>
+                </view>
+                <text class="dk-fr-explain">{{draw.front.explain}}</text>
+                <view class="dk-goldmark"><text>题</text><text>眼</text></view>
+                <view class="dk-fr-foot">
+                  <text>{{draw.front.source}}</text>
+                  <text class="dk-no">{{draw.front.date}}</text>
                 </view>
               </view>
-              <view class="dw-env-pmk">
-                <text class="dw-env-pmk-top">DAILY POST</text>
-                <text class="dw-env-pmk-date">{{draw.env.date}}</text>
-                <text class="dw-env-pmk-seq">{{draw.env.seq}}</text>
-              </view>
-              <text class="dw-env-from">FROM · 今日做点小事</text>
             </view>
-            <view class="dw-env-flap"></view>
-            <view class="dw-env-wax">
-              <view class="dw-env-wax-half l"><text class="dw-env-wax-ch">今</text></view>
-              <view class="dw-env-wax-half r"><text class="dw-env-wax-ch">今</text></view>
-            </view>
-          </view>
-
-          <view class="dw-cardwrap" wx:if="{{draw.stage === 'after'}}" bindtap="tapCard">
-            <view class="dw-flip {{draw.flipped ? 'on' : ''}} {{draw.sigBar ? 'sig-bar' : ''}} {{draw.sigStamp ? 'sig-stamp' : ''}}">
-              <view class="dw-face a"><template is="cardFront" data="{{c: draw.front}}"/></view>
-              <view class="dw-face b"><template is="cardBack" data="{{c: draw.back}}"/></view>
+            <view class="dk-seal" wx:if="{{draw.sealed}}">
+              <view class="dk-seal-half l"></view>
+              <view class="dk-seal-half r"></view>
+              <view class="dk-seal-txt">{{draw.sealText}}</view>
             </view>
           </view>
         </view>
@@ -66,12 +73,21 @@
             </view>
           </view>
 
-          <!-- 组③：动作（次在上，主在下） -->
+          <!-- 组③：动作（按状态切换 idle / done 两组） -->
           <view class="dw-actions">
-            <button wx:if="{{draw.cta2}}" class="dw-btn {{draw.cta2.kind}}" hover-class="dw-btn-press"
-                    bindtap="tapDrawCta" data-act="cta2">{{draw.cta2.text}}</button>
-            <button class="dw-btn {{draw.cta.kind}}" hover-class="dw-btn-press"
-                    bindtap="tapDrawCta" data-act="cta">{{draw.cta.text}}</button>
+            <view class="dk-act dk-act-idle">
+              <button wx:if="{{draw.cta2}}" class="dw-btn {{draw.cta2.kind}}" hover-class="dw-btn-press"
+                      bindtap="tapDrawCta" data-act="cta2">{{draw.cta2.text}}</button>
+              <button wx:if="{{draw.cta}}" class="dw-btn {{draw.cta.kind}}" hover-class="dw-btn-press"
+                      bindtap="tapDrawCta" data-act="cta">{{draw.cta.text}}</button>
+            </view>
+            <view class="dk-act dk-act-done">
+              <button wx:if="{{draw.ctaDone2}}" class="dw-btn {{draw.ctaDone2.kind}}" hover-class="dw-btn-press"
+                      bindtap="tapDrawCta" data-act="ctaDone2">{{draw.ctaDone2.text}}</button>
+              <button wx:if="{{draw.ctaDone}}" class="dw-btn {{draw.ctaDone.kind}} {{draw.ctaDone.disabled ? 'is-disabled' : ''}}"
+                      disabled="{{draw.ctaDone.disabled}}" hover-class="dw-btn-press"
+                      bindtap="tapDrawCta" data-act="ctaDone">{{draw.ctaDone.text}}</button>
+            </view>
           </view>
 
           <!-- 再抽抽看：只推荐今天还能抽的卡集 -->

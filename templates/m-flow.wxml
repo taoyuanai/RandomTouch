@@ -1,29 +1,48 @@
 <import src="/templates/card.wxml"/>
 <!-- D6 · 流程弹层：record / bigCard / poster / dp（cards/set/draw/map） -->
-<!-- ═══════════════════ 盖邮戳 / 回信 ═══════════════════ -->
-  <view class="modal {{record.show ? 'show' : ''}}" id="recordModal">
-    <view class="sheet bottom-sheet">
-      <view class="modal-kind">盖 上 今 天 的 邮 戳</view>
-      <view class="modal-title">{{record.title}}</view>
-      <view class="t-p modal-body">{{record.sub}}</view>
-      <view class="rc-photo {{record.hasImg ? 'has' : ''}}" bindtap="choosePhoto">
-        <image wx:if="{{record.hasImg}}" class="t-img" src="{{record.img}}" mode="aspectFill" />
-        <view class="rc-photo-del" wx:if="{{record.hasImg}}" catchtap="clearPhoto">×</view>
-        <view class="rc-photo-empty" wx:else>
-          <image class="t-svg" src="/assets/icons/camera-soft.png" mode="aspectFit" />
-          <text class="t-span">拍下今天 · 或从相册选</text>
-        </view>
+<!-- ═══════════════════ 盖邮戳 / 回信（V4 满幅三态） ═══════════════════ -->
+  <view class="modal st-modal {{record.show ? 'show' : ''}}" id="recordModal">
+    <view class="st-page {{record.mode}}">
+      <image wx:if="{{record.hasImg}}" class="st-photo" src="{{record.img}}" mode="aspectFill" bindtap="choosePhoto" />
+      <view class="st-veil"></view>
+
+      <view class="st-close" hover-class="dw-btn-press" bindtap="closeRecord">×</view>
+      <view class="st-plaque">
+        <text class="st-no">{{record.no}}</text>
+        <text class="st-set">{{record.setTitle}}</text>
       </view>
-      <view class="rc-crop-tip">照片会按 4:3 比例裁剪 · 可拖动缩放取景</view>
-      <view class="form-row" style="margin-top:var(--space-4)">
-        <textarea class="fi" maxlength="50" value="{{record.note}}" bindinput="onRecordNote" placeholder="也可以只写一句话，不传图"></textarea>
-        <view class="t-p rc-count"><text class="t-b">{{record.count}}</text>/50</view>
+      <view class="stamp st-stamp {{record.animate ? 'animate' : ''}}" wx:if="{{record.stamped}}">
+        <text class="stamp-text">{{record.stampDate}}</text>
       </view>
-      <view class="modal-actions">
-        <button class="cta solid" disabled="{{record.saving}}" bindtap="saveStamp">{{record.saving ? '盖戳中…' : record.saveText}}</button>
-        <button class="ghost" bindtap="closeRecord">暂时不记</button>
+      <view class="st-photo-del" wx:if="{{record.hasImg && !record.stamped}}" catchtap="clearPhoto">×</view>
+
+      <view class="st-note">
+        <textarea class="st-note-input" maxlength="50" value="{{record.note}}"
+                  disabled="{{record.readOnly}}" bindinput="onRecordNote"
+                  placeholder="写一句话，给今天留个证据"></textarea>
+        <view class="st-note-count"><text>{{record.count}}</text>/50</view>
       </view>
-      <view class="modal-meta">只给自己看 · 不记录也不影响任何功能</view>
+
+      <view class="st-empty" wx:if="{{!record.hasImg}}">
+        <text class="st-empty-word">{{record.word}}</text>
+        <text class="st-empty-hint" wx:if="{{record.mode === 'is-empty'}}">竖构图 · 3:4</text>
+      </view>
+
+      <view class="st-actions">
+        <block wx:if="{{record.mode === 'is-empty'}}">
+          <button class="dw-btn brand" hover-class="dw-btn-press" bindtap="choosePhoto">拍一张今天</button>
+          <button class="dw-btn ghost" hover-class="dw-btn-press" bindtap="noteOnly">只写一句</button>
+        </block>
+        <block wx:elif="{{record.mode === 'is-photo'}}">
+          <button class="dw-btn brand" hover-class="dw-btn-press" disabled="{{record.saving}}"
+                  bindtap="saveStamp">{{record.saving ? '盖戳中…' : '盖上今天'}}</button>
+          <button class="dw-btn ghost" hover-class="dw-btn-press" bindtap="closeRecord">暂时不记</button>
+        </block>
+        <block wx:else>
+          <button class="dw-btn brand" hover-class="dw-btn-press" bindtap="closeRecord">收进册子</button>
+          <button class="dw-btn ghost" hover-class="dw-btn-press" bindtap="shareRecord">分享</button>
+        </block>
+      </view>
     </view>
   </view>
 

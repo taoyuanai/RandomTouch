@@ -1,6 +1,7 @@
 <!-- D6 · 通用轻提示 / bootError（全部 10 页 include） -->
 <view class="hm-empty" wx:if="{{bootError}}" style="padding:64px 24px 20px">
   <view class="hm-empty-text">内容加载失败，检查一下网络</view>
+  <view class="hm-empty-hint" wx:if="{{bootHint}}">{{bootHint}}</view>
   <button class="hm-empty-btn" hover-class="hm-press" bindtap="retryBoot">重新加载</button>
 </view>
 
