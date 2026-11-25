@@ -49,6 +49,7 @@ const config = {
     region: env.COS_REGION || '',
     publicBase: (env.COS_PUBLIC_BASE || '').replace(/\/+$/, ''),
     prefix: (env.COS_PREFIX || 'test').replace(/^\/+|\/+$/g, ''),
+    urlExpire: num(env.COS_URL_EXPIRE, 86400),
   },
 
   secMode: env.SEC_MODE === 'real' ? 'real' : 'mock',

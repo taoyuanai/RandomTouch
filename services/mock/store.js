@@ -60,11 +60,39 @@ function seedActivity(st) {
   });
 }
 
+/**
+ * 卡池是 count 的权威来源。
+ * 旧的本地持久化 store 可能仍是 count=40 / pool=5 的历史快照，
+ * 加载时统一纠正，避免抽卡在池空后写入 undefined。
+ */
+function normalizeCounts(sets) {
+  let changed = false;
+  const priceMap = { 6: 1.9, 12: 3.9, 19: 5.9 };
+  (sets || []).forEach(s => {
+    const n = Array.isArray(s.pool) ? s.pool.length : 0;
+    if (n > 0 && Number(s.count) !== n) {
+      s.count = n;
+      changed = true;
+    }
+    if (priceMap[Number(s.price)] != null) {
+      s.price = priceMap[Number(s.price)];
+      changed = true;
+    }
+  });
+  return changed;
+}
+
 const _boot = load();
 const state = _boot.state;
+const countFixed = normalizeCounts(state.sets);
 if (!state.drawCache) state.drawCache = {};
 if (!state.activity) state.activity = [];
-if (_boot.fresh) { seedActivity(state); persist(); }
+if (_boot.fresh) {
+  seedActivity(state);
+  persist();
+} else if (countFixed) {
+  persist();
+}
 
 function persist() {
   try { wx.setStorageSync(STORE_KEY, JSON.stringify(state)); } catch (e) {}

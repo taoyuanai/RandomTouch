@@ -46,26 +46,40 @@ function progressOf(s) {
     drawnLog: u.drawnLog || [], recs: u.recs || {},
   };
 }
-function setPayload(s) {
+function setPayload(s, opts) {
+  const summary = !!(opts && opts.summary);
   const soc = store.socialOf(s);
-  return {
+  const out = {
     id: s.id, title: s.title, covT: s.covT, covS: s.covS,
     cover: s.cover, coverImage: s.coverImage || '',
     cat: s.cat, type: s.type, price: s.price, trial: s.trial,
-    count: s.count, pool: s.pool, intro: s.intro,
+    count: s.count, intro: s.intro,
     creator: s.creator, heat: s.heat, date: s.date,
     signatureIdx: s.signatureIdx, signatureNote: s.signatureNote,
     disclaimer: s.disclaimer || '',
     own: s.creator === store.ME,
-    subscribed: !!s.user,
     totalDrawn: s.totalDrawn || 0,
     earn: s.earn || 0,
     buyers: s.buyers || 0,
     likes: soc.likes,
     liked: !!soc.liked,
     fans: store.state.fans[s.creator] || 0,
+    /* mock 只有一个登录用户：有 progress 行即视为有进度 */
+    subscribed: !!(s.user && s.subscribed !== false),
+    hasProgress: !!s.user,
+    subscribers: (s.user && s.subscribed !== false) ? 1 : 0,
     progress: progressOf(s),
   };
+  /* 列表摘要：不下发卡池数组；详情 getSet 仍返回完整 pool。
+   * 只有列表搜索需要 poolText（feed/作者/创作摘要可显式关闭）。 */
+  if (summary) {
+    if (!opts || opts.poolText !== false) {
+      out.poolText = (s.pool || []).map(c => ((c && c.w) || '') + ' ' + ((c && c.b) || '')).join(' ');
+    }
+  } else {
+    out.pool = s.pool;
+  }
+  return out;
 }
 
 /* ── 契约实现 ── */
@@ -73,6 +87,11 @@ function setPayload(s) {
 async function auth() {
   await gate();
   return { ok: true };
+}
+
+async function getMe() {
+  await gate();
+  return { id: 'me', name: store.ME, creatorName: store.ME, avatar: '' };
 }
 
 async function listSets(q = {}) {
@@ -83,7 +102,7 @@ async function listSets(q = {}) {
   list.sort(q.sort === 'new'
     ? (a, b) => (b.date || '').localeCompare(a.date || '')
     : (a, b) => (b.heat || 0) - (a.heat || 0));
-  return list.map(setPayload);
+  return list.map(s => setPayload(s, { summary: true }));
 }
 
 async function getSet(setId) {
@@ -116,6 +135,7 @@ async function draw({ setId, requestId } = {}) {
     drawn: 0, trialUsed: 0, unlocked: s.price === 0 || isMine,
     todayDrawn: false, got: [], recs: {},
   });
+  if (s.subscribed === false) s.subscribed = true;
 
   if (u.todayDrawn || u.trialToday) {
     return { result: 'already', idx: u.todayIdx, card: s.pool[u.todayIdx], set: setPayload(s) };
@@ -136,6 +156,9 @@ async function draw({ setId, requestId } = {}) {
   } else {
     const got = u.got || [];
     const left = s.pool.map((_, i) => i).filter(i => !got.includes(i));
+    if (!left.length) {
+      return { result: 'completed', set: setPayload(s) };
+    }
     idx = left[Math.floor(Math.random() * left.length)];
   }
 
@@ -210,6 +233,7 @@ async function unlock({ setId } = {}) {
   const s = findSet(setId);
   if (!s.user) s.user = { drawn: 0, trialUsed: 0, unlocked: true, todayDrawn: false, got: [] };
   s.user.unlocked = true;
+  s.subscribed = true;
   store.persist();
   return { set: setPayload(s) };
 }
@@ -223,6 +247,16 @@ async function subscribeSet({ setId } = {}) {
       unlocked: false, trialUsed: 0, drawnLog: [], recs: {},
     };
   }
+  s.subscribed = true;
+  store.persist();
+  return { set: setPayload(s) };
+}
+
+/* 取消订阅：只关订阅标记，保留 s.user / 卡片 / 邮戳。 */
+async function unsubscribeSet({ setId } = {}) {
+  await gate();
+  const s = findSet(setId);
+  if (s.user) s.subscribed = false;
   store.persist();
   return { set: setPayload(s) };
 }
@@ -282,7 +316,7 @@ async function getAuthor({ name } = {}) {
     own: name === store.ME,
     fans: store.state.fans[name] || 0,
     followed: !!store.state.follow[name],
-    works: works.map(setPayload),
+    works: works.map(s => setPayload(s, { summary: true, poolText: false })),
   };
 }
 
@@ -336,21 +370,26 @@ async function getFeed() {
   const ME = store.ME;
   const subs = store.state.sets.filter(s => s.user);
   const today = [], subscribed = [], doneRows = [];
-  let waitingN = 0, cardsN = 0, emptied = 0;
+  let waitingN = 0, cardsN = 0, emptied = 0, activeN = 0;
 
   subs.forEach(s => {
     const u = s.user;
+    const active = s.subscribed !== false;
     const res = s.type === 'resident';
     const count = s.count || s.pool.length;
     const got = (u.got || []).length;
+    if (active) activeN++;
     cardsN += u.drawn || 0;
     const doneSet = !res && count > 0 && got >= count;
     if (doneSet) emptied++;
     const todayIdx = u.todayIdx != null ? u.todayIdx
       : (u.todayDrawn && (u.got || []).length ? u.got[u.got.length - 1] : null);
     const stamped = !!(todayIdx != null && getRec(u, todayIdx));
-    const row = { setId: s.id, title: s.title, covT: s.covT, todayIdx, got, count, drawn: u.drawn || 0, resident: res, price: s.price };
+    const row = { setId: s.id, title: s.title, covT: s.covT, todayIdx, got, count, drawn: u.drawn || 0, resident: res, price: s.price, subscribed: active };
     if (doneSet) doneRows.push(Object.assign(row, { status: 'done' }));
+    else if (!active) {
+      /* 已取消订阅：保留进度，不进入今日/订阅中 */
+    }
     else if (u.todayDrawn || u.trialToday) {
       if (!stamped) { waitingN++; subscribed.push(Object.assign(row, { status: 'waiting_reply' })); }
       else subscribed.push(Object.assign(row, { status: 'stamped' }));
@@ -382,12 +421,13 @@ async function getFeed() {
 
   let weekly = null;
   for (const s of subs) {
+    if (s.subscribed === false) continue;
     const w = weeklyAvailability(s);
     if (w) { weekly = { setId: s.id, weekNo: w.weekNo }; break; }
   }
 
   return {
-    total: subs.length,
+    total: activeN,
     today, subscribed, done: doneRows,
     stats: { canDraw: today.length, cards: cardsN, emptied, waiting: waitingN },
     weekGoal: store.state.activity.length
@@ -399,7 +439,8 @@ async function getFeed() {
 async function getMyCraft() {
   await gate();
   return {
-    published: store.state.sets.filter(s => s.creator === store.ME).map(setPayload),
+    published: store.state.sets.filter(s => s.creator === store.ME)
+      .map(s => setPayload(s, { summary: true, poolText: false })),
     reviewing: store.state.reviewing.map(d => ({
       id: d.id,
       title: d.title || '',
@@ -529,9 +570,9 @@ const _debug = {
 };
 
 module.exports = {
-  auth, listSets, getSet, draw, saveStamp, unlock,
+  auth, getMe, listSets, getSet, draw, saveStamp, unlock,
   getComments, addComment, toggleLike, markWeekly, getAuthor, toggleFollow, getFeed,
-  subscribeSet, getPosterQR,
+  subscribeSet, unsubscribeSet, getPosterQR,
   getMyCraft, submitCraft, getIncome, withdraw,
   uploadImage, reportRemindAuth, track,
   _debug,

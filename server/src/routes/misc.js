@@ -1,8 +1,32 @@
 const express = require('express');
 const { pool } = require('../db');
 const { asyncHandler, ok } = require('../http/respond');
+const { signedUrl, keyOfImage, isOwnedKey } = require('../services/cos');
 
 const router = express.Router();
+
+/* GET /me — 当前登录用户资料 */
+router.get('/me', asyncHandler(async (req, res) => {
+  const [[u]] = await pool.query(
+    'SELECT id, nickname, avatar FROM users WHERE id = ?',
+    [req.user.id]
+  );
+  const [[c]] = await pool.query(
+    'SELECT name FROM creators WHERE user_id = ? LIMIT 1',
+    [req.user.id]
+  );
+  const avatarRaw = (u && u.avatar) || '';
+  const avatarKey = keyOfImage(avatarRaw);
+  const avatar = avatarKey
+    ? (isOwnedKey(avatarKey, 'avatars', req.user.id) ? await signedUrl(avatarKey) : '')
+    : avatarRaw;
+  return ok(res, {
+    id: req.user.id,
+    name: (u && u.nickname) || '微信用户',
+    avatar,
+    creatorName: (c && c.name) || '',
+  });
+}));
 
 /* POST /remind { enabled, time } */
 router.post('/remind', asyncHandler(async (req, res) => {

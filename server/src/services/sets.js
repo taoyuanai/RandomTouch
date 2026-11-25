@@ -26,10 +26,11 @@ async function unlock(userId, setIdInput) {
     const set = await loadSetRow(conn, setId);
     if (!set) throw setNotFound();
     const own = Number(set.creator_user_id) === Number(userId);
-    await ensureProgress(conn, userId, setId, true, Date.now());
+    const now = Date.now();
+    await ensureProgress(conn, userId, setId, true, now);
     await conn.query(
-      'UPDATE user_set_progress SET unlocked = 1, updated_at = ? WHERE user_id = ? AND set_id = ?',
-      [Date.now(), userId, setId]
+      'UPDATE user_set_progress SET unlocked = 1, subscribed = 1, updated_at = ? WHERE user_id = ? AND set_id = ?',
+      [now, userId, setId]
     );
     return { set: await payloadInTx(conn, userId, setId), own };
   });
@@ -44,11 +45,32 @@ async function subscribeSet(userId, setIdInput) {
     if (!set) throw setNotFound();
     const own = Number(set.creator_user_id) === Number(userId);
     const free = Number(set.price) === 0;
-    await ensureProgress(conn, userId, setId, free || own, Date.now());
+    const now = Date.now();
+    await ensureProgress(conn, userId, setId, free || own, now);
+    await conn.query(
+      'UPDATE user_set_progress SET subscribed = 1, updated_at = ? WHERE user_id = ? AND set_id = ?',
+      [now, userId, setId]
+    );
     return { set: await payloadInTx(conn, userId, setId) };
   });
   await safeDel(`feed:${userId}`);
   return { set: out.set };
 }
 
-module.exports = { unlock, subscribeSet, ensureProgress, loadSetRow };
+/* 取消订阅：只关订阅标记，保留 user_set_progress / user_set_cards / stamps。 */
+async function unsubscribeSet(userId, setIdInput) {
+  const setId = Number(setIdInput);
+  const out = await withTx(async (conn) => {
+    const set = await loadSetRow(conn, setId);
+    if (!set) throw setNotFound();
+    await conn.query(
+      'UPDATE user_set_progress SET subscribed = 0, updated_at = ? WHERE user_id = ? AND set_id = ?',
+      [Date.now(), userId, setId]
+    );
+    return { set: await payloadInTx(conn, userId, setId) };
+  });
+  await safeDel(`feed:${userId}`);
+  return { set: out.set };
+}
+
+module.exports = { unlock, subscribeSet, unsubscribeSet, ensureProgress, loadSetRow };

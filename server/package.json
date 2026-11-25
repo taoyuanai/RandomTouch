@@ -12,7 +12,11 @@
     "dev": "node --watch src/index.js",
     "db:schema": "node scripts/run-schema.js",
     "db:seed": "node db/seed.js",
-    "smoke": "node scripts/smoke.js"
+    "smoke": "node scripts/smoke.js",
+    "db:validate": "node ../tools/validate-seed.js",
+    "cos:private": "node scripts/cos-private.js",
+    "release:check": "node ../tools/release-check.js",
+    "db:prices": "node scripts/migrate-prices.js"
   },
   "dependencies": {
     "axios": "^1.7.7",

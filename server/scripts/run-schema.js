@@ -15,6 +15,14 @@ const config = require('../src/config');
   });
   try {
     await conn.query(sql);
+    /* P0-1B 迁移：老库补 subscribed 列；已有 progress 行默认视为订阅。 */
+    const [cols] = await conn.query("SHOW COLUMNS FROM user_set_progress LIKE 'subscribed'");
+    if (!cols.length) {
+      await conn.query(
+        'ALTER TABLE user_set_progress ADD COLUMN subscribed TINYINT(1) NOT NULL DEFAULT 1 AFTER trial_used'
+      );
+      console.log('[schema] migrated user_set_progress.subscribed');
+    }
     console.log('[schema] 完成');
   } finally {
     await conn.end();

@@ -35,8 +35,8 @@ function getRecLocal(u, idx) {
 }
 
 /* ──────────────── 标题文案池（规格 1.6） ──────────────── */
-function pickWeeklyTitle(stamped) {
-  if (stamped >= 7) return Math.random() < 0.5 ? '整整一周，每天都有回信' : '第七天，邮戳盖满了';
+function pickWeeklyTitle(stamped, weekNo) {
+  if (stamped >= 7) return (Number(weekNo) % 2) ? '整整一周，每天都有回信' : '第七天，邮戳盖满了';
   if (stamped >= 5) return `这一周，${stamped} 天留下了痕迹`;
   if (stamped >= 3) return `本周的 ${stamped} 个瞬间`;
   if (stamped >= 1) return `这周，至少有 ${stamped} 天不一样`;
@@ -98,19 +98,40 @@ function buildWeeklyData(set, opts = {}) {
     cursor = new Date(cursor.getTime() - 7 * 86400000);
   }
 
+  const weekNo = Math.max(1, Math.ceil((u.drawnLog || []).length / 7));
+  const dateRangeText = `${fmtYMD(entries[0].ts)} — ${fmtMD(entries[entries.length - 1].ts)}`;
+  const layout = photos.length >= 2 ? 'photo' : 'card';
+  const titleText = pickWeeklyTitle(stampedN, weekNo);
+  const wordLine = entries.map((e) => e.word).filter(Boolean).join('、');
+
   return {
     setId: set.id,
     title: set.title,
-    weekNo: Math.max(1, Math.ceil((u.drawnLog || []).length / 7)),
-    dateRangeText: `${fmtYMD(entries[0].ts)} — ${fmtMD(entries[entries.length - 1].ts)}`,
-    layout: photos.length >= 2 ? 'photo' : 'card',
-    cards: entries.map((e) => ({ word: e.word, sig: e.sig })),
-    stamps: entries.map((e) => ({ text: e.dateShort, stamped: e.stamped })),
+    titleText,
+    weekNo,
+    dateRangeText,
+    range: dateRangeText,
+    layout,
+    variant: layout,
+    cards: entries.map((e) => ({
+      word: e.word, sig: e.sig, idx: e.idx, ts: e.ts,
+      wordCls: e.word.length >= 7 ? 'bw-7' : (e.word.length >= 6 ? 'bw-6' : ''),
+    })),
+    stamps: entries.map((e) => ({
+      text: e.dateShort, stamped: e.stamped,
+      k: `${e.ts}-${e.idx}`, on: !!e.stamped, date: e.dateShort,
+    })),
     stats: { drawn: entries.length, stamped: stampedN, streak },
+    drawnN: entries.length,
+    stampN: stampedN,
+    streak,
     quote: quoteRec ? quoteRec.rec.note.trim() : '',
-    photos,
+    photos: photos.map((p) => ({
+      src: p.src, img: p.src, date: p.date, note: p.note,
+    })),
+    wordLine,
+    kicker: `《${set.title}》 · 第 ${weekNo} 周`,
     slogan: '缺席不损失，卡不会过期',
-    titleText: pickWeeklyTitle(stampedN),
     qrSrc: opts.qrSrc || '',
   };
 }

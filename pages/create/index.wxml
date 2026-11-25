@@ -1,4 +1,5 @@
 <import src="/templates/cover.wxml"/>
+<import src="/templates/set-row.wxml"/>
 <view class="phone" style="--statusbar:0px;--navtop:0px">
   <view class="v6-lib-nav" style="padding-top:{{statusBarHeight}}px">
     <view class="v6-lib-nav-inner" style="padding-right:{{menuPad}}px">
@@ -53,18 +54,9 @@
             <text class="v6-count">{{group.count}}</text>
           </view>
           <view class="v6-set-list">
-            <view class="v6-set-row" wx:for="{{group.rows}}" wx:key="id" hover-class="hm-press"
-                  bindtap="craftRowTap" data-kind="{{group.kind}}" data-id="{{item.id}}">
-              <template is="coverArt" data="{{item: item.cover}}" />
-              <view class="v6-set-content">
-                <view class="v6-set-top">
-                  <text class="v6-set-cat">{{item.badgeText}}</text>
-                  <text class="v6-set-price">{{group.name}}</text>
-                </view>
-                <text class="v6-set-title">{{item.title}}</text>
-                <text class="v6-set-sub">{{item.meta}}</text>
-              </view>
-            </view>
+            <block wx:for="{{group.rows}}" wx:key="id">
+              <template is="setRowCraft" data="{{item: item, groupName: group.name, kind: group.kind}}" />
+            </block>
           </view>
         </view>
 

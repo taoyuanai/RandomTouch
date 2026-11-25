@@ -2,10 +2,11 @@
 const { pool } = require('../db');
 const { secRejected } = require('../http/errors');
 const { checkText } = require('./sec');
+const { keyOfImage, isOwnedKey, signedUrl } = require('./cos');
 const time = require('./time');
 const { buildPayloads, SET_SELECT } = require('./setPayload');
 
-function draftVM(payload, submittedText) {
+async function draftVM(payload, submittedText) {
   const d = payload || {};
   return {
     id: d.id,
@@ -15,7 +16,7 @@ function draftVM(payload, submittedText) {
     cat: d.cat,
     price: d.price,
     trial: d.trial,
-    coverImage: d.coverImage || '',
+    coverImage: d.coverImage ? await signedUrl(d.coverImage) : '',
     signatureIdx: d.signatureIdx != null ? d.signatureIdx : -1,
     signatureNote: d.signatureNote || '',
     submitted: submittedText || d.submitted || '',
@@ -31,7 +32,7 @@ async function getMyCraft(userId) {
       `${SET_SELECT} WHERE s.creator_id = ? AND s.status = 'published' ORDER BY s.id ASC`,
       [creator.id]
     );
-    published = await buildPayloads(pool, userId, rows);
+    published = await buildPayloads(pool, userId, rows, { summary: true, poolText: false });
   }
   const [reviews] = await pool.query(
     "SELECT payload, submitted_text FROM set_reviews WHERE user_id = ? AND status = 'reviewing' ORDER BY id DESC",
@@ -39,7 +40,9 @@ async function getMyCraft(userId) {
   );
   return {
     published,
-    reviewing: reviews.map(r => draftVM(parse(r.payload), r.submitted_text)),
+    reviewing: await Promise.all(
+      reviews.map(r => draftVM(parse(r.payload), r.submitted_text))
+    ),
   };
 }
 
@@ -50,6 +53,14 @@ async function submitCraft(user, draftInput) {
   const intro = String(draft.intro || '').trim().slice(0, 500);
   if (!title) throw secRejected('请填写卡集名称');
   const cards = Array.isArray(draft.pool) ? draft.pool : [];
+  const price = Number(draft.price || 0);
+  if (![0, 0.9, 1.9, 2.9, 3.9, 5.9].includes(price)) {
+    throw secRejected('定价不在允许档位内');
+  }
+  const coverKey = keyOfImage(draft.coverImage);
+  if (coverKey && !isOwnedKey(coverKey, 'covers', user.id)) {
+    throw secRejected('封面图片无效，请重新上传');
+  }
   const body = [title, intro].concat(cards.map(c => `${(c && c.w) || ''} ${(c && c.b) || ''}`)).join('\n');
 
   const status = await checkText({ content: body.slice(0, 2500), openid: user.openid });
@@ -62,9 +73,9 @@ async function submitCraft(user, draftInput) {
     intro,
     type: draft.type || 'collect',
     cat: draft.cat,
-    price: Number(draft.price || 0),
+    price,
     trial: Number(draft.trial || 0),
-    coverImage: draft.coverImage || '',
+    coverImage: coverKey,
     signatureIdx: draft.signatureIdx != null ? draft.signatureIdx : -1,
     signatureNote: draft.signatureNote || '',
     pool: cards,

@@ -79,6 +79,7 @@ CREATE TABLE IF NOT EXISTS user_set_progress (
   today_idx      INT NULL,
   unlocked       TINYINT(1) NOT NULL DEFAULT 0,
   trial_used     INT NOT NULL DEFAULT 0,
+  subscribed     TINYINT(1) NOT NULL DEFAULT 1,
   last_draw_date DATE NULL,
   created_at     BIGINT NOT NULL,
   updated_at     BIGINT NOT NULL,

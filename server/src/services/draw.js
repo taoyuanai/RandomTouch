@@ -93,6 +93,15 @@ async function draw(userId, setIdInput, requestIdInput) {
       p = Object.assign({}, p, { today_drawn: 0, trial_today: 0, today_idx: null });
     }
 
+    /* 4.1) 抽卡即订阅（含取消后重新抽） */
+    if (!Number(p.subscribed)) {
+      await conn.query(
+        'UPDATE user_set_progress SET subscribed = 1, updated_at = ? WHERE user_id = ? AND set_id = ?',
+        [now, userId, setId]
+      );
+      p = Object.assign({}, p, { subscribed: 1 });
+    }
+
     /* 5) 已集齐 */
     const [gotRows] = await conn.query(
       'SELECT idx FROM user_set_cards WHERE user_id = ? AND set_id = ? ORDER BY first_ts ASC',

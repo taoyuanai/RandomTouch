@@ -1,0 +1,14 @@
+
+#page-search{padding-top:0}
+.v6-search-head{background:var(--v6-surface)}
+.v6-search-head-inner{height:56px;display:flex;align-items:center;gap:6px;padding:0 12px 0 4px;box-sizing:border-box}
+.v6-search-box{flex:1;min-width:0;height:44px;display:flex;align-items:center;gap:8px;padding:0 13px;border-radius:12px;background:var(--v6-surface-muted);color:var(--v6-ink-2)}
+.v6-search-box .v6-icon{width:19px;height:19px}
+.v6-search-input{flex:1;min-width:0;height:44px;font-size:14px;color:var(--v6-ink);background:transparent}
+.v6-search-clear{width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex:none}
+.v6-search-clear .v6-icon{width:16px;height:16px}
+.v6-search-page{padding-top:0}
+.v6-hot{padding:18px 0 4px}
+.v6-hot-title{font-size:16px;font-weight:600;color:var(--v6-ink)}
+.v6-hot-chips{display:flex;flex-wrap:wrap;gap:9px;margin-top:13px}
+.v6-hot-chips .chip{background:var(--v6-surface);border:1px solid var(--v6-line);color:var(--v6-ink-2);font-size:13px}

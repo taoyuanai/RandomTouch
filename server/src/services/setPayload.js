@@ -3,6 +3,7 @@
  */
 const { pool } = require('../db');
 const time = require('./time');
+const { signedUrl, keyOfImage } = require('./cos');
 
 const SET_SELECT = `
   SELECT s.*, c.name AS creator_name, c.user_id AS creator_user_id, c.base_fans AS creator_base_fans
@@ -11,10 +12,11 @@ const SET_SELECT = `
 
 function toBool(v) { return !!Number(v); }
 
-function recOf(r) {
+async function recOf(r) {
+  const key = keyOfImage(r.img_file_id, r.img_url);
   return {
-    img: r.img_url || r.img_file_id || '',
-    imgFileID: r.img_file_id || '',
+    img: key ? await signedUrl(key) : '',
+    imgFileID: key,
     note: r.note || '',
     date: r.date_text || '',
     stampDate: r.stamp_date || '',
@@ -32,14 +34,22 @@ async function fansOf(db, creatorId) {
   return rows[0] ? Number(rows[0].fans || 0) : 0;
 }
 
-async function buildPayloads(db, userId, rows) {
+async function buildPayloads(db, userId, rows, opts) {
   if (!rows || !rows.length) return [];
+  const summary = !!(opts && opts.summary);
+  const wantPoolText = summary && !!(opts && opts.poolText);
   const ids = rows.map(r => r.id);
 
-  const [cards] = await db.query(
-    'SELECT set_id, idx, w, b FROM set_cards WHERE set_id IN (?) ORDER BY set_id, idx',
-    [ids]
-  );
+  /* 列表/feed/作者/创作摘要不需要卡池：连查询一起跳过；
+   * 只有列表搜索需要 poolText，才读卡池生成搜索文本。 */
+  let cards = [];
+  if (!summary || wantPoolText) {
+    const [cardRows] = await db.query(
+      'SELECT set_id, idx, w, b FROM set_cards WHERE set_id IN (?) ORDER BY set_id, idx',
+      [ids]
+    );
+    cards = cardRows;
+  }
   const [progs] = await db.query(
     'SELECT * FROM user_set_progress WHERE user_id = ? AND set_id IN (?)',
     [userId, ids]
@@ -71,6 +81,14 @@ async function buildPayloads(db, userId, rows) {
     fanMap = new Map(fanRows.map(r => [r.creator_id, Number(r.n || 0)]));
   }
 
+  /* 卡集订阅人数：当前订阅状态 = 存在 user_set_progress 行。
+   * P0-1B 增加取消订阅后，这里改为读取订阅状态而不是简单计数。 */
+  const [subRows] = await db.query(
+    'SELECT set_id, COUNT(*) AS n FROM user_set_progress WHERE set_id IN (?) AND subscribed = 1 GROUP BY set_id',
+    [ids]
+  );
+  const subMap = new Map(subRows.map(r => [r.set_id, Number(r.n || 0)]));
+
   const cardMap = new Map();
   for (const c of cards) {
     if (!cardMap.has(c.set_id)) cardMap.set(c.set_id, []);
@@ -97,7 +115,7 @@ async function buildPayloads(db, userId, rows) {
 
   const today = time.todayKey();
 
-  return rows.map(row => {
+  return Promise.all(rows.map(async row => {
     const own = Number(row.creator_user_id) === Number(userId);
     const poolCards = cardMap.get(row.id) || [];
     const p = progMap.get(row.id) || null;
@@ -109,10 +127,10 @@ async function buildPayloads(db, userId, rows) {
     if (type === 'resident') {
       for (const st of stampsOfSet) {
         if (!recs[st.card_idx]) recs[st.card_idx] = [];
-        recs[st.card_idx].push(recOf(st));
+        recs[st.card_idx].push(await recOf(st));
       }
     } else {
-      for (const st of stampsOfSet) recs[st.card_idx] = recOf(st);
+      for (const st of stampsOfSet) recs[st.card_idx] = await recOf(st);
     }
 
     let todayDrawn = p ? toBool(p.today_drawn) : false;
@@ -136,19 +154,18 @@ async function buildPayloads(db, userId, rows) {
       trialUsed: 0, drawnLog: [], recs: {},
     };
 
-    return {
+    const out = {
       id: row.id,
       title: row.title,
       covT: row.cov_t,
       covS: row.cov_s,
       cover: row.cover,
-      coverImage: row.cover_image || '',
+      coverImage: await signedUrl(row.cover_image),
       cat: row.cat,
       type: row.type,
       price: Number(row.price || 0),
       trial: Number(row.trial || 0),
       count: Number(row.count || 0),
-      pool: poolCards,
       intro: row.intro || '',
       creator: row.creator_name,
       heat: Number(row.heat || 0),
@@ -157,16 +174,25 @@ async function buildPayloads(db, userId, rows) {
       signatureNote: row.signature_note || '',
       disclaimer: row.disclaimer || '',
       own,
-      subscribed: !!p,
+      subscribed: !!p && Number(p.subscribed) === 1,
+      hasProgress: !!p,
       totalDrawn: Number(row.total_drawn || 0),
       earn: Number(row.earn || 0),
       buyers: Number(row.buyers || 0),
       likes: Number(row.likes || 0),
       liked: likedSet.has(row.id),
       fans: Number(row.creator_base_fans || 0) + (fanMap.get(row.creator_id) || 0),
+      subscribers: subMap.get(row.id) || 0,
       progress,
     };
-  });
+    /* 列表摘要：不下发卡池数组，只带一份可搜索文本；详情用 getSet 按需加载。 */
+    if (summary) {
+      if (wantPoolText) out.poolText = poolCards.map(c => ((c && c.w) || '') + ' ' + ((c && c.b) || '')).join(' ');
+    } else {
+      out.pool = poolCards;
+    }
+    return out;
+  }));
 }
 
 async function listSets(userId, { cat, sort } = {}) {
@@ -177,7 +203,7 @@ async function listSets(userId, { cat, sort } = {}) {
     ? ' ORDER BY s.released_at DESC, s.id DESC'
     : ' ORDER BY s.heat DESC, s.id ASC';
   const [rows] = await pool.query(sql, params);
-  return buildPayloads(pool, userId, rows);
+  return buildPayloads(pool, userId, rows, { summary: true, poolText: true });
 }
 
 /* 单集：附 social/commentCount/fans（getSet 契约） */

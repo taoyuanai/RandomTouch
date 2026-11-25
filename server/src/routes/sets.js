@@ -4,7 +4,7 @@ const { setNotFound } = require('../http/errors');
 const { listSets, getSetWithMeta } = require('../services/setPayload');
 const { draw } = require('../services/draw');
 const { saveStamp } = require('../services/stamp');
-const { unlock, subscribeSet } = require('../services/sets');
+const { unlock, subscribeSet, unsubscribeSet } = require('../services/sets');
 const { getPosterQR } = require('../services/qr');
 
 const router = express.Router();
@@ -43,6 +43,10 @@ router.post('/:id/unlock', asyncHandler(async (req, res) => {
 
 router.post('/:id/subscribe', asyncHandler(async (req, res) => {
   return ok(res, await subscribeSet(req.user.id, req.params.id));
+}));
+
+router.post('/:id/unsubscribe', asyncHandler(async (req, res) => {
+  return ok(res, await unsubscribeSet(req.user.id, req.params.id));
 }));
 
 router.get('/:id/qr', asyncHandler(async (req, res) => {

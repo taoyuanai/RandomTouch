@@ -1,0 +1,24 @@
+.v6-map-page{padding-top:0}
+.v6-map-summary{padding:18px 0 4px}
+.v6-map-sum-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.v6-map-summary .v6-progress{margin-top:12px}
+.v6-map-note{margin-top:9px;font-size:12px;color:var(--v6-ink-3)}
+.v6-map-drawn{display:flex;align-items:flex-start;gap:10px;margin-top:12px;padding:10px 12px;border-radius:12px;background:var(--v6-orange-50)}
+.v6-map-drawn-label{flex:none;padding-top:2px;font-size:11px;font-weight:600;color:var(--v6-action)}
+.v6-map-drawn-chips{flex:1;min-width:0;display:flex;flex-wrap:wrap;gap:6px}
+.v6-map-drawn-chip{padding:3px 9px;border:1px solid var(--v6-orange-100);border-radius:999px;background:var(--v6-surface);color:var(--v6-ink);font-size:12px;line-height:1.5}
+.v6-map-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding-top:18px}
+.v6-map-cell{position:relative;aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid var(--v6-line);border-radius:8px;background:var(--v6-surface)}
+.v6-map-cell.blank{background:var(--v6-surface-muted);border-style:dashed;border-color:var(--v6-ink-4)}
+.v6-map-cell.full,.v6-map-cell.is-full{background:var(--v6-orange-50);border-color:var(--v6-orange-200)}
+.v6-map-cell.full .v6-map-word,.v6-map-cell.is-full .v6-map-word{color:var(--v6-action)}
+.v6-map-cell.is-blank{background:var(--v6-surface-muted);border-style:dashed;border-color:var(--v6-ink-4)}
+.v6-map-word{display:block;width:100%;max-height:3.9em;overflow:hidden;padding:6px;font-size:13px;line-height:1.35;font-weight:600;text-align:center;word-break:break-word;color:var(--v6-ink)}
+.v6-map-word.w1{font-size:18px}
+.v6-map-word.w2{font-size:14px}
+.v6-map-word.w3{font-size:12px}
+.v6-map-word.w4,.v6-map-word.w5{font-size:10px}
+.v6-map-no{font-size:9px;letter-spacing:.06em;color:var(--v6-ink-4)}
+.v6-map-pmk{position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:var(--v6-orange)}
+.v6-map-cell.today .v6-map-pmk{background:var(--v6-action)}
+.v6-map-cell.done .v6-map-pmk{background:var(--v6-orange)}

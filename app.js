@@ -4,6 +4,8 @@ const { CLOUD_ENV } = require('./services/config.js');
 
 let core = null;
 let api = null;
+let tracker = null;
+try { tracker = require('./lib/track.js'); } catch (e) { /* track 失败不拖垮启动 */ }
 try {
   core = require('./lib/core.js');
   api = require('./services/api.js');
@@ -21,6 +23,34 @@ if (POSTER_FONT_URL) {
 
 App({
   globalData: { openid: '' },
+
+  onError(err) {
+    console.error('[app] error', err);
+    if (tracker) {
+      try {
+        tracker.t('app_error', {
+          message: String((err && (err.message || err.stack)) || err || '').slice(0, 180),
+        });
+      } catch (e) { /* noop */ }
+    }
+  },
+
+  onUnhandledRejection(res) {
+    const reason = res && res.reason;
+    console.error('[app] unhandled rejection', reason);
+    if (tracker) {
+      try {
+        tracker.t('app_unhandled_rejection', {
+          message: String((reason && (reason.message || reason)) || '').slice(0, 180),
+        });
+      } catch (e) { /* noop */ }
+    }
+  },
+
+  onPageNotFound(res) {
+    console.warn('[app] page not found', res && res.path);
+    try { wx.switchTab({ url: '/pages/home/index' }); } catch (e) { /* noop */ }
+  },
 
   onLaunch() {
     this.__api = api;

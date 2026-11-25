@@ -1,0 +1,18 @@
+{
+  "name": "randomtouch-miniapp",
+  "private": true,
+  "version": "1.0.0",
+  "description": "今日做点小事 · 微信小程序（前端 + mock 契约测试）",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test tools/test/*.test.js",
+    "test:static": "node --test tools/test/static.test.js",
+    "test:api": "node --test tools/test/api-contract.test.js",
+    "test:pages": "node --test tools/test/page-render.test.js",
+    "test:poster": "node --test tools/test/poster.test.js",
+    "validate": "node tools/validate-seed.js && node tools/validate-content.js",
+    "check": "npm test && npm run validate"
+  }
+}

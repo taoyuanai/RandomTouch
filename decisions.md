@@ -151,3 +151,30 @@
 | D147 | V6 | 分享海报去重：保留卡底 @作者，页脚来源不再重复 @；保留大 CTA「扫码，抽你的一签」，删除小字 slogan「扫码抽一张」 | 用户指出 @ 与扫码文案各重复一次 |
 | D148 | V6 | 卡集三处统一 meta：`fans` 进入 list payload（mock + server buildPayloads），applySetPayload 写入 S.fans；首页/搜索/详情/收藏册统一显示「作者 · N 订阅 · M 心动」；详情 refreshSetMeta 同步 fansShort/likesShort | 用户要求搜索、首页、收藏册与详情在真实数据上同源一致 |
 | D149 | V6 | 盖戳记录卡的照片模块改为 3:4（aspect-ratio，含 @supports 回退），上传裁剪的 3:4 原图不再被压成横向 banner；隐藏照片仍用占位块 | 用户要求上传 3:4 照片保持原比例 |
+| D150 | P0-4 | mock seed 的 count 统一改为 pool.length；store 加载时纠正历史持久化快照；draw 增加池空 completed 保护；新增 tools/validate-seed.js 与 validate-content 的 count==pool 校验 | 直接修复“5/40 抽第 6 张崩溃”；7 个演示集 pool<8 仍作为内容待补警告 |
+| D151 | P0-1A | 订阅/关注拆分：`fans` 只表示作者关注者；新增 per-set `subscribers`（当前=有 user_set_progress 的订阅人数），首页/搜索/收藏册/详情统一显示「作者 · N 订阅 · M 心动」；作者页/创作页继续显示关注者 | 用户确认“订阅数”=卡集订阅人数，不是作者关注数 |
+| D152 | P0-1B | 取消订阅：产品确认支持；需把订阅状态与抽卡进度拆开，取消后保留已抽卡/邮戳；在 P0-1B 实现前，「已订阅」仍是跳转，不是真正取消 | 当前 `user_set_progress` 同时承担订阅与进度，不能直接删行 |
+| D153 | P0-6 | 付费卡集上线；价格档改为 0.9 / 1.9 / 2.9 / 3.9，最高不超过 5.9；支付仍需真实微信支付，不在 P0-1A 内改价 | 避免只改价格选项而未接支付，形成假付费 |
+| D154 | P0-1B | 取消订阅与进度拆分：`user_set_progress` 增加 `subscribed` 标记（默认 1，旧库由 run-schema 迁移）；取消只置 0，保留 progress/cards/stamps；抽卡/解锁/订阅自动置 1；feed 仅在订阅中/今日展示 active，已集齐的取消集保留在「已收集」并标注；详情可重新订阅 | 用户确认支持取消订阅且保留收集；服务端仍以 progress 行为进度事实源 |
+| D155 | P0-3 | 当前用户资料：新增 `GET /me`，客户端 `S.me` + `applyMe`；卡集 own 一律读 `s.own`；作者页 own 读 `d.own`；评论/我的/创作/作者/抽卡/订阅/关注/推荐改用当前用户；mock 以“打工人小王”兜底；头像优先本地、其次资料 URL | 去掉真实多用户下对 `ME` 常量的业务判断；头像/昵称编辑与后端同步仍属 P1 |
+| D156 | P0-3 | `/me` 同时返回 `creatorName`（creators.user_id 对应的作者名）；`S.me` 区分昵称与作者名；作者页/创作页/粉丝 key 使用 creatorName，评论/我的页使用 nickname | 真实多用户下昵称与作者名可能不同，不能再用单一 ME 字符串 |
+| D157 | P0-2 | COS 私有化：新上传对象 ACL=private；DB 只存 key；setPayload/stamp/craft/qr//me 统一返回短期签名 URL（COS_URL_EXPIRE，内存缓存）；stamp/craft 校验 key 归属；客户端封面上传只回传 key；新增 `npm run cos:private` 清理历史 public-read 对象 | 用户图片不能再公开直读；小程序需把 COS 域名加入 downloadFile 合法域名 |
+| D158 | P0-5 | 发布配置收敛：`RELEASE` 闸门 + `releaseErrors` + `tools/release-check.js`；DEBUG 固定 false；RELEASE_API_BASE 保留占位；发布 checklist 覆盖微信域名、TMPL_IDS、HTTPS、COS 私有、schema 迁移；当前仍 RELEASE=false / Mock | 真实 HTTPS 域名与模板 ID 未提供，先落闸门，避免误提审 |
+| D159 | P0-6A | 定价档落地：0 / 0.9 / 1.9 / 2.9 / 3.9 / 5.9；旧演示价 6/12/19 分别迁移为 1.9/3.9/5.9；客户端编辑器/服务端 craft/validate-content/validate-seed 同步；新增 db:prices 迁移脚本 | 用户确认付费集上线及价格档；真实支付仍属 P0-6B |
+| D160 | P0-6 | 发布闸门新增 `PAYMENT_READY=false`；当前 unlock 仍是模拟支付，PAYMENT_READY=true 前 release-check 不允许通过 | 防止误把模拟解锁当真实支付上线 |
+| D161 | P1-1 | shared 拆分：`lib/shared/base.js` 保存 PAGE_OPTS，`overrides.js` / `d4.js` / `d5.js` 分阶段覆盖，`index.js` 只做 createPage 合成，`lib/shared.js` 变为兼容 re-export；删除 33 个完全被覆盖的基础/overrides 方法、旧 tabs 数据、weekProgress/daysAbsent/S.activity 死链路 | 降低覆盖层阅读成本；页面 require 路径保持不变 |
+| D162 | P1-2 | app.wxss 拆为 styles/base / legacy / v6 / archive 四层入口；删除 304 个已无 WXML/JS 引用的死规则（cf/cw、hb、srch、ie/wr、sp、me、cat、sb2、tabbar、旧 highlight 海报等），保留 `sp-social-press` 与 `sb2-go/sb2-chev` 等活类；页面 require/类名不变 | 样式覆盖顺序不变；页面级样式拆分仍未做 |
+| D163 | P1-2b | 页面级样式下沉第一刀：全图 / 作者 / 收益页的 V6 专属样式移入各自 `pages/*/index.wxss`；共享原语、create 复用的 `v6-income-entry` 仍留全局 | 页面 wxss 开始承载页面样式；其余页面后续按同一方式迁移 |
+| D164 | P1-2b | 页面专属 V6 样式全部下沉到 `pages/*/index.wxss`（home/search/categories/cards/create/me/edit/set/draw，加此前 map/author/income）；`styles/v6.wxss` 只保留共享原语与跨页规则，从约 713 行降到约 361 行；移除未用 v6-accent/sort/list-actions，并把精确 `.dw` 规则移入 draw | 页面仍可继承全局令牌/原语；legacy V2.7/V4/V5 仍全局 |
+| D165 | P1-3a | 数据刷新并发收敛：`syncOnShow` 增加 15s TTL 与单飞 Promise；subs/income/author/craft/setMeta/refreshIncome 增加请求序号，只接受最新响应；不改变接口契约 | 降低切页/快速操作时旧响应覆盖新状态；summary/detail 拆分仍待 P1-3b |
+| D166 | P1-3b | 列表摘要 + 详情按需：`listSets` 不再下发 `pool`，改下发 `poolText` 供搜索；客户端 `applySetPayload` 对摘要保留已加载详情，新增 `ensureSetDetail(sid)` 单飞去重；set/draw/map 页面及大卡/盖戳/统计/周记/海报/详情动作在缺详情时先 hydrate；feed/author/craft 仍走完整 payload | 列表响应显著变小；服务端摘要仍查询卡池生成搜索文本，feed/author/craft 全量载荷留待 P1-3c |
+| D167 | P1-3c | feed / 作者 / 创作已上架也改为摘要：`buildPayloads` 增加 `{ summary, poolText }`，feed/author/craft 用 `{ summary:true, poolText:false }` 直接跳过卡池查询；客户端的列表/feed/作者/创作只依赖摘要字段，点进卡集仍由 `ensureSetDetail` hydrate；审核中草稿保持完整 pool | 列表/feed/作者/创作不再拉卡池；审核草稿仍全量；详情/抽卡/盖戳保持完整 |
+| D168 | P1-4 | 海报数据/导出去重：周记唯一数据源收敛到 `posterKit.buildWeeklyData`，`weeklyState` 只做预览适配；`openWeekly` / `openWeeklyPoster` / `exportWeeklyById` / `savePoster` 复用同一份 data，不再各自重算；标题改为按 weekNo 稳定选择；修复 exportWeeklyById 的 noQR 未定义；删除 core 重复 weeklyTitle 与未用 imports。按任务授权修改 posterKit 内部（D141 延续） | 预览、3:4、9:16 标题/卡片/邮戳一致；highlight/memorial 原本已复用 S.posterExport |
+| D169 | P1-5 | 测试/CI：新增根 package.json（node:test，无 npm 依赖）、tools/test harness + API 契约 / 页面渲染 / 海报 / 静态检查四组测试、.github/workflows/ci.yml；`npm test` 覆盖摘要/detail hydrate/12 页/weekly 预览导出/JS-WXML-WXSS；`npm run validate` 跑 seed 校验 | release-check 仍为手动提审闸门，不进 CI；seed 的 7 条 pool<8 警告保留 |
+| D170 | P1-6a | 导航与 tabBar 去重：新增 `lib/nav.js` 统一 `metrics / cardStageH / syncTabBar`，经 `lib/shared.js` 暴露；12 页删除各自的状态栏、胶囊、tabBar selected 计算，页面仍只 require shared/core | 行为保持；组件级 set-row/cover 抽取留待 P1-6b |
+| D171 | P1-6b | 卡集行结构去重：新增 `templates/set-row.wxml` 四个变体（public / cards / craft / author），home/search/author/create/cards 改为 template 调用；事件绑定名、dataset、全局/页面样式均保持不变 | WXML 结构单一来源；暂未升级为自定义组件，避免样式隔离与 slot 改造风险 |
+| D172 | P2-1 | 图片上传收敛：新增 `lib/media.js`（compressImage 80、getFileInfo、5MB 上限，与服务端 uploadMaxBytes 对齐）；real 上传前统一 `prepareUpload`；封面/邮戳 chooseMedia 增加 sizeType compressed；压缩失败/API 缺失回退原图 | 降低上传失败与流量；mock 仍原路径 |
+| D173 | P2-2 | 全局兜底：App 增加 onError / onUnhandledRejection（tracker 记录，失败静默）与 onPageNotFound（回首页 tab）；测试覆盖 hook 注册与 404 路由 | 不改变页面生命周期；tracker 失败不影响启动 |
+| D174 | P2-3 | API 重试：real 层 GET 遇 retryable 错误重试一次（400ms）；写请求（draw/stamp/unlock/submit 等）不自动重试，避免重复副作用；测试覆盖 GET 重试、非 retryable、写请求不重试 | 只提升幂等读取的弱网成功率；写请求仍由页面/幂等键保证 |
+| D175 | P1-2c | legacy CSS 归档第一刀：删除 146 条无 WXML/JS 引用的旧规则（hm-* 旧首页、dk-frame/dk-fr/dk-bk、dw-remind、bk-ph/polaroid、cm-*、creator/card-face/cinfo/cavatar、cover-sm 等），保留 hm-press；styles 总量进一步下降 | 仅删确认无引用的类；legacy 仍有约 1020 行，需真机视觉回归后再继续 |
+| D176 | P2-4 | Mock 故障/边界测试补强：覆盖 setFailureRate 可复现失败与恢复、未知卡集/分类、draw 同 requestId 幂等、同日新 requestId 不重复、travel 跨天重置、取消订阅保留进度并可恢复、空池 draw=completed；beforeEach 重置 store | 测试直接使用 mock `_debug`，不依赖开发者工具 DEBUG；未改业务代码 |

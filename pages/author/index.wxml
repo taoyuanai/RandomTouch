@@ -1,4 +1,5 @@
 <import src="/templates/cover.wxml"/>
+<import src="/templates/set-row.wxml"/>
 <view class="phone" style="--statusbar:0px;--navtop:0px">
   <view class="v6-topbar" style="padding-top:{{statusBarHeight}}px">
     <view class="v6-topbar-inner">
@@ -41,17 +42,9 @@
       </view>
 
       <view class="v6-set-list">
-        <view class="v6-set-row" wx:for="{{author.works}}" wx:key="id" bindtap="openSet"
-              data-id="{{item.id}}" data-from="author" hover-class="hm-press">
-          <template is="coverArt" data="{{item: item.cover}}" />
-          <view class="v6-set-content">
-            <view class="v6-set-top">
-              <text class="v6-set-cat">{{item.meta1}}</text>
-              <text class="v6-set-price">{{item.meta2}}</text>
-            </view>
-            <text class="v6-set-title">{{item.title}}</text>
-          </view>
-        </view>
+        <block wx:for="{{author.works}}" wx:key="id">
+          <template is="setRowAuthor" data="{{item: item}}" />
+        </block>
       </view>
 
       <view class="v6-author-note" wx:if="{{!author.own}}">关注后，TA 的新卡集会出现在你的订阅流。</view>

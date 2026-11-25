@@ -1,17 +1,13 @@
 // pages/home/index.js
-const { createPage } = require('../../lib/shared.js');
+const { createPage, nav } = require('../../lib/shared.js');
 const core = require('../../lib/core.js');
 const page = createPage('home');
 Object.assign(page, {
   onLoad(options) {
     this.S = core.getS(); // 每页第一行，必写
     /* V6 · 自定义导航：状态栏高度 */
-    let statusBarHeight = 20;
-    try {
-      const info = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
-      statusBarHeight = info.statusBarHeight || 20;
-    } catch (e) { /* noop */ }
-    this.setData({ statusBarHeight });
+    const m = nav.metrics();
+    this.setData({ statusBarHeight: m.statusBarHeight });
     core.ensureBoot()
       .then(() => {
       this.renderHome();
@@ -21,8 +17,7 @@ Object.assign(page, {
       .catch(() => this.setData({ bootError: true, booting: false }));
   },
   onShow(options) {
-    const tb = typeof this.getTabBar === 'function' && this.getTabBar();
-    if (tb) tb.setData({ selected: 0 });
+    nav.syncTabBar(this, 'home');
     if (!this.S) return;
     this.S.lastActive = Date.now();
     if (!this.S.booted) return;

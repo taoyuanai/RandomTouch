@@ -65,3 +65,5 @@
 - `getApp().__apiDebug.reset()`               重置种子数据
 
 > D1 验收也可直接用 `getApp().__api`（app.js 已暴露），避免控制台 require 路径问题。
+
+> `DEBUG=false` 时 `__apiDebug` 为空；本地临时调试需手动把 `services/config.js` 的 `DEBUG` 改为 true，提交前恢复 false。

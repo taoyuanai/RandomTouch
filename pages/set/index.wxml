@@ -38,7 +38,7 @@
             <view class="v6-detail-creator" hover-class="hm-press" bindtap="openAuthorPage"
                   data-name="{{setPage.creator}}" data-from="set">{{setPage.creator}}</view>
             <view class="v6-detail-stats">
-              <view><text class="v6-detail-num">{{setPage.fansShort}}</text><text class="v6-detail-l">订阅</text></view>
+              <view><text class="v6-detail-num">{{setPage.subscribersShort}}</text><text class="v6-detail-l">订阅</text></view>
               <view><text class="v6-detail-num">{{setPage.social.likesShort}}</text><text class="v6-detail-l">心动</text></view>
             </view>
           </view>
@@ -47,10 +47,11 @@
         <view class="v6-detail-actions {{setPage.own ? 'single' : ''}}">
           <view class="v6-btn primary" hover-class="hm-press" bindtap="tapSetCta">{{setPage.cta.text}}</view>
           <block wx:if="{{!setPage.own}}">
-            <view wx:if="{{setPage.canSubscribe}}" class="v6-btn secondary" hover-class="hm-press" bindtap="subscribeSet">{{setPage.subBusy ? '订阅中…' : '订阅卡集'}}</view>
-            <view wx:elif="{{setPage.subscribed}}" class="v6-btn secondary" hover-class="hm-press" bindtap="goSubsPage">
+            <view wx:if="{{setPage.canSubscribe && setPage.cta.tap !== 'subscribe'}}" class="v6-btn secondary" hover-class="hm-press" bindtap="subscribeSet">{{setPage.subBusy ? '订阅中…' : '订阅卡集'}}</view>
+            <view wx:elif="{{setPage.subscribed}}" class="v6-btn secondary" hover-class="hm-press" bindtap="unsubscribeSet">
               <image class="v6-icon" src="/assets/icons/v6/check-ink.png" mode="aspectFit" /> 已订阅
             </view>
+            <view wx:elif="{{setPage.cancelled}}" class="v6-btn secondary is-static">已取消订阅</view>
             <view wx:else class="v6-btn secondary is-static">待解锁</view>
           </block>
         </view>

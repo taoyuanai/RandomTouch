@@ -1,4 +1,5 @@
 <import src="/templates/cover.wxml"/>
+<import src="/templates/set-row.wxml"/>
 <view class="phone" style="--statusbar:0px;--navtop:0px">
 <!-- ═══════════════════ 发现 ═══════════════════ -->
     <view class="v6-home-nav" style="padding-top:{{statusBarHeight}}px">
@@ -64,19 +65,9 @@
       </view>
 
       <view id="squareList" class="v6-set-list">
-        <view class="v6-set-row" wx:for="{{home.rows}}" wx:key="id" bindtap="openSet"
-              data-id="{{item.id}}" data-from="home" hover-class="hm-press">
-          <template is="coverArt" data="{{item: item.cover}}" />
-          <view class="v6-set-content">
-            <view class="v6-set-top">
-              <text class="v6-set-cat">{{item.catName}}</text>
-              <text class="v6-set-price">{{item.priceText}}</text>
-            </view>
-            <text class="v6-set-title">{{item.title}}</text>
-            <text class="v6-set-sub">{{item.subText}}</text>
-            <text class="v6-set-meta">{{item.metaText}}</text>
-          </view>
-        </view>
+        <block wx:for="{{home.rows}}" wx:key="id">
+          <template is="setRowPublic" data="{{item: item, from: 'home'}}" />
+        </block>
       </view>
 
       <view class="v6-page-end" wx:if="{{!booting}}">

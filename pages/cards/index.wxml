@@ -1,6 +1,7 @@
 <import src="/templates/common.wxml"/>
 <import src="/templates/card.wxml"/>
 <import src="/templates/cover.wxml"/>
+<import src="/templates/set-row.wxml"/>
 <view class="phone" style="--statusbar:0px;--navtop:0px">
   <view class="v6-lib-nav" style="padding-top:{{statusBarHeight}}px">
     <view class="v6-lib-nav-inner" style="padding-right:{{menuPad}}px">
@@ -25,7 +26,7 @@
       </view>
     </view>
 
-    <view class="v6-empty" wx:elif="{{!subs.total}}">
+    <view class="v6-empty" wx:elif="{{!subs.total && !subs.done.length && !subs.record}}">
       <view class="v6-empty-symbol">
         <image class="v6-icon" src="/assets/icons/v6/book-open-brand.png" mode="aspectFit" />
       </view>
@@ -67,22 +68,9 @@
 
       <block wx:if="{{subs.tab === 'subscribed'}}">
         <view id="subsToday" class="v6-lib-list">
-          <view class="v6-set-row" wx:for="{{subs.rows}}" wx:key="id" hover-class="hm-press"
-                data-sid="{{item.id}}" data-tap="{{item.tap}}" data-idx="{{item.idx}}" data-from="cards" bindtap="tapSubsRow">
-            <template wx:if="{{item.cover}}" is="coverArt" data="{{item: item.cover}}" />
-            <view class="v6-set-content">
-              <view class="v6-set-top">
-                <text class="v6-set-cat">{{item.catName}}</text>
-                <text class="v6-lib-prog">{{item.prog}}</text>
-              </view>
-              <text class="v6-set-title">{{item.title}}</text>
-              <view class="v6-lib-status {{item.statusCls}}">
-                <view class="v6-lib-dot"></view>
-                <text>{{item.status}}</text>
-              </view>
-              <text class="v6-lib-meta">{{item.metaText}}</text>
-            </view>
-          </view>
+          <block wx:for="{{subs.rows}}" wx:key="id">
+            <template is="setRowCards" data="{{item: item}}" />
+          </block>
         </view>
         <view class="v6-empty" wx:if="{{!subs.rows.length}}">
           <view class="v6-empty-t">今天没有待办</view>
@@ -97,7 +85,7 @@
                 data-sid="{{item.id}}" data-tap="booklet" data-from="cards" bindtap="tapSubsRow">
             <template is="coverArt" data="{{item: item.cover}}" />
             <view class="v6-collect-title">{{item.title}}</view>
-            <view class="v6-collect-sub">已集齐 · {{item.prog}}</view>
+            <view class="v6-collect-sub">已集齐 · {{item.prog}}<text wx:if="{{!item.subscribed}}"> · 已取消订阅</text></view>
             <text class="v6-collect-meta">{{item.metaText}}</text>
           </view>
         </view>

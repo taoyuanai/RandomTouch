@@ -18,17 +18,19 @@ async function getFeed(userId) {
      WHERE s.status = 'published' ORDER BY s.id ASC`,
     [userId]
   );
-  const payloads = await buildPayloads(pool, userId, rows);
+  const payloads = await buildPayloads(pool, userId, rows, { summary: true, poolText: false });
 
   const todayRows = [];
   const subRows = [];
   const doneRows = [];
-  let waitingN = 0, cardsN = 0, emptied = 0;
+  let waitingN = 0, cardsN = 0, emptied = 0, activeN = 0;
 
   for (const p of payloads) {
     const u = p.progress;
+    const active = !!p.subscribed;
     const res = p.type === 'resident';
     const got = u.got || [];
+    if (active) activeN++;
     cardsN += u.drawn || 0;
     const doneSet = !res && p.count > 0 && got.length >= p.count;
     if (doneSet) emptied++;
@@ -39,10 +41,14 @@ async function getFeed(userId) {
     const row = {
       setId: p.id, title: p.title, covT: p.covT, todayIdx, got,
       count: p.count, drawn: u.drawn || 0, resident: res, price: p.price,
+      subscribed: active,
     };
 
     if (doneSet) {
       doneRows.push(Object.assign({}, row, { status: 'done' }));
+    } else if (!active) {
+      /* 已取消订阅：保留进度与卡片，但不再进入今日/订阅中 */
+      continue;
     } else if (u.todayDrawn || u.trialToday) {
       if (!stamped) { waitingN++; subRows.push(Object.assign({}, row, { status: 'waiting_reply' })); }
       else subRows.push(Object.assign({}, row, { status: 'stamped' }));
@@ -89,7 +95,7 @@ async function getFeed(userId) {
   /* 周记可生成：collect 集抽满 7 张且未标记 */
   let weekly = null;
   for (const p of payloads) {
-    if (p.type !== 'collect') continue;
+    if (!p.subscribed || p.type !== 'collect') continue;
     const n = logs.filter(l => l.set_id === p.id).length;
     if (n < 7) continue;
     const weekNo = Math.ceil(n / 7);
@@ -101,7 +107,7 @@ async function getFeed(userId) {
   }
 
   const out = {
-    total: payloads.length,
+    total: activeN,
     today: todayRows,
     subscribed: subRows,
     done: doneRows,

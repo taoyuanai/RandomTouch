@@ -2,15 +2,16 @@
 const { withTx, pool } = require('../db');
 const { safeDel } = require('../redis');
 const { setNotFound, secRejected } = require('../http/errors');
-const { urlOf } = require('./cos');
+const { signedUrl, keyOfImage, isOwnedKey } = require('./cos');
 const { checkText, checkMedia } = require('./sec');
 const time = require('./time');
 const { ensureProgress, loadSetRow } = require('./sets');
 
-function recOfRow(r) {
+async function recOfRow(r) {
+  const key = keyOfImage(r.img_file_id, r.img_url);
   return {
-    img: r.img_url || r.img_file_id || '',
-    imgFileID: r.img_file_id || '',
+    img: key ? await signedUrl(key) : '',
+    imgFileID: key,
     note: r.note || '',
     date: r.date_text || '',
     stampDate: r.stamp_date || '',
@@ -26,9 +27,11 @@ async function saveStamp(user, setIdInput, { idx: idxInput, note: noteInput, img
   const idx = Number(idxInput);
   if (!Number.isInteger(idx) || idx < 0) throw setNotFound();
   const note = String(noteInput || '').trim().slice(0, 50);
-  const key = String(imgFileID || '');
-  const imgUrl = key ? urlOf(key) : '';
-  if (!note && !imgUrl) throw secRejected('请写一句话或选一张图');
+  const key = keyOfImage(imgFileID);
+  if (key && !isOwnedKey(key, 'stamps', userId)) throw secRejected('图片无效');
+  if (!note && !key) throw secRejected('请写一句话或选一张图');
+  /* 内容安全需要可访问 URL；只用于校验，不落库。 */
+  const imgUrl = key ? await signedUrl(key, 600) : '';
 
   const set = await loadSetRow(pool, setId);
   if (!set) throw setNotFound();
@@ -73,12 +76,12 @@ async function saveStamp(user, setIdInput, { idx: idxInput, note: noteInput, img
       `INSERT INTO stamps
         (user_id, set_id, card_idx, img_url, img_file_id, note, day_key, date_text, day_text, stamp_date, sec_text, sec_media, created_ts)
        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-      [userId, setId, idx, imgUrl, key, note, time.todayKey(now), dateText, dayText, stampDate,
+      [userId, setId, idx, '', key, note, time.todayKey(now), dateText, dayText, stampDate,
         textStatus, mediaStatus, now]
     );
     return {
-      rec: recOfRow({
-        img_url: imgUrl, img_file_id: key, note,
+      rec: await recOfRow({
+        img_url: '', img_file_id: key, note,
         date_text: dateText, stamp_date: stampDate, day_text: dayText,
         sec_text: textStatus, sec_media: mediaStatus,
       }),

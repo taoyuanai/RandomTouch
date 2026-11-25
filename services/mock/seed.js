@@ -1,5 +1,8 @@
 /* services/mock/seed.js — D1 快照（源：data.js，2026-11-18）
- * Phase 2 由运营真实 50 集数据替换。不要在这里改演示逻辑。 */
+ * Phase 2 由运营真实 50 集数据替换。不要在这里改演示逻辑。
+ * 数据约束：每个已发布卡集的 count 必须等于 pool.length。
+ * 演示集为控制体积只保留部分卡，因此个别集的文案计数（30/40）会大于实际池，
+ * 属于待补内容；抽卡与进度一律以 pool 为准。 */
 // 今日做点小事 · V2.3c 演示数据
 // 数据移植自远程仓库 static/day_small_things_v2.html（纯前端原型）
 const DEMO = {
@@ -39,7 +42,7 @@ const DEMO = {
           4:{note:"春天在抽签里提前来了。",date:"11月13日"},
           7:{note:"月色很好，适合把心事放下。",date:"11月14日"}}} },
     { id:2, title:"冬天的二十四个词", covT:"冬天的二十四个词", covS:"凛冬物语 · 二十四签", cover:"c2",
-      cat:"life", type:"collect", price:12, trial:1, count:24, signatureIdx:-1, signatureNote:"", signaturePublic:false,
+      cat:"life", type:"collect", price:3.9, trial:1, count:24, signatureIdx:-1, signatureNote:"", signaturePublic:false,
       creator:"老树", heat:9817, date:"11-02",
       intro:"冬天有它自己的词汇表。初雪、炉火、汤婆子……每天认领一个，把冷的日子过出热气。",
       pool:[
@@ -69,7 +72,7 @@ const DEMO = {
         {w:"立春前夜",b:"再忍一忍，春天已经在路上了。"}],
       user:{drawn:3,todayDrawn:false,got:[0, 1, 2],unlocked:true,trialUsed:1} },
     { id:10, title:"咖啡风味轮", covT:"咖啡风味轮", covS:"风味即签 · 八签", cover:"c3",
-      cat:"food", type:"collect", price:6, trial:1, count:8, signatureIdx:-1, signatureNote:"", signaturePublic:false,
+      cat:"food", type:"collect", price:1.9, trial:1, count:8, signatureIdx:-1, signatureNote:"", signaturePublic:false,
       creator:"白鲸咖啡", heat:8512, date:"11-05",
       intro:"把 SCA 风味轮裁成八签。今天抽到什么味道，就按什么心情过。",
       pool:[
@@ -111,7 +114,7 @@ const DEMO = {
         {w:"银河",b:"银河在天上，你在我心上。"}],
       user:null },
     { id:13, title:"心理防御机制图鉴", covT:"心理防御机制图鉴", covS:"认识自己 · 八签", cover:"c6",
-      cat:"know", type:"collect", price:19, trial:1, count:8, signatureIdx:-1, signatureNote:"", signaturePublic:false, disclaimer:"内容仅供轻松阅读，不构成专业建议",
+      cat:"know", type:"collect", price:5.9, trial:1, count:8, signatureIdx:-1, signatureNote:"", signaturePublic:false, disclaimer:"内容仅供轻松阅读，不构成专业建议",
       creator:"林医生", heat:4530, date:"09-30",
       intro:"防御机制不是缺点，是我们保护自己的方式。抽一张，看看今天你在用哪一种。",
       pool:[
@@ -141,7 +144,7 @@ const DEMO = {
         recs:{0:{note:"下班路上抬头看了，积云像棉花糖。",date:"11月12日"},
           3:{note:"雨云压得很低，带了伞，没用上。",date:"11月13日"}}} },
     { id:15, title:"便利店哲学", covT:"便利店哲学", covS:"深夜食堂 · 八签", cover:"c2",
-      cat:"city", type:"collect", price:6, trial:1, count:8, signatureIdx:7, signatureNote:"", signaturePublic:false,
+      cat:"city", type:"collect", price:1.9, trial:1, count:8, signatureIdx:7, signatureNote:"", signaturePublic:false,
       creator:"阿茅", heat:5602, date:"10-22",
       intro:"城市里最平等的地方是便利店。八件货架上的小事，八条大城市生存哲学。",
       pool:[
@@ -155,7 +158,7 @@ const DEMO = {
         {w:"二十四小时",b:"永远亮着的灯，等晚归的人。"}],
       user:null },
     { id:3, title:"圣诞倒数", covT:"圣诞倒数", covS:"倒数二十五天", cover:"c4",
-      cat:"life", type:"collect", price:0, count:25, trial:0, signatureIdx:3, signatureNote:"", signaturePublic:false,
+      cat:"life", type:"collect", price:0, count:5, trial:0, signatureIdx:3, signatureNote:"", signaturePublic:false,
       creator:"圣诞办事处", heat:852, date:"11-08",
       intro:"十二月第一天开始抽，抽到第 25 张那天，正好是圣诞。",
       pool:[
@@ -166,7 +169,7 @@ const DEMO = {
         {w:"雪橇",b:"铃铛一响，大人也会抬头看天。"}],
       user:null },
     { id:4, title:"律师朋友讲的三十个案例", covT:"三十个案例", covS:"李律讲给你", cover:"c5",
-      cat:"know", type:"collect", price:19, count:30, trial:1, signatureIdx:-1, signatureNote:"", signaturePublic:false, disclaimer:"内容仅供轻松阅读，不构成专业建议",
+      cat:"know", type:"collect", price:5.9, count:5, trial:1, signatureIdx:-1, signatureNote:"", signaturePublic:false, disclaimer:"内容仅供轻松阅读，不构成专业建议",
       creator:"李律的案例本", heat:987, date:"10-29",
       intro:"三十个真实案例，均已脱敏改写。正面是案件名，背面是法律怎么说。不构成法律意见。",
       pool:[
@@ -177,7 +180,7 @@ const DEMO = {
         {w:"一段录音",b:"录音能当证据。前提：不是逼出来的，也没剪过。"}],
       user:{drawn:1, trialUsed:1, unlocked:false, todayDrawn:false, got:[0]} },
     { id:5, title:"今天吃什么", covT:"今天吃什么", covS:"午餐决策局", cover:"c6",
-      cat:"food", type:"resident", price:0, count:30, trial:0, signatureIdx:-1, signatureNote:"", signaturePublic:false,
+      cat:"food", type:"resident", price:0, count:5, trial:0, signatureIdx:-1, signatureNote:"", signaturePublic:false,
       creator:"干饭决策局", heat:3261, date:"10-26",
       intro:"午餐决策局。三十个选项，抽到什么，就是什么。",
       pool:[
@@ -188,7 +191,7 @@ const DEMO = {
         {w:"咖喱",b:"辣度选中辣。这一件，就不必再决定了。"}],
       user:{drawn:0, todayDrawn:true, got:[], todayIdx:0} },
     { id:6, title:"好外卖存档", covT:"好外卖存档", covS:"亲测不踩雷", cover:"c3",
-      cat:"food", type:"resident", price:0, count:18, trial:0, signatureIdx:-1, signatureNote:"", signaturePublic:false,
+      cat:"food", type:"resident", price:0, count:4, trial:0, signatureIdx:-1, signatureNote:"", signaturePublic:false,
       creator:"打工人午餐组", heat:205, date:"11-09",
       intro:"亲测不踩雷的外卖档案，打工人午餐组长期维护。",
       pool:[
@@ -198,7 +201,7 @@ const DEMO = {
         {w:"沙县老三样",b:"拌面、炖罐、蒸饺。永远不会错。"}],
       user:null },
     { id:7, title:"本周去哪 · 上海篇", covT:"本周去哪", covS:"上海篇", cover:"c2",
-      cat:"city", type:"resident", price:6, count:20, trial:1, signatureIdx:-1, signatureNote:"", signaturePublic:false,
+      cat:"city", type:"resident", price:1.9, count:5, trial:1, signatureIdx:-1, signatureNote:"", signaturePublic:false,
       creator:"周末在上海", heat:512, date:"11-04",
       intro:"上海的好去处，抽一个，周末就去。长期更新。",
       pool:[
@@ -209,7 +212,7 @@ const DEMO = {
         {w:"外滩源",b:"从圆明园路进去，比正面好看。"}],
       user:{drawn:2, trialUsed:2, unlocked:false, todayDrawn:false, got:[0,1]} },
     { id:8, title:"拉面图鉴", covT:"拉面图鉴", covS:"一碗一店", cover:"c5",
-      cat:"food", type:"collect", price:12, count:40, trial:1, signatureIdx:-1, signatureNote:"", signaturePublic:false,
+      cat:"food", type:"collect", price:3.9, count:5, trial:1, signatureIdx:-1, signatureNote:"", signaturePublic:false,
       creator:"一碗研究所", heat:318, date:"11-01",
       intro:"一碗一店，四十家面馆。一天认识一家。",
       pool:[
@@ -222,7 +225,7 @@ const DEMO = {
         recs:{0:{note:"第一碗打卡，汤头浓度刚好。",date:"11月10日"},
           1:{note:"味噌偏咸，配白饭完美。",date:"11月11日"}}} },
     { id:9, title:"办公室摸鱼图鉴", covT:"办公室摸鱼图鉴", covS:"上班也要认真", cover:"c3",
-      cat:"work", type:"collect", price:0, trial:0, count:30, signatureIdx:-1, signatureNote:"", signaturePublic:false,
+      cat:"work", type:"collect", price:0, trial:0, count:7, signatureIdx:-1, signatureNote:"", signaturePublic:false,
       creator:"打工人小王", heat:118, date:"11-10",
       intro:"打工人亲测的三十个摸鱼小技巧。正面是招式，背面是心法——认真上班，也认真休息。",
       pool:[
@@ -311,7 +314,7 @@ const DEMO = {
         {w:"把窗关小一点，风里有故事。", b:"今晚适合写开头。"}],
       user:null },
     { id:16, title:"周一生存指南", covT:"周一生存指南", covS:"打工人 · 八签", cover:"c4",
-      cat:"work", type:"collect", price:6, trial:1, count:8, signatureIdx:7, signatureNote:"", signaturePublic:false,
+      cat:"work", type:"collect", price:1.9, trial:1, count:8, signatureIdx:7, signatureNote:"", signaturePublic:false,
       creator:"打工人小王", heat:88, date:"11-12",
       intro:"周一的八个关键时刻。抽到哪个，就按哪个活。",
       pool:[

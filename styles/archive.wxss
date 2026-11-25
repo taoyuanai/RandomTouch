@@ -1,0 +1,71 @@
+/* ═══ ARCHIVE · 信封系（纪念册"装订寄出"彩蛋复用） ═══
+.dw-stage{min-height:380px;display:flex;align-items:center;justify-content:center;perspective:1000px}
+.dw-env{position:relative;width:264px;height:186px;perspective:900px;transform:none}
+.dw-env-shadow{position:absolute;left:6%;right:6%;bottom:-16px;height:20px;border-radius:50%;
+background:rgba(43,43,51,.12);filter:blur(8px)}
+.dw-env-back{position:absolute;inset:0;background:var(--paper-env-deep);border-radius:6px}
+.dw-env-letter{position:absolute;left:5%;right:5%;top:8%;height:78%;z-index:2;border-radius:3px;
+background-color:var(--paper-face);background-image:var(--weave);
+box-shadow:0 -3px 12px rgba(43,43,51,.12)}
+.dw-env-front{position:absolute;inset:0;z-index:3;border-radius:6px;
+background:linear-gradient(176deg,#F7F0E3,#F1E5D1 82%,#ECE0CA);
+border:1px solid rgba(110,83,64,.22)}
+.dw-env-front::after{content:'';position:absolute;inset:5px;border:1px solid rgba(110,83,64,.14);
+border-radius:4px;pointer-events:none}
+.dw-env-stamp{position:absolute;left:16px;top:78px;width:54px;height:64px;background:#FFF;
+border:1px dashed rgba(43,43,51,.3);border-radius:2px;padding:3px;box-sizing:border-box;
+transform:rotate(-2deg);box-shadow:0 1px 3px rgba(43,43,51,.12)}
+.dw-env-stamp-in{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+.dw-env-stamp-name{display:flex;flex-direction:column;align-items:center;line-height:1.25}
+.dw-env-stamp-ch{font-size:11px}
+.dw-env-stamp-val{position:absolute;bottom:1px;right:3px;font-size:8px;letter-spacing:.08em;opacity:.7}
+.dw-env-pmk{position:absolute;left:54px;top:66px;width:56px;height:56px;border-radius:50%;
+border:1px solid rgba(43,43,51,.5);display:flex;flex-direction:column;align-items:center;
+justify-content:center;gap:1px;transform:rotate(-7deg)}
+.dw-env-pmk::after{content:'';position:absolute;inset:2.5px;border:1px dashed rgba(43,43,51,.4);border-radius:50%}
+.dw-env-pmk-top{font-size:8px;letter-spacing:.16em;color:rgba(43,43,51,.55)}
+.dw-env-pmk-date{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;
+letter-spacing:.05em;color:rgba(43,43,51,.65)}
+.dw-env-pmk-seq{font-size:8px;letter-spacing:.04em;color:rgba(43,43,51,.55)}
+.dw-env-from{position:absolute;bottom:11px;left:0;right:0;text-align:center;
+font-size:8px;letter-spacing:.3em;color:rgba(43,43,51,.4)}
+.dw-env-flap{position:absolute;left:-1px;right:-1px;top:0;height:36%;z-index:4;
+background:linear-gradient(180deg,#F8F1E4,#EFE3CE);
+clip-path:polygon(0 0,100% 0,50% 96%);transform-origin:50% 0;
+filter:drop-shadow(0 2px 3px rgba(43,43,51,.12))}
+.dw-env-wax{position:absolute;left:50%;top:26%;width:68px;height:68px;margin:-34px 0 0 -34px;z-index:5}
+.dw-env-wax-half{position:absolute;inset:0;border-radius:46% 54% 52% 48%/53% 47% 55% 45%;
+background:radial-gradient(circle at 36% 30%,#FF9C68,var(--wax) 58%,#C84A08 100%);
+box-shadow:0 3px 8px rgba(184,64,6,.35),inset 0 2px 3px rgba(255,255,255,.28),inset 0 -3px 5px rgba(90,26,0,.25);
+display:flex;align-items:center;justify-content:center}
+.dw-env-wax-half.l{clip-path:polygon(0 0,51% 0,48% 9%,53% 18%,47% 30%,52% 41%,46% 53%,52% 64%,47% 76%,52% 88%,48% 100%,0 100%)}
+.dw-env-wax-half.r{clip-path:polygon(51% 0,100% 0,100% 100%,48% 100%,52% 88%,47% 76%,52% 64%,46% 53%,52% 41%,47% 30%,53% 18%,48% 9%)}
+.dw-env-wax-ch{font-size:26px;font-weight:600;color:#FFF4E8;text-shadow:0 1px 2px rgba(110,32,0,.45)}
+
+.dw.opening .dw-env{animation:envQuake .13s ease-out,envSink .3s ease-in .46s forwards}
+.dw.opening .dw-env-wax-half.l{animation:waxFallL .32s ease-in .02s forwards}
+.dw.opening .dw-env-wax-half.r{animation:waxFallR .32s ease-in .02s forwards}
+@keyframes envQuake{0%,100%{transform:translate(0,0)}30%{transform:translate(-2px,1px)}65%{transform:translate(2px,0)}}
+@keyframes waxFallL{to{transform:translate(-10px,12px) rotate(-16deg);opacity:0}}
+@keyframes waxFallR{to{transform:translate(10px,12px) rotate(13deg);opacity:0}}
+.dw.opening .dw-env-flap{animation:flapFlip .23s cubic-bezier(.4,.6,.3,1) .18s forwards}
+@keyframes flapFlip{to{transform:rotateX(-175deg)}}
+.dw.opening .dw-env-letter{animation:letterUp .3s cubic-bezier(.5,.05,.3,1) .41s forwards}
+@keyframes letterUp{to{transform:translateY(-56%)}}
+.dw.opening .dw-env-front,.dw.opening .dw-env-back{animation:envDim .3s ease-in .46s forwards}
+@keyframes envDim{to{opacity:.55}}
+@keyframes envSink{to{transform:translateY(14px)}}
+.dw-cardwrap{animation:cardIn .3s cubic-bezier(.2,.85,.3,1.08);width:-webkit-fit-content;margin:0 auto}
+@keyframes cardIn{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
+.dw.opening.fast .dw-env-wax{opacity:0}
+.dw.opening.fast .dw-env-flap{animation-duration:.15s;animation-delay:0s}
+.dw.opening.fast .dw-env-letter{animation-duration:.17s;animation-delay:.16s}
+.dw.opening.fast .dw-env-front,.dw.opening.fast .dw-env-back{animation-duration:.18s;animation-delay:.2s}
+.dw.opening.fast .dw-env{animation:envSink .2s ease-in .2s forwards}
+
+.dw-flip{position:relative;width:var(--cw,240px);height:var(--ch,340px);
+transform-style:preserve-3d;transition:transform .55s cubic-bezier(.32,.72,.28,1)}
+.dw-flip.on{transform:rotateY(180deg)}
+.dw-face{position:absolute;inset:0;backface-visibility:hidden}
+.dw-face.b{transform:rotateY(180deg)}
+*/

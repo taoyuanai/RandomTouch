@@ -1,0 +1,33 @@
+
+#page-me{padding:0 20px calc(88px + env(safe-area-inset-bottom))}
+.v6-me-profile{display:flex;align-items:center;gap:15px;padding:22px 0 25px}
+.v6-me-avatar{width:64px;height:64px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--v6-orange);color:var(--v6-on-orange);font-size:27px;font-weight:700}
+.v6-me-avatar-wrap{position:relative;width:64px;height:64px;flex:none}
+.v6-me-avatar-img{display:block;width:64px;height:64px;border-radius:50%;object-fit:cover;background:var(--v6-orange-50)}
+.v6-me-avatar-edit{position:absolute;right:-3px;bottom:-3px;width:23px;height:23px;border:1px solid var(--v6-line);border-radius:50%;background:var(--v6-surface);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(32,33,36,.12)}
+.v6-me-avatar-edit .v6-icon{width:13px;height:13px;opacity:1}
+.v6-me-info{flex:1;min-width:0}
+.v6-me-name{font-size:20px;line-height:28px;font-weight:700;color:var(--v6-ink);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.v6-me-role{margin-top:4px;font-size:13px;color:var(--v6-ink-3)}
+.v6-me-profile .v6-icon{width:19px;height:19px;opacity:.55}
+.v6-me-today{padding:8px 0 2px;text-align:center;font-size:13px;color:var(--v6-ink-2)}
+.v6-me-group{margin-top:24px}
+.v6-me-group+.v6-me-group{margin-top:16px;padding-top:8px;border-top:1px solid var(--v6-line)}
+.v6-me-row{display:flex;align-items:center;gap:13px;min-height:54px;padding:0 2px}
+.v6-me-row>.v6-icon:first-child{width:21px;height:21px;flex:none}
+.v6-me-row>.v6-icon:last-child{width:18px;height:18px;flex:none;opacity:.5}
+.v6-me-row-t{flex:1;min-width:0;font-size:16px;font-weight:500;color:var(--v6-ink)}
+.v6-me-row-v{font-size:13px;color:var(--v6-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:45%}
+.v6-me-foot{padding:42px 0 10px;text-align:center;font-size:13px;color:var(--v6-ink-2)}
+.v6-setting-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0 20px}
+.v6-setting-t{display:block;font-size:16px;font-weight:600;color:var(--v6-ink)}
+.v6-setting-s{display:block;margin-top:4px;font-size:13px;color:var(--v6-ink-2)}
+.v6-switch{position:relative;width:50px;height:30px;flex:none;border-radius:999px;background:var(--v6-ink-4);transition:background-color .18s ease-out}
+.v6-switch.on{background:var(--v6-action)}
+.v6-switch-knob{position:absolute;width:26px;height:26px;left:2px;top:2px;border-radius:50%;background:#FFFFFF;box-shadow:0 1px 4px rgba(0,0,0,.15);transition:transform .18s ease-out}
+.v6-switch.on .v6-switch-knob{transform:translateX(20px)}
+.v6-time-options{padding:18px 0 22px;border-top:1px solid var(--v6-line)}
+.v6-time-label{font-size:14px;font-weight:600;color:var(--v6-ink)}
+.v6-time-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}
+.v6-time{min-height:42px;display:flex;align-items:center;justify-content:center;border:1px solid var(--v6-line);border-radius:12px;background:var(--v6-surface);color:var(--v6-ink-2);font-size:14px}
+.v6-time.on{border-color:var(--v6-action);background:var(--v6-orange-50);color:var(--v6-action);font-weight:600}

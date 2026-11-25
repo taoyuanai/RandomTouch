@@ -1,5 +1,5 @@
 // pages/set/index.js — 卡集详情（原生导航）
-const { createPage } = require('../../lib/shared.js');
+const { createPage, nav } = require('../../lib/shared.js');
 const core = require('../../lib/core.js');
 const page = createPage('set');
 Object.assign(page, {
@@ -12,13 +12,10 @@ Object.assign(page, {
       this._setRecTab = 'related';
     }
     if (this.S.cur == null) { wx.switchTab({ url: '/pages/home/index' }); return; }
-    let statusBarHeight = 20;
-    try {
-      const info = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
-      statusBarHeight = info.statusBarHeight || 20;
-    } catch (e) { /* noop */ }
-    this.setData({ statusBarHeight, navTop: 0 });
+    const m = nav.metrics();
+    this.setData({ statusBarHeight: m.statusBarHeight, navTop: 0 });
     core.ensureBoot()
+      .then(() => core.ensureSetDetail(this.S.cur))
       .then(() => { this.renderSetPage(); this.setData({ booting: false }); })
       .catch(() => this.setData({ bootError: true, booting: false }));
   },
@@ -26,7 +23,10 @@ Object.assign(page, {
     if (!this.S) return;
     this.S.lastActive = Date.now();
     if (!this.S.booted || this.S.cur == null) return;
-    core.syncOnShow().then(() => this.renderSetPage());
+    core.syncOnShow()
+      .then(() => core.ensureSetDetail(this.S.cur))
+      .then(() => this.renderSetPage())
+      .catch(() => {});
   },
   onUnload() { this.teardownSetObservers(); },
   backSetPage() {

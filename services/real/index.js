@@ -3,6 +3,7 @@
  * 完成后：services/config.js USE_MOCK = false。
  */
 const cfg = require('../config.js');
+const { prepareUpload } = require('../../lib/media.js');
 
 let token = '';
 try { token = wx.getStorageSync(cfg.TOKEN_KEY) || ''; } catch (e) { /* ignore */ }
@@ -114,14 +115,33 @@ function request(path, data, opts) {
     });
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/* GET 是幂等的：网络/5xx 等 retryable 错误重试一次；
+ * 写请求不做自动重试，避免重复盖戳/提交。 */
 function get(path, query) {
-  return request(path, query || {}, { method: 'GET' });
+  const run = () => request(path, query || {}, { method: 'GET' });
+  return run().catch((err) => {
+    if (!err || !err.retryable) throw err;
+    return sleep(400).then(run);
+  });
 }
 
 /* ── 契约方法 ── */
 
 function auth() {
   return ensureSession().then(() => ({ ok: true }));
+}
+
+function getMe() {
+  return get('/me').then(u => ({
+    id: u && u.id,
+    name: (u && (u.name || u.nickname)) || '微信用户',
+    creatorName: (u && u.creatorName) || '',
+    avatar: (u && u.avatar) || '',
+  }));
 }
 
 function listSets(q) {
@@ -153,6 +173,10 @@ function unlock(opts) {
 
 function subscribeSet(opts) {
   return request('/sets/' + Number((opts || {}).setId) + '/subscribe', {});
+}
+
+function unsubscribeSet(opts) {
+  return request('/sets/' + Number((opts || {}).setId) + '/unsubscribe', {});
 }
 
 function getPosterQR(opts) {
@@ -197,12 +221,11 @@ function getMyCraft() {
 
 async function submitCraft(opts) {
   const draft = Object.assign({}, (opts || {}).draft);
-  // 封面是本地临时路径：先上传换 COS 地址（失败则保留原值，由服务端落库）
-  if (draft.coverImage && !/^https?:\/\//i.test(draft.coverImage)) {
-    try {
-      const up = await uploadImageWithKind(draft.coverImage, 'covers');
-      draft.coverImage = up.url || up.fileID;
-    } catch (e) { /* 不阻断提交 */ }
+  // 封面是本地临时路径：先上传，服务端只保存 COS key（读取时签名）。
+  const coverIsKey = /(^|\/)covers\/\d+\//.test(String(draft.coverImage || ''));
+  if (draft.coverImage && !/^https?:\/\//i.test(draft.coverImage) && !coverIsKey) {
+    const up = await uploadImageWithKind(draft.coverImage, 'covers');
+    draft.coverImage = up.fileID;
   }
   return request('/craft', { draft });
 }
@@ -215,13 +238,15 @@ function withdraw() {
   return request('/income/withdraw', {});
 }
 
-function uploadImageWithKind(filePath, kind) {
-  return ensureSession().then(() => new Promise((resolve, reject) => {
+async function uploadImageWithKind(filePath, kind) {
+  await ensureSession();
+  const src = await prepareUpload(filePath);
+  return new Promise((resolve, reject) => {
     const header = {};
     if (token) header.Authorization = 'Bearer ' + token;
     wx.uploadFile({
       url: base() + '/upload',
-      filePath,
+      filePath: src,
       name: 'file',
       formData: { kind: kind || 'stamps' },
       header,
@@ -235,7 +260,7 @@ function uploadImageWithKind(filePath, kind) {
       },
       fail() { reject({ code: 'INTERNAL', message: '图片上传失败', retryable: true }); },
     });
-  }));
+  });
 }
 
 function uploadImage(filePath) {
@@ -253,9 +278,9 @@ function track(event, props) {
 }
 
 module.exports = {
-  auth, listSets, getSet, draw, saveStamp, unlock,
+  auth, getMe, listSets, getSet, draw, saveStamp, unlock,
   getComments, addComment, toggleLike, markWeekly, getAuthor, toggleFollow, getFeed,
-  subscribeSet, getPosterQR,
+  subscribeSet, unsubscribeSet, getPosterQR,
   getMyCraft, submitCraft, getIncome, withdraw,
   uploadImage, reportRemindAuth, track,
 };

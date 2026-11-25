@@ -13,6 +13,7 @@ function reqId() {
 module.exports = {
   reqId,
   auth: impl.auth,
+  getMe: impl.getMe,
   listSets: impl.listSets,
   getSet: impl.getSet,
   draw: impl.draw,
@@ -26,6 +27,7 @@ module.exports = {
   toggleFollow: impl.toggleFollow,
   getFeed: impl.getFeed,
   subscribeSet: impl.subscribeSet,
+  unsubscribeSet: impl.unsubscribeSet,
   getPosterQR: impl.getPosterQR,
   getMyCraft: impl.getMyCraft,
   submitCraft: impl.submitCraft,

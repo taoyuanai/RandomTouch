@@ -1,16 +1,12 @@
 // pages/edit/index.js — 编辑 / 审核（原生导航，本地草稿可离线）
-const { createPage } = require('../../lib/shared.js');
+const { createPage, nav } = require('../../lib/shared.js');
 const core = require('../../lib/core.js');
 const page = createPage('edit');
 Object.assign(page, {
   onLoad() {
     this.S = core.getS();
-    let statusBarHeight = 20;
-    try {
-      const info = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync();
-      statusBarHeight = info.statusBarHeight || 20;
-    } catch (e) { /* noop */ }
-    this.setData({ statusBarHeight });
+    const m = nav.metrics();
+    this.setData({ statusBarHeight: m.statusBarHeight });
     if (!this.S.ed && !this.S.rv) { wx.switchTab({ url: '/pages/create/index' }); return; }
     this._applyNavTitle();
     if (this.S.rv) this.renderReview(); else this.renderEdit();

@@ -12,9 +12,10 @@ process.argv.slice(2).forEach(f => {
   if (!j.covT || j.covT.length > 6) errs.push('covT');
   if (!CATS.includes(j.cat)) errs.push('cat=' + j.cat);
   if (!['collect', 'resident'].includes(j.type)) errs.push('type');
-  if (!(j.price >= 0)) errs.push('price');
+  if (![0, 0.9, 1.9, 2.9, 3.9, 5.9].includes(Number(j.price))) errs.push('price');
   if (j.price > 0 && !(j.trial >= 1)) errs.push('trial');
   if (!Array.isArray(j.pool) || j.pool.length < 8 || j.pool.length > 40) errs.push('pool=' + (j.pool || []).length);
+  if (j.count != null && Number(j.count) !== (j.pool || []).length) errs.push('count != pool');
   (j.pool || []).forEach((c, i) => {
     if (!c.w || c.w.length > 8) errs.push(`pool[${i}].w`);
     if (!c.b || !c.b.trim()) errs.push(`pool[${i}].b`);

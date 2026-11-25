@@ -96,7 +96,7 @@ async function getAuthor(userId, nameInput) {
     `${SET_SELECT} WHERE s.creator_id = ? AND s.status = 'published' ORDER BY s.id ASC`,
     [creator.id]
   );
-  const works = await buildPayloads(pool, userId, rows);
+  const works = await buildPayloads(pool, userId, rows, { summary: true, poolText: false });
   const [[f]] = await pool.query(
     'SELECT 1 AS x FROM follows WHERE user_id = ? AND creator_id = ?', [userId, creator.id]
   );

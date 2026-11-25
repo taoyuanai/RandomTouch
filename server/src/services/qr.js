@@ -2,13 +2,16 @@
 const axios = require('axios');
 const config = require('../config');
 const { getAccessToken } = require('./session');
-const { putBuffer } = require('./cos');
+const { putBuffer, signedUrl, keyFrom } = require('./cos');
 const { safeGet, safeSet } = require('../redis');
 
 async function getPosterQR(userId, setId) {
   const cacheKey = `qr:${setId}`;
   const cached = await safeGet(cacheKey);
-  if (cached) return cached;
+  if (cached) {
+    const key = keyFrom(cached);
+    return key ? signedUrl(key) : '';
+  }
   if (config.secMode === 'mock' && (!config.wx.appid || !config.wx.secret)) return '';
   try {
     const token = await getAccessToken();
@@ -25,15 +28,16 @@ async function getPosterQR(userId, setId) {
     );
     const ct = String(resp.headers['content-type'] || '');
     if (!ct.includes('image')) return '';
-    const { url } = await putBuffer({
+    const { key } = await putBuffer({
       buffer: Buffer.from(resp.data),
       mime: 'image/png',
       kind: 'qr',
       userId,
       ext: 'png',
     });
-    await safeSet(cacheKey, url, 7 * 86400);
-    return url;
+    /* 缓存对象 key，不缓存会过期的签名 URL。 */
+    await safeSet(cacheKey, key, 7 * 86400);
+    return await signedUrl(key);
   } catch (e) {
     return '';
   }
