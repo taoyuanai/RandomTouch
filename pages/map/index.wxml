@@ -1,13 +1,5 @@
 <view class="phone" style="--statusbar:0px;--navtop:0px">
-  <view class="v6-topbar" style="padding-top:{{statusBarHeight}}px">
-    <view class="v6-topbar-inner">
-      <view class="v6-icon-btn" hover-class="hm-press" bindtap="backMap">
-        <image class="v6-icon" src="/assets/icons/v6/arrow-left-ink.png" mode="aspectFit" />
-      </view>
-      <text class="v6-topbar-title">全图</text>
-      <view class="v6-topbar-spacer"></view>
-    </view>
-  </view>
+  <v6-topbar title="全图" status-bar-height="{{statusBarHeight}}" bind:back="backMap" />
 
   <view class="page v6-map-page" id="page-map">
     <include src="/templates/m-base.wxml"/>

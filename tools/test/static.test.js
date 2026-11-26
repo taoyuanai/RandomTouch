@@ -58,6 +58,25 @@ test('全部 WXSS 括号平衡', () => {
   }
 });
 
+test('WXSS 注释成对闭合，无孤立 */', () => {
+  for (const f of wxssFiles) {
+    const s = fs.readFileSync(f, 'utf8');
+    let i = 0;
+    let inComment = false;
+    let line = 1;
+    while (i < s.length) {
+      if (!inComment && s.startsWith('/*', i)) { inComment = true; i += 2; continue; }
+      if (inComment && s.startsWith('*/', i)) { inComment = false; i += 2; continue; }
+      if (!inComment && s.startsWith('*/', i)) {
+        assert.fail(`${path.relative(ROOT, f)}:${line} 出现孤立 */`);
+      }
+      if (s[i] === '\n') line++;
+      i++;
+    }
+    assert.equal(inComment, false, `${path.relative(ROOT, f)} 注释未闭合`);
+  }
+});
+
 test('页面 JS 不直连 mock / wx.request / 云函数', () => {
   const pages = allFiles.filter((f) => f.includes(`${path.sep}pages${path.sep}`) && f.endsWith('.js'));
   assert.ok(pages.length > 0);
@@ -72,6 +91,59 @@ test('页面 JS 不直连 mock / wx.request / 云函数', () => {
         `${path.relative(ROOT, f)} 出现禁止依赖：${token}`);
     }
   }
+});
+
+test('set-row 自定义组件已接线', () => {
+  const pages = ['home', 'search', 'author', 'create', 'cards'];
+  for (const name of pages) {
+    const json = JSON.parse(fs.readFileSync(path.join(ROOT, 'pages', name, 'index.json'), 'utf8'));
+    assert.equal(json.usingComponents && json.usingComponents['set-row'], '/components/set-row/set-row');
+    const wxml = fs.readFileSync(path.join(ROOT, 'pages', name, 'index.wxml'), 'utf8');
+    assert.ok(wxml.includes('<set-row'));
+    assert.ok(wxml.includes('bind:rowtap='));
+  }
+  assert.ok(fs.existsSync(path.join(ROOT, 'components/set-row/set-row.js')));
+  assert.ok(fs.existsSync(path.join(ROOT, 'components/set-row/set-row.wxml')));
+});
+
+test('v6-topbar 自定义组件已接线', () => {
+  const pages = ['author', 'categories', 'income', 'edit', 'map', 'set'];
+  for (const name of pages) {
+    const json = JSON.parse(fs.readFileSync(path.join(ROOT, 'pages', name, 'index.json'), 'utf8'));
+    assert.equal(json.usingComponents && json.usingComponents['v6-topbar'], '/components/v6-topbar/v6-topbar');
+    const wxml = fs.readFileSync(path.join(ROOT, 'pages', name, 'index.wxml'), 'utf8');
+    assert.ok(wxml.includes('<v6-topbar'));
+    assert.ok(wxml.includes('bind:back='));
+  }
+  assert.ok(fs.existsSync(path.join(ROOT, 'components/v6-topbar/v6-topbar.js')));
+});
+
+test('盖戳页：照片与文字合并进卡内，无外部重复表单', () => {
+  const wxml = fs.readFileSync(path.join(ROOT, 'templates/m-flow.wxml'), 'utf8');
+  assert.equal(wxml.includes('v6-stamp-sub'), false);
+  assert.equal(wxml.includes('v6-photo-tools'), false);
+  assert.equal(wxml.includes('v6-note-field'), false);
+  assert.ok(wxml.includes('v6-stamp-note-input'));
+  assert.ok(wxml.includes('v6-stamp-photo-btn'));
+});
+
+test('抽卡页保留轻量 reveal 动效节点', () => {
+  const wxml = fs.readFileSync(path.join(ROOT, 'pages/draw/index.wxml'), 'utf8');
+  const wxss = fs.readFileSync(path.join(ROOT, 'pages/draw/index.wxss'), 'utf8');
+  assert.ok(wxml.includes('draw.revealFx'));
+  assert.ok(wxml.includes('dk-fx-{{draw.revealFx}}'));
+  assert.ok(wxss.includes('.dk-fx-spark'));
+  assert.ok(wxss.includes('.dk-fx-rainbow'));
+});
+
+test('抽卡首屏保持极简：无独立抽卡按钮、无卡背文字', () => {
+  const wxml = fs.readFileSync(path.join(ROOT, 'pages/draw/index.wxml'), 'utf8');
+  assert.equal(wxml.includes('dk-act-idle'), false);
+  assert.equal(wxml.includes('dk-act-flip'), false);
+  assert.equal(wxml.includes('v6-cardback-title'), false);
+  assert.equal(wxml.includes('v6-cardback-copy'), false);
+  assert.equal(wxml.includes('v6-draw-helper'), false);
+  assert.ok(wxml.includes('bindtap="tapCard"'));
 });
 
 test('app.json 页面与 tabBar 配置可解析', () => {

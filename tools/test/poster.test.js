@@ -22,8 +22,11 @@ before(async () => {
   p = makePage('cards', S);
   await p.renderSubs();
 
-  target = S.sets.find((s) => s.user && s.type === 'collect' && (s.user.got || []).length >= 7);
-  assert.ok(target, 'seed 中应有至少 7 张记录的收藏集');
+  // 原 id1 已下架；用调试后门准备一个 7 天记录完整的收藏集，保持周记测试独立
+  const mock = require('../../services/mock/index.js');
+  mock._debug.completeSet(17);
+  target = S.sets.find((s) => s.id === 17) || S.sets.find((s) => s.user && s.type === 'collect');
+  assert.ok(target, '应有一个可生成周记的收藏集');
   await core.ensureSetDetail(target.id);
 
   const pk = require('../../utils/posterKit/export.js');

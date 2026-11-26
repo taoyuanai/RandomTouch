@@ -1,5 +1,4 @@
 <import src="/templates/cover.wxml"/>
-<import src="/templates/set-row.wxml"/>
 <view class="phone" style="--statusbar:0px;--navtop:0px">
 <!-- ═══════════════════ 发现 ═══════════════════ -->
     <view class="v6-home-nav" style="padding-top:{{statusBarHeight}}px">
@@ -14,9 +13,8 @@
     <view class="page v6-home" id="page-home">
 <include src="/templates/m-base.wxml"/>
       <view class="v6-home-intro">
-        <text class="v6-home-date">{{home.dateText}}</text>
         <view class="v6-home-title">今天也对这个世界</view>
-        <view class="v6-home-title">做出一点点探索</view>
+        <view class="v6-home-title v6-home-title-2">做出<text class="v6-home-accent">一点点</text>探索</view>
       </view>
 
       <view class="v6-search" hover-class="hm-press" bindtap="goSearch">
@@ -26,9 +24,6 @@
 
       <view class="v6-daily" wx:if="{{home.daily}}" hover-class="hm-press" bindtap="tapDaily" data-id="{{home.daily.id}}">
         <view class="v6-daily-copy">
-          <view class="v6-daily-label">
-            <image class="v6-icon" src="/assets/icons/v6/sparkles-brand.png" mode="aspectFit" /> 今日一卡
-          </view>
           <view class="v6-daily-title">给此刻的自己</view>
           <view class="v6-daily-title">一句刚刚好的话</view>
           <view class="v6-daily-btn">
@@ -65,9 +60,8 @@
       </view>
 
       <view id="squareList" class="v6-set-list">
-        <block wx:for="{{home.rows}}" wx:key="id">
-          <template is="setRowPublic" data="{{item: item, from: 'home'}}" />
-        </block>
+        <set-row wx:for="{{home.rows}}" wx:key="id" item="{{item}}" mode="public"
+                 data-id="{{item.id}}" data-from="home" bind:rowtap="openSet" />
       </view>
 
       <view class="v6-page-end" wx:if="{{!booting}}">

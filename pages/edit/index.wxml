@@ -1,13 +1,5 @@
 <view class="phone" style="--statusbar:0px;--navtop:0px">
-  <view class="v6-topbar" style="padding-top:{{statusBarHeight}}px">
-    <view class="v6-topbar-inner">
-      <view class="v6-icon-btn" hover-class="hm-press" bindtap="backEdit">
-        <image class="v6-icon" src="/assets/icons/v6/arrow-left-ink.png" mode="aspectFit" />
-      </view>
-      <text class="v6-topbar-title">{{navTitle}}</text>
-      <view class="v6-topbar-spacer"></view>
-    </view>
-  </view>
+  <v6-topbar title="{{navTitle}}" status-bar-height="{{statusBarHeight}}" bind:back="backEdit" />
   <view class="screen">
 <view class="page v6-edit-page" id="page-edit">
 <include src="/templates/m-base.wxml"/>

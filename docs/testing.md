@@ -30,8 +30,10 @@ npm run test:static
 | `tools/test/media.test.js` | 上传前压缩、压缩失败回退、5MB 上限 |
 | `tools/test/app.test.js` | App 级 onError / onUnhandledRejection / 404 回首页 |
 | `tools/test/api-retry.test.js` | GET retryable 重试一次；非 retryable / 写请求不重试 |
+| `tools/test/photo-poster.test.js` | 照片优先海报 3:4 / 9:16 Canvas 版式烟测 |
 | `tools/test/mock-edge.test.js` | 故障注入、draw 幂等、同日不重复、travel 跨天、取消/恢复订阅、空池 |
-| `tools/test/static.test.js` | 全部 JS 语法、WXML 解析、WXSS 括号、页面不直连 mock/wx.request/云函数、app.json |
+| `tools/test/three-state.test.js` | boot 失败/重试、订阅/收益/作者 bootError 恢复、详情失败重试、空数据页面 |
+| `tools/test/static.test.js` | 全部 JS 语法、WXML 解析、WXSS 括号、页面不直连 mock/wx.request/云函数、set-row 组件接线、app.json |
 
 ## CI
 
@@ -46,4 +48,10 @@ npm run validate
 
 ```bash
 node tools/release-check.js
+```
+
+## 包体审计
+
+```bash
+npm run audit:size > docs/performance-audit.md
 ```

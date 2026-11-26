@@ -1,15 +1,12 @@
 <import src="/templates/common.wxml"/>
 <import src="/templates/card.wxml"/>
 <import src="/templates/cover.wxml"/>
-<import src="/templates/set-row.wxml"/>
 <view class="phone" style="--statusbar:0px;--navtop:0px">
   <view class="v6-lib-nav" style="padding-top:{{statusBarHeight}}px">
     <view class="v6-lib-nav-inner" style="padding-right:{{menuPad}}px">
       <view class="v6-lib-head">
-        <text class="v6-kicker">MY COLLECTION</text>
         <text class="v6-lib-title">我的收藏册</text>
       </view>
-      <image class="v6-lib-ico" src="/assets/icons/v6/book-open-brand.png" mode="aspectFit" />
     </view>
   </view>
 
@@ -68,9 +65,9 @@
 
       <block wx:if="{{subs.tab === 'subscribed'}}">
         <view id="subsToday" class="v6-lib-list">
-          <block wx:for="{{subs.rows}}" wx:key="id">
-            <template is="setRowCards" data="{{item: item}}" />
-          </block>
+          <set-row wx:for="{{subs.rows}}" wx:key="id" item="{{item}}" mode="cards"
+                   data-sid="{{item.id}}" data-tap="{{item.tap}}" data-idx="{{item.idx}}"
+                   data-from="cards" bind:rowtap="tapSubsRow" />
         </view>
         <view class="v6-empty" wx:if="{{!subs.rows.length}}">
           <view class="v6-empty-t">今天没有待办</view>

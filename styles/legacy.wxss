@@ -298,7 +298,6 @@ page{
 
 /* 首页整页滚动：页头随内容一起上移，把高度让给卡集列表 */
 #page-home .page-head{position:static;top:auto}
-*/
 
 /* ═══ 字体统一 · 黑体校正（v3）═══
    界面文字全部归一 --font-sans；层级只由 字号/字重/颜色 三轴表达 */
@@ -374,8 +373,6 @@ page{
 
 .quick-card.highlight .qc-label{color:#FFFFFF}
 .quick-card.highlight .qc-sub{color:rgba(255,255,255,.85)}
-.quick-card.highlight .hm-qtxt .qc-label,
-.quick-card.highlight .hm-qtxt .qc-sub{color:#FFFFFF}
 @keyframes spHeartPop{
   0%{transform:scale(1)}
   38%{transform:scale(1.38)}
@@ -723,7 +720,7 @@ color:var(--text-tertiary);padding:6px 0;letter-spacing:.5px}
 
 
 @keyframes pmkPress{0%{transform:scale(2.1) rotate(-24deg);opacity:0}
-55%{transform:scale(.92) rotate(-5deg);opacity:1}100%{transform:scale(1) rotate(-8deg)}}.modal .bigcard{width:264px;height:374px}.modal .bigcard .card-face{padding:0;background:none;border:none;box-shadow:none;border-radius:0}
+55%{transform:scale(.92) rotate(-5deg);opacity:1}100%{transform:scale(1) rotate(-8deg)}}
 
 /* V2 · 册子封面（72×102） */
 #squareList{display:flex;flex-wrap:wrap;gap:16px 12px}
@@ -788,7 +785,6 @@ display:flex;align-items:center;justify-content:center;background:rgba(255,255,2
 
 /* 顶栏 */
 .dk-top{position:relative;height:56px;display:flex;align-items:center;justify-content:center}
-.dk-top .dw-back{position:absolute;left:4px;top:12px}
 .dk-title{font-family:var(--font-heritage);font-size:16px;font-weight:600;
   letter-spacing:.1em;color:var(--ink);max-width:60%;
   overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
@@ -823,11 +819,6 @@ display:flex;align-items:center;justify-content:center;background:rgba(255,255,2
 /* 正面：印刷面（一墨到底） */
 .dk-face.front{transform:rotateY(180deg);
   background-color:var(--paper-face);background-image:var(--weave)}
-.dk-face.front.sig .dk-keyline{display:block}
-
-/* 题眼卡：金框 + 金印 */
-.dk-face.front.sig .dk-frame{border-color:var(--gold);
-  box-shadow:inset 0 0 0 3px var(--paper-face),inset 0 0 0 4px var(--gold-soft)}
 .dk-goldmark{position:absolute;right:calc(var(--card-frame) + 10px);
   bottom:calc(var(--card-frame) + 46px);border:1px solid var(--gold);color:var(--gold);
   border-radius:2px;padding:4px 5px;display:flex;flex-direction:column;
@@ -867,7 +858,6 @@ display:flex;align-items:center;justify-content:center;background:rgba(255,255,2
 .dw.is-idle .dk-act-idle{display:flex}
 .dw.is-flipped .dk-act-done,.dw.is-visited .dk-act-done{display:flex}
 @keyframes dkActIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-.dw.is-flipped .dw-hint,.dw.is-visited .dw-hint{display:none}
 .dw-actions{width:100%;padding:0 24px;box-sizing:border-box}
 .dw-echo{margin-top:18px;padding:0 24px;box-sizing:border-box}
 .dw-error{padding:0 24px;box-sizing:border-box}

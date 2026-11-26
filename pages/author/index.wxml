@@ -1,15 +1,6 @@
 <import src="/templates/cover.wxml"/>
-<import src="/templates/set-row.wxml"/>
 <view class="phone" style="--statusbar:0px;--navtop:0px">
-  <view class="v6-topbar" style="padding-top:{{statusBarHeight}}px">
-    <view class="v6-topbar-inner">
-      <view class="v6-icon-btn" hover-class="hm-press" bindtap="backAuthor">
-        <image class="v6-icon" src="/assets/icons/v6/arrow-left-ink.png" mode="aspectFit" />
-      </view>
-      <text class="v6-topbar-title">创作者</text>
-      <view class="v6-topbar-spacer"></view>
-    </view>
-  </view>
+  <v6-topbar title="创作者" status-bar-height="{{statusBarHeight}}" bind:back="backAuthor" />
 
   <view class="page v6-author-page" id="page-author">
     <include src="/templates/m-base.wxml"/>
@@ -42,9 +33,8 @@
       </view>
 
       <view class="v6-set-list">
-        <block wx:for="{{author.works}}" wx:key="id">
-          <template is="setRowAuthor" data="{{item: item}}" />
-        </block>
+        <set-row wx:for="{{author.works}}" wx:key="id" item="{{item}}" mode="author"
+                 data-id="{{item.id}}" data-from="author" bind:rowtap="openSet" />
       </view>
 
       <view class="v6-author-note" wx:if="{{!author.own}}">关注后，TA 的新卡集会出现在你的订阅流。</view>

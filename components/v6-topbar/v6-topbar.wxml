@@ -1,0 +1,10 @@
+<view class="v6-topbar" style="padding-top:{{statusBarHeight}}px">
+  <view class="v6-topbar-inner">
+    <view wx:if="{{back}}" class="v6-icon-btn" hover-class="hm-press" bindtap="onBack">
+      <image class="v6-icon" src="/assets/icons/v6/arrow-left-ink.png" mode="aspectFit" />
+    </view>
+    <text class="v6-topbar-title">{{title}}</text>
+    <block wx:if="{{hasRight}}"><slot name="right"></slot></block>
+    <view wx:else class="v6-topbar-spacer"></view>
+  </view>
+</view>

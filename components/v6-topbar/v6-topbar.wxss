@@ -1,0 +1,1 @@
+/* 顶栏样式沿用 app.wxss 的 .v6-topbar* / .v6-icon*（apply-shared + addGlobalClass） */

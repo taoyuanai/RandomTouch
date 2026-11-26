@@ -9,7 +9,7 @@ const mysql = require('mysql2/promise');
 const config = require('../src/config');
 const time = require('../src/services/time');
 
-const SEED_VERSION = '2026-11-20-id19';
+const SEED_VERSION = '2026-11-26-del1-4-12-upd15-add20-21-22-upd9-add19-upd14-upd5';
 const seedPath = path.resolve(__dirname, '../../services/mock/seed.js');
 const seed = require(seedPath);
 

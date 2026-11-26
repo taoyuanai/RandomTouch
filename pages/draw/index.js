@@ -26,6 +26,7 @@ Object.assign(page, {
   onUnload() {
     clearTimeout(this._drawTimer);
     clearTimeout(this._doneTimer);
+    clearTimeout(this._fxTimer);
     this._releaseEnv();
   },
 });

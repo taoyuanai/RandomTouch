@@ -13,6 +13,7 @@
     "test:pages": "node --test tools/test/page-render.test.js",
     "test:poster": "node --test tools/test/poster.test.js",
     "validate": "node tools/validate-seed.js && node tools/validate-content.js",
-    "check": "npm test && npm run validate"
+    "check": "npm test && npm run validate",
+    "audit:size": "node tools/audit-size.js"
   }
 }

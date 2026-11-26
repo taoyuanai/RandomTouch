@@ -97,3 +97,54 @@ test('空池不抛异常：draw 返回 completed', async () => {
   const r = await api.draw({ setId: s.id, requestId: 'edge-empty-' + Date.now() });
   assert.equal(r.result, 'completed');
 });
+
+test('saveStamp 截断备注，重复盖戳标记 updated', async () => {
+  const s = await pickFreeSet();
+  const d = await api.draw({ setId: s.id, requestId: 'edge-stamp-1-' + Date.now() });
+  const first = await api.saveStamp({
+    setId: s.id, idx: d.idx, note: '很'.repeat(80), imgFileID: '',
+  });
+  assert.equal(first.rec.note.length, 50);
+  const second = await api.saveStamp({
+    setId: s.id, idx: d.idx, note: '第二枚', imgFileID: '',
+  });
+  assert.equal(second.updated, true);
+  assert.equal(second.rec.note, '第二枚');
+});
+
+test('toggleLike 正反切换，计数不为负', async () => {
+  const s = await pickFreeSet();
+  const before = (await api.getSet(s.id)).social;
+  const on = await api.toggleLike({ setId: s.id });
+  assert.equal(on.liked, !before.liked);
+  assert.ok(on.likes >= 0);
+  const off = await api.toggleLike({ setId: s.id });
+  assert.equal(off.liked, before.liked);
+  assert.ok(off.likes >= 0);
+});
+
+test('未知作者返回空作品，不抛错', async () => {
+  const a = await api.getAuthor({ name: '__no_such_creator__' });
+  assert.equal(a.own, false);
+  assert.deepEqual(a.works, []);
+});
+
+test('取消订阅后不再进入 feed 今日/订阅中', async () => {
+  const s = await pickFreeSet();
+  await api.draw({ setId: s.id, requestId: 'edge-feed-1-' + Date.now() });
+  await api.unsubscribeSet({ setId: s.id });
+  const feed = await api.getFeed();
+  const rows = [].concat(feed.today || [], feed.subscribed || []);
+  assert.equal(rows.some((r) => r.setId === s.id), false);
+});
+
+test('非法卡集 id：draw / stamp 返回 SET_NOT_FOUND', async () => {
+  await assert.rejects(
+    () => api.draw({ setId: 999999, requestId: 'edge-bad-' + Date.now() }),
+    (e) => e.code === 'SET_NOT_FOUND'
+  );
+  await assert.rejects(
+    () => api.saveStamp({ setId: 999999, idx: 0, note: 'x' }),
+    (e) => e.code === 'SET_NOT_FOUND'
+  );
+});

@@ -2,17 +2,11 @@
 <import src="/templates/card.wxml"/>
 <import src="/templates/cover.wxml"/>
 <view class="phone" style="--statusbar:0px;--navtop:0px">
-  <view class="v6-topbar" style="padding-top:{{statusBarHeight}}px">
-    <view class="v6-topbar-inner">
-      <view class="v6-icon-btn" hover-class="hm-press" bindtap="backSetPage">
-        <image class="v6-icon" src="/assets/icons/v6/arrow-left-ink.png" mode="aspectFit" />
-      </view>
-      <text class="v6-topbar-title">卡集详情</text>
-      <button class="v6-icon-btn v6-share-btn" open-type="share">
-        <image class="v6-icon" src="/assets/icons/v6/share-2-ink.png" mode="aspectFit" />
-      </button>
-    </view>
-  </view>
+  <v6-topbar title="卡集详情" status-bar-height="{{statusBarHeight}}" has-right bind:back="backSetPage">
+    <button slot="right" class="v6-icon-btn v6-share-btn" open-type="share">
+      <image class="v6-icon" src="/assets/icons/v6/share-2-ink.png" mode="aspectFit" />
+    </button>
+  </v6-topbar>
 
   <view class="screen">
     <view class="page v6-set-page" id="page-set">

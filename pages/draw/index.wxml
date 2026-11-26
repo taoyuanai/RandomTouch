@@ -16,20 +16,17 @@
           </view>
         </view>
 
-        <view class="v6-draw-intro">
-          <text class="v6-draw-kicker">{{draw.sealed ? '拆开封条，解锁全集' : (draw.stateCls === 'is-idle' ? '今天的卡，正等着你' : '今日关键词')}}</text>
-          <text class="v6-draw-sub">{{draw.sealed ? '全集未拆封' : (draw.stateCls === 'is-idle' ? '深呼吸一次，然后轻轻点开' : (draw.title + ' · ' + draw.front.noLabel))}}</text>
+        <view class="v6-draw-intro" wx:if="{{draw.intro}}">
+          <text class="v6-draw-kicker">{{draw.intro}}</text>
         </view>
 
         <view class="dk-stage">
-          <view class="dk-card" bindtap="tapCard">
+          <view class="dk-card" hover-class="dk-card-press" bindtap="tapCard">
             <view class="dk-edge {{item}}" wx:for="{{draw.edges}}" wx:key="*this"></view>
             <view class="dk-flip {{draw.flipped ? 'on' : ''}}">
               <view class="dk-face back {{draw.backMode}}">
                 <block wx:if="{{draw.backMode === 'idle'}}">
                   <view class="v6-cardback-mark"><view></view><view></view></view>
-                  <text class="v6-cardback-title">卡集</text>
-                  <text class="v6-cardback-copy">今天，也为自己抽一张</text>
                   <view class="v6-cardback-orbit"><view></view><view></view></view>
                 </block>
                 <block wx:else>
@@ -47,6 +44,17 @@
                 <view class="dk-goldmark" wx:if="{{draw.front.isKey}}"><text>题</text><text>眼</text></view>
               </view>
             </view>
+            <view wx:if="{{draw.revealFx}}" class="dk-fx dk-fx-{{draw.revealFx}}" aria-hidden="true">
+              <view class="dk-fx-core"></view>
+              <view class="dk-fx-r r1"></view>
+              <view class="dk-fx-r r2"></view>
+              <view class="dk-fx-r r3"></view>
+              <view class="dk-fx-r r4"></view>
+              <view class="dk-fx-arc a"></view>
+              <view class="dk-fx-arc b"></view>
+              <view class="dk-fx-arc c"></view>
+            </view>
+
             <view class="dk-seal" wx:if="{{draw.sealed}}">
               <view class="dk-seal-half l"></view>
               <view class="dk-seal-half r"></view>
@@ -54,8 +62,6 @@
             </view>
           </view>
         </view>
-
-        <view class="v6-draw-helper">{{draw.helper}}</view>
 
         <view class="dw-error" wx:if="{{draw.error}}">
           <text class="dw-error-msg">{{draw.error.message}}</text>
@@ -75,16 +81,7 @@
           </view>
         </view>
 
-        <view class="dw-actions">
-          <view class="dk-act dk-act-idle">
-            <button wx:if="{{draw.cta2}}" class="dw-btn {{draw.cta2.kind}}" hover-class="dw-btn-press"
-                    bindtap="tapDrawCta" data-act="cta2">{{draw.cta2.text}}</button>
-            <button wx:if="{{draw.cta}}" class="dw-btn {{draw.cta.kind}}" hover-class="dw-btn-press"
-                    bindtap="tapDrawCta" data-act="cta">{{draw.cta.text}}</button>
-          </view>
-          <view class="dk-act dk-act-flip">
-            <button class="dw-btn brand" hover-class="dw-btn-press" bindtap="tapDrawCta" data-act="ctaFlip">{{draw.ctaFlip.text}}</button>
-          </view>
+        <view class="dw-actions" wx:if="{{draw.stage === 'after'}}">
           <view class="dk-act dk-act-done">
             <button wx:if="{{draw.ctaDone2}}" class="dw-btn {{draw.ctaDone2.kind}}" hover-class="dw-btn-press"
                     bindtap="tapDrawCta" data-act="ctaDone2">{{draw.ctaDone2.text}}</button>

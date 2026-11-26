@@ -57,6 +57,9 @@ test('draw', async () => {
   const p = makePage('draw', S);
   p.renderDraw();
   assert.ok(p.data.draw);
+  if (p.data.draw.stage === 'draw' && !p.data.draw.sealed) {
+    assert.equal(p.data.draw.intro, '深呼吸，点开今天这张卡');
+  }
 });
 
 test('map', async () => {
@@ -65,6 +68,22 @@ test('map', async () => {
   p.renderMap();
   assert.ok(p.data.mapV && Array.isArray(p.data.mapV.cells));
   assert.ok(p.data.mapV.cells.length > 0);
+});
+
+test('全图摘要态先 hydrate，不会渲染空白格', async () => {
+  const p = makePage('map', S);
+  const s = S.sets.find(x => x.id === S.cur);
+  const savedPool = s.pool;
+  const savedLoaded = S.detailLoaded[s.id];
+  s.pool = [];
+  delete S.detailLoaded[s.id];
+  p.renderMap();
+  const { waitFor } = require('./harness');
+  const ok = await waitFor(() => p.data.mapV && p.data.mapV.cells && p.data.mapV.cells.length);
+  assert.ok(ok, '应等待详情后渲染格子');
+  assert.ok(p.data.mapV.cells.some((c) => c.full));
+  s.pool = savedPool;
+  if (savedLoaded) S.detailLoaded[s.id] = true;
 });
 
 test('create / craft', async () => {
@@ -101,6 +120,18 @@ test('search 使用 poolText', () => {
   assert.ok(p.data.search);
   assert.ok(Array.isArray(p.data.search.rows));
   assert.ok(p.data.search.rows.length > 0);
+});
+
+test('抽卡页点卡可来回翻面，且不弹大卡', () => {
+  const p = makePage('draw', S);
+  p.setData({ draw: { stage: 'after', flipped: false, sealed: false, stateCls: 'is-drawn' } });
+  p.tapCard();
+  assert.equal(p.data.draw.flipped, true);
+  assert.equal(p.data.draw.stateCls, 'is-flipped');
+  p.tapCard();
+  assert.equal(p.data.draw.flipped, false);
+  assert.equal(p.data.draw.stateCls, 'is-drawn');
+  assert.equal(p.data.bigCard.show, false);
 });
 
 test('author', async () => {

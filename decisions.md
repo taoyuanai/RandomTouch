@@ -178,3 +178,35 @@
 | D174 | P2-3 | API 重试：real 层 GET 遇 retryable 错误重试一次（400ms）；写请求（draw/stamp/unlock/submit 等）不自动重试，避免重复副作用；测试覆盖 GET 重试、非 retryable、写请求不重试 | 只提升幂等读取的弱网成功率；写请求仍由页面/幂等键保证 |
 | D175 | P1-2c | legacy CSS 归档第一刀：删除 146 条无 WXML/JS 引用的旧规则（hm-* 旧首页、dk-frame/dk-fr/dk-bk、dw-remind、bk-ph/polaroid、cm-*、creator/card-face/cinfo/cavatar、cover-sm 等），保留 hm-press；styles 总量进一步下降 | 仅删确认无引用的类；legacy 仍有约 1020 行，需真机视觉回归后再继续 |
 | D176 | P2-4 | Mock 故障/边界测试补强：覆盖 setFailureRate 可复现失败与恢复、未知卡集/分类、draw 同 requestId 幂等、同日新 requestId 不重复、travel 跨天重置、取消订阅保留进度并可恢复、空池 draw=completed；beforeEach 重置 store | 测试直接使用 mock `_debug`，不依赖开发者工具 DEBUG；未改业务代码 |
+| D177 | P2-5 | Mock 全页面三态自动化：新增 three-state 测试（boot 失败/重试、订阅/收益/作者 bootError 恢复、detail hydrate 失败重试、home/categories/search 空数据）；新增 docs/device-qa.md 真机三态与视觉清单。微信开发者工具 CLI 因服务端口关闭无法自动启动真机/模拟器回归 | 自动化部分已执行；真机视觉仍需人工扫码完成 |
+| D178 | P1-6c | 卡集行升级为自定义组件 `components/set-row`：properties item/mode/groupName，内部 `rowtap` 事件，页面通过 host `bind:rowtap` + 原 dataset 处理；`styleIsolation: apply-shared` + `addGlobalClass` 复用全局 V6 样式；替代 P1-6b 的 WXML template | 组件化真正落地；需真机确认组件样式隔离与事件冒泡 |
+| D179 | P1-1b | base.js 领域拆分：海报/周记方法移入 `lib/shared/mixins/poster.js`，发现/搜索/分类移入 `lib/shared/mixins/browse.js`，base 通过 Object.assign 组合；base 从 2866 行降至 2335 行 | 测试覆盖通过；详情/抽卡/编辑等域仍留在 base，可继续按域拆 |
+| D180 | P1-1b / P1-6c / P2-5 | 本轮结构收敛：base.js 继续拆出 `mixins/craft.js`、`mixins/collection.js`（base 2866→1639 行）；新增 `components/v6-topbar` 覆盖 6 个原生导航页；set-row 改为 `rowtap` 自定义事件；mock 边界测试增至 60 个；性能审计脚本 `tools/audit-size.js` 生成 docs/performance-audit.md，pack 排除 tools/docs/.github/server 等；legacy CSS 再清 17 条 |
+| D181 | fix | 修复小程序空白/编译失败：`styles/legacy.wxss` 遗留孤立 `*/`（CSS 清理时注释起始被并入规则），删除后 WXSS 可编译；静态测试新增 WXSS 注释闭合检查，防同类回归 | 日志定位：`styles/legacy.wxss(301:1): unexpected token *` |
+| D182 | UI | 抽卡页已翻开后不再弹大卡：移除 `tapCard` 的 `showBigCard` 兜底，大卡层只保留给全图 / 收藏册 / 统计等小卡场景；抽卡页停留在「抽卡 → 翻开解读 → 盖戳/分享」 | 防止大卡套大卡；新增单测覆盖再次点击不弹层 |
+| D183 | UI | 照片分享海报改为照片优先版式：3:4 照片全幅（3:4）+ 底部覆盖信息层；9:16 照片占上方 3:4 + 下方信息层；保留品牌/日期/题眼/钢戳/来源/QR；同步改 posterKit Canvas 与 m-flow 预览，不再把照片塞进 54% 横向区域 | 文字卡仍用原卡片版式；用户确认照片海报需更像盖戳记录页的全幅照片布局 |
+| D184 | UI | 海报日期收敛：删除顶栏白色「11月25日」，只保留黑色墨印戳日期；墨印戳移到顶栏右侧与「✦ 今日做点小事」同高（3:4 / 9:16 分别对齐）；照片版墨印戳加白色纸底保证照片上可读；卡面内不再重复钢戳 | 一张海报只出现一个日期；保留邮戳产品身份 |
+| D185 | UI | 抽卡页点卡双向翻面：已抽到后 tapCard 在关键词面 / 解读面之间切换，stateCls 在 is-drawn / is-flipped 间切换；不再只单向翻开，也不弹大卡 | 卡片改为可逆翻面；底部盖戳/分享动作仍只在解读面出现 |
+| D186 | UI | 抽卡页已抽到状态：分享 / 印上今天改为同一行（ghost 34% + 主按钮剩余宽度），压缩纵向动作区；卡堆固定 3 层，抽卡前后保持同一卡面视觉尺寸；仍保留双向翻面 | 卡面尺寸不随剩余张数变化；动作区更紧凑 |
+| D187 | UI | 抽卡页已抽到即显示「分享 / 印上今天」：动作行在 is-drawn / is-flipped / is-visited 三态都可见；两按钮统一 48px 高、同一行、垂直对齐；卡堆固定 3 层保持抽卡前后卡面尺寸一致 | 不再需要先翻面才出现主动作 |
+| D188 | UI | 抽卡页动作行对齐修复：legacy `.dw-btn + .dw-btn{margin-top:10px}` 在横向 flex 行中仍生效，覆盖为 `margin-top:0`；两按钮统一 48px 高并同一行 | 解决分享/印上今天一上一下；按钮在 is-drawn 起即显示 |
+| D189 | UI | 盖戳页收敛：删掉「一句话或一张照片，都可以。」；照片/文字、注释输入、添加/更换/删除照片、0/50 计数全部合并进同一张卡；移除卡外重复的 photo-tools / 今天想留下什么 / 独立 textarea；卡面加宽、占位区加高；确认盖戳保留在卡下 | 减少重复文案和纵向表单；照片与文字共用卡内编辑区 |
+| D190 | fix | 全图空白格修复：格子数不再只取 count，改为覆盖 `max(count, pool.length, maxGot+1)`；已抽索引必定有格子。另在 renderMap 摘要态先 ensureSetDetail，避免 pool=[] 时把已抽卡渲染成空词。 | 兼容历史 count<pool / 已抽 idx 越界；不会再用空 pool 渲染全图 |
+| D191 | content | 下架 3 个卡集：id1「醒来觉得甚是爱你」、id4「律师朋友讲的三十个案例」、id12「睡前一首诗」；mock seed 更新为 16 集 / 161 卡，SEED_VERSION 升为 `2026-11-26-del1-4-12`；新增 `server/scripts/remove-sets.js`（需 `--yes`）清理生产库关联表；卡集汇总/核心文案/文案总览/content-map 同步更新 | 旧本地 mock 因版本号变化会重建；服务端旧库需手动跑 db:remove-sets |
+| D192 | content | 更新 id15「便利店哲学」：cat 改为 life、type 保持 collect、count/pool 14 张；按给定顺序替换全部卡面和解签；covS/intro/signatureIdx 同步；SEED_VERSION 升为 `2026-11-26-del1-4-12-upd15`；新增 `server/scripts/update-convenience.js` 供旧库定向更新 | 当前 mock 16 集 / 167 卡；本地自动重建，旧服务端库需手动跑 update-convenience |
+| D193 | content | 新增 id20「心情天气预报」：mood / collect / 28 张 / ¥0 / 随机；简介与 28 条卡面解签按运营文案写入；SEED_VERSION 升为 `2026-11-26-del1-4-12-upd15-add20`；新增通用 `db:upsert-set -- --id=20 --yes` 供旧库定向写入 | 当前 mock 17 集 / 195 卡；本地自动重建，旧服务端库需手动 upsert-set |
+| D194 | content | 新增 id21「动一动，意思意思」：walk / resident / ¥0 / 随机；简介写入；运营文案实际 21 条，按 21 张入库（用户原写 20，待确认是否删一条）；SEED_VERSION 升为 `2026-11-26-del1-4-12-upd15-add20-21` | 当前 mock 18 集 / 216 卡；旧服务端库可 `db:upsert-set -- --id=21 --yes` |
+| D195 | content | 新增 id22「今日随手拍命题」：muse / resident / 30 张 / ¥0 / 随机；第 4 条原解签为空，暂用「同样的东西排在一起，才看得出谁有一点不一样。」；#9 修正双句号，#22/#30 补句号；SEED_VERSION 升为 `2026-11-26-del1-4-12-upd15-add20-21-22` | 当前 mock 19 集 / 246 卡；#4 文案待运营确认 |
+| D196 | content | 更新 id9「办公室摸鱼图鉴」：work / collect / 30 张，按运营顺序替换全部卡面与解签；保持免费、创作者与热度；SEED_VERSION 升为 `2026-11-26-del1-4-12-upd15-add20-21-22-upd9` | 当前 mock 19 集 / 269 卡；旧服务端库可 `db:upsert-set -- --id=9 --yes` |
+| D197 | content | 更新 id19「故事开头盲盒」：新增第21张「你随口哼了句歌，街上的音响应了一句。/ 接着哼，看它跟到哪。」；count 20→21，covS/intro 同步为二十一签；SEED_VERSION 升为 `2026-11-26-del1-4-12-upd15-add20-21-22-upd9-add19` | 当前 mock 19 集 / 270 卡；旧服务端库可 `db:upsert-set -- --id=19 --yes` |
+| D199 | content | 更新 id14「云的图鉴」：walk / collect / 14 张；按运营顺序替换完整云种卡面；covS/intro 改为十四；SEED_VERSION 升为 `2026-11-26-del1-4-12-upd15-add20-21-22-upd9-add19-upd14` | 当前 mock 19 集 / 276 卡；旧服务端库可 `db:upsert-set -- --id=14 --yes` |
+| D200 | UI | 抽卡 reveal 微动效 MVP：仅在 justDrawn 第一次抽到时触发 1.5s；默认 spark 星光，mood 分类显示 rainbow；右上角、pointer-events:none、不遮字；1.6s 后清理，页面 onUnload 清理定时器；加 prefers-reduced-motion 保护 | 先验证节奏与视觉，暂未扩展太阳/云/食物/猫球等更多变体 |
+| D201 | UI | 抽卡 reveal 时长 1.5s→2.4s（清理 2.5s）；翻面后的解读面：TODAY'S CARD 顶部居中，中文关键词垂直居中，来源固定在底部，避免标题贴顶 | 小星光不遮字、节奏更完整；仅调整解读面 |
+| D202 | UI | 抽卡解读面正文（解签）同步水平居中，与关键词形成同一中轴；来源仍固定底部 | 解决黑色正文左对齐产生的视觉偏轴 |
+| D204 | content | 更新 id5「今天吃什么」：food / resident / 14 张；按运营顺序替换 11 条总纲卡 + 热馄饨/煲仔饭/咖喱三条金句位；来源列仅作运营标注，不进入卡面字段；covS/intro 同步十四；SEED_VERSION 升为 `...-upd5` | 当前 mock 19 集 / 285 卡；旧服务端库可 `db:upsert-set -- --id=5 --yes` |
+| D205 | UI | 首页发现页收敛：删除日期行「11月26日 · 星期四」；今日一卡色块 min-height 188→150，padding/标题/按钮/几何圆环等比缩小，保持圆形不变形；标题 34→28px、字重 600，用「一点点」橙色强调 + 44px 短下划线；chips/列表头间距收紧，让卡集更早进入首屏 | 保持 V6 冷灰橙白；首屏垂直利用率提升 |
+| D206 | UI | 首页今日一卡移除「✦ 今日一卡」图标与文字，只保留标题与抽卡按钮；同步删除 label 样式，减少色块内冗余信息 | 卡片更安静，标题成为第一视觉 |
+| D207 | UI | 三个 tab 页头收敛：删除 MY COLLECTION / CREATOR CENTER / MY SPACE 英文 kicker；收藏册与创作中心中文标题 28→24px；我的页删除「我的」标题，仅保留右侧提醒铃铛；移除未用的 .v6-kicker | 页头更轻，正文更早进入视野 |
+| D208 | UI | 我的页顶部压缩：删除标题后仍保留 64px 空头，现改为 44px 导航高度 + 右上铃铛；头像资料区 padding-top 22→10px，整体内容上移 | 不改变 status bar / 胶囊安全区；仅压缩无内容头部 |
+| D209 | UI | 收藏册页头移除书本装饰图标，创作中心页头移除右上角「+」按钮（下方已有主「新建卡集」入口）；同步删除 .v6-lib-ico 死样式 | 页头只保留标题，减少重复入口 |
+| D210 | UI | 首页今日一卡继续压缩：min-height 150→132px，padding 16→14/16，标题 20→19，按钮 34→32，圆环 136→124，间距 16/22 收紧；保持圆形比例不失真 | 为卡集列表再让出首屏空间 |

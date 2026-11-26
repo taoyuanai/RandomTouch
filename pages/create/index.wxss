@@ -10,3 +10,4 @@
 .v6-income-entry .v6-icon{width:22px;height:22px;flex:none}
 .v6-create-group{margin-top:24px}
 .v6-create-foot{padding:30px 0 10px;text-align:center;font-size:12px;line-height:1.6;color:var(--v6-ink-3)}
+.v6-lib-head .v6-lib-title{font-size:24px;line-height:32px}

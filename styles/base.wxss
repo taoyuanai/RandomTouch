@@ -289,19 +289,6 @@ page{
     line-height:var(--leading-loose);
     margin-bottom:var(--space-5);
     letter-spacing:0.5px;
-  }.empty .empty-examples{
-    font-size:var(--text-base);
-    line-height:1.9;
-    letter-spacing:0;
-    margin-bottom:var(--space-3);
-  }.empty .empty-emphasis{
-    font-family:var(--font-serif);
-    font-size:var(--text-lg);
-    color:var(--text-brand);
-    line-height:var(--leading-loose);
-    letter-spacing:1px;
-    margin-bottom:var(--space-4);
-    font-weight:var(--weight-medium);
   }.c1{background:var(--surface-card)}.c2{background:var(--surface-card)}.c3{background:var(--surface-card)}.c4{background:var(--surface-card)}.c5{background:var(--surface-card)}.c6{background:var(--surface-card)}.avatar{
     width:56px;
     height:56px;
@@ -998,20 +985,6 @@ page{
     flex:none;
     font-size:var(--text-sm);
     margin-top:2px;
-  }.modal .bigcard{
-    width:240px;
-    height:360px;
-    margin:0 auto var(--space-5);
-    perspective:900px;
-    cursor:pointer;
-  }.modal .bigcard .card-inner{
-    position:relative;
-    width:100%;height:100%;
-    transform-style:preserve-3d;
-    transition:transform var(--duration-slower) var(--ease-bounce);
-  }.modal .bigcard.flipped .card-inner{transform:rotateY(180deg)}.modal .bigcard .card-face{
-    border-radius:var(--radius-xl);
-    padding:var(--space-5) var(--space-4);
   }.toast{
     position:fixed;
     left:50%;
@@ -1092,19 +1065,6 @@ page{
     letter-spacing:0.5px;
     position:relative;
     z-index:1;
-  }.empty .empty-examples{
-    font-size:var(--text-base);
-    line-height:1.9;
-    letter-spacing:0;
-    margin-bottom:var(--space-3);
-  }.empty .empty-emphasis{
-    font-family:var(--font-serif);
-    font-size:var(--text-lg);
-    color:var(--text-brand);
-    line-height:var(--leading-loose);
-    letter-spacing:1px;
-    margin-bottom:var(--space-4);
-    font-weight:var(--weight-medium);
   }.empty .cta{
     position:relative;
     z-index:1;
@@ -1712,7 +1672,7 @@ page{
     font-family:var(--font-serif);font-size:8px;letter-spacing:0;
     transform:rotate(12deg);background:rgba(255,245,240,0.92);
     text-align:center;line-height:1.3;
-  }.bk-section.tilt-l .bk-polaroid{transform:rotate(-1.6deg)}.bk-section.tilt-r .bk-polaroid{transform:rotate(1.4deg)}.bk-blank-text{
+  }.bk-blank-text{
     font-size:var(--text-xs);color:var(--gray-400);
     letter-spacing:1px;text-align:center;line-height:1.9;padding:0 10px;
   }.bk-backcover{

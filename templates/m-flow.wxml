@@ -16,19 +16,36 @@
       <view class="v6-stamp-heading">
         <text class="v6-stamp-date">{{record.stampDate}}</text>
         <view class="v6-stamp-title">把这一刻，留在今天。</view>
-        <text class="v6-stamp-sub">一句话或一张照片，都可以。</text>
       </view>
 
       <view class="v6-stamp-canvas {{record.stamped ? 'is-stamped' : ''}}">
         <view wx:if="{{record.hasImg}}" class="v6-stamp-photo-wrap" bindtap="choosePhoto">
           <image class="v6-stamp-photo" src="{{record.img}}" mode="aspectFill" />
         </view>
-        <view wx:else class="v6-stamp-placeholder">
+        <view wx:else class="v6-stamp-placeholder" bindtap="choosePhoto">
           <text class="v6-stamp-word">{{record.word}}</text>
           <view class="v6-stamp-ring"></view>
         </view>
-        <view class="v6-stamp-note-preview">{{record.note || '在这里，写下今天的一点心情……'}}</view>
-        <view class="v6-stamp-meta">{{record.word}} · {{record.setTitle}}</view>
+
+        <view class="v6-stamp-note-field">
+          <textarea class="v6-stamp-note-input" maxlength="50" value="{{record.note}}"
+                    disabled="{{record.readOnly}}" bindinput="onRecordNote"
+                    placeholder="写下今天的一点心情，比如：今天决定不再赶时间了。"></textarea>
+          <text class="v6-stamp-note-count">{{record.count}}/50</text>
+        </view>
+
+        <view class="v6-stamp-foot">
+          <text class="v6-stamp-meta">{{record.word}} · {{record.setTitle}}</text>
+          <view wx:if="{{!record.stamped}}" class="v6-stamp-photo-actions">
+            <view class="v6-stamp-photo-btn" hover-class="hm-press" bindtap="choosePhoto">
+              {{record.hasImg ? '更换照片' : '添加照片'}}
+            </view>
+            <view wx:if="{{record.hasImg}}" class="v6-stamp-photo-del" hover-class="hm-press" bindtap="clearPhoto">
+              <image class="v6-icon" src="/assets/icons/v6/trash-ink.png" mode="aspectFit" />
+            </view>
+          </view>
+        </view>
+
         <view wx:if="{{record.stamped}}" class="v6-date-stamp">
           <text>今日</text>
           <text>已记</text>
@@ -37,21 +54,6 @@
       </view>
 
       <view class="v6-stamp-form">
-        <view class="v6-photo-tools" wx:if="{{!record.stamped}}">
-          <view class="v6-btn secondary compact" hover-class="hm-press" bindtap="choosePhoto">{{record.hasImg ? '更换照片' : '添加照片'}}</view>
-          <view wx:if="{{record.hasImg && !record.stamped}}" class="v6-icon-btn v6-photo-del" hover-class="hm-press" bindtap="clearPhoto">
-            <image class="v6-icon" src="/assets/icons/v6/trash-ink.png" mode="aspectFit" />
-          </view>
-        </view>
-
-        <view class="v6-note-field" wx:if="{{!record.stamped}}">
-          <text class="v6-note-label">今天想留下什么？</text>
-          <textarea class="v6-note-input" maxlength="50" value="{{record.note}}"
-                    disabled="{{record.readOnly}}" bindinput="onRecordNote"
-                    placeholder="比如：今天决定不再赶时间了。"></textarea>
-          <text class="v6-note-count">{{record.count}}/50</text>
-        </view>
-
         <block wx:if="{{record.stamped}}">
           <view class="v6-stamp-success">这一刻已经盖好戳了</view>
           <view class="v6-btn primary" hover-class="hm-press" bindtap="closeRecord">收进册子</view>
@@ -95,17 +97,40 @@
       <button class="close-btn" bindtap="hidePoster" style="position:absolute;top:12px;right:12px;z-index:10">×</button>
       <view id="posterContent">
         <!-- Type A · 单卡分享卡（V6） -->
-        <view wx:if="{{poster.kind === 'highlight'}}" class="v6-poster {{poster.ratio === '916' ? 'is-916' : 'is-34'}} {{poster.rec && poster.rec.img ? 'has-photo' : 'is-text'}}">
+        <block wx:if="{{poster.kind === 'highlight'}}">
+          <view wx:if="{{poster.rec && poster.rec.img}}"
+                class="v6-photo-poster {{poster.ratio === '916' ? 'is-916' : 'is-34'}}">
+            <view class="v6-photo-poster-media">
+              <image class="v6-photo-poster-img" src="{{poster.rec.img}}" mode="aspectFill" />
+              <view class="v6-photo-poster-top">
+                <text class="v6-photo-poster-brand">✦ 今日做点小事</text>
+                <text class="v6-photo-poster-stamp">{{poster.stampText}}</text>
+              </view>
+              <view class="v6-photo-poster-sig" wx:if="{{poster.sig}}">题眼</view>
+            </view>
+            <view class="v6-photo-poster-panel">
+              <text class="v6-photo-poster-note">{{poster.rec.note || poster.text}}</text>
+              <text class="v6-photo-poster-source">{{poster.creator ? '@' + poster.creator + ' · ' : ''}}来自《{{poster.setTitle}}》<text wx:if="{{poster.collect}}"> · 已点亮 {{poster.gotN}}/{{poster.count}}</text></text>
+              <view class="v6-photo-poster-bottom">
+                <text class="v6-photo-poster-cta">扫码，抽你的一签</text>
+                <view class="v6-photo-poster-qr">
+                  <image wx:if="{{poster.qrSrc}}" class="v6-photo-poster-qr-img" src="{{poster.qrSrc}}" mode="aspectFit"/>
+                  <text wx:else class="v6-photo-poster-qr-t">搜一搜</text>
+                </view>
+              </view>
+            </view>
+          </view>
+
+          <view wx:else class="v6-poster {{poster.ratio === '916' ? 'is-916' : 'is-34'}} is-text">
           <view class="v6-poster-head">
             <text class="v6-poster-brand">✦ 今日做点小事</text>
-            <text class="v6-poster-date">{{poster.date}}</text>
+            <text class="v6-poster-stamp">{{poster.stampText}}</text>
           </view>
 
           <view class="v6-poster-card">
             <view class="v6-poster-visual {{poster.rec && poster.rec.img ? 'has-img' : 'is-text'}}">
               <image wx:if="{{poster.rec && poster.rec.img}}" class="v6-poster-img" src="{{poster.rec.img}}" mode="aspectFill" />
               <text wx:else class="v6-poster-word {{poster.wordCls}}">{{poster.word}}</text>
-              <view class="v6-poster-stamp">{{poster.stampText}}</view>
               <view class="v6-poster-sig" wx:if="{{poster.sig}}">题眼</view>
             </view>
 
@@ -132,6 +157,8 @@
         </view>
 
         <!-- Type B-916 · 抽空纪念 · 朋友圈 9:16 -->
+        </block>
+
         <view wx:elif="{{poster.kind === 'memorial' && poster.ratio === '916'}}"
               class="poster-card poster-memorial poster-m916">
           <view class="poster-head">

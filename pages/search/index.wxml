@@ -1,5 +1,4 @@
 <import src="/templates/cover.wxml"/>
-<import src="/templates/set-row.wxml"/>
 <view class="phone" style="--statusbar:0px;--navtop:0px">
   <view class="v6-search-head" style="padding-top:{{statusBarHeight}}px">
     <view class="v6-search-head-inner" style="padding-right:{{menuPad}}px">
@@ -47,9 +46,8 @@
         <text class="v6-count">{{search.rows.length}} 个卡集</text>
       </view>
       <view id="squareList" class="v6-set-list">
-        <block wx:for="{{search.rows}}" wx:key="id">
-          <template is="setRowPublic" data="{{item: item, from: 'search'}}" />
-        </block>
+        <set-row wx:for="{{search.rows}}" wx:key="id" item="{{item}}" mode="public"
+                 data-id="{{item.id}}" data-from="search" bind:rowtap="openSet" />
       </view>
     </block>
 

@@ -1,4 +1,7 @@
 {
   "navigationStyle": "custom",
-  "usingComponents": {}
+  "usingComponents": {
+    "set-row": "/components/set-row/set-row",
+    "v6-topbar": "/components/v6-topbar/v6-topbar"
+  }
 }

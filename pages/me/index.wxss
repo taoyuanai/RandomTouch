@@ -1,6 +1,6 @@
 
 #page-me{padding:0 20px calc(88px + env(safe-area-inset-bottom))}
-.v6-me-profile{display:flex;align-items:center;gap:15px;padding:22px 0 25px}
+.v6-me-profile{display:flex;align-items:center;gap:15px;padding:10px 0 22px}
 .v6-me-avatar{width:64px;height:64px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--v6-orange);color:var(--v6-on-orange);font-size:27px;font-weight:700}
 .v6-me-avatar-wrap{position:relative;width:64px;height:64px;flex:none}
 .v6-me-avatar-img{display:block;width:64px;height:64px;border-radius:50%;object-fit:cover;background:var(--v6-orange-50)}
@@ -31,3 +31,5 @@
 .v6-time-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}
 .v6-time{min-height:42px;display:flex;align-items:center;justify-content:center;border:1px solid var(--v6-line);border-radius:12px;background:var(--v6-surface);color:var(--v6-ink-2);font-size:14px}
 .v6-time.on{border-color:var(--v6-action);background:var(--v6-orange-50);color:var(--v6-action);font-weight:600}
+
+.v6-lib-nav-inner{height:44px;align-items:center;justify-content:flex-end}

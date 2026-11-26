@@ -26,9 +26,82 @@
   "simulatorPluginLibVersion": {},
   "packOptions": {
     "ignore": [
-      { "type": "folder", "value": "server" },
-      { "type": "folder", "value": "deploy" },
-      { "type": "folder", "value": "node_modules" }
+      {
+        "type": "folder",
+        "value": "server"
+      },
+      {
+        "type": "folder",
+        "value": "deploy"
+      },
+      {
+        "type": "folder",
+        "value": "node_modules"
+      },
+      {
+        "type": "folder",
+        "value": ".github"
+      },
+      {
+        "type": "folder",
+        "value": "docs"
+      },
+      {
+        "type": "folder",
+        "value": "tools"
+      },
+      {
+        "type": "folder",
+        "value": "preview"
+      },
+      {
+        "type": "folder",
+        "value": "downloads"
+      },
+      {
+        "type": "file",
+        "value": "package.json"
+      },
+      {
+        "type": "file",
+        "value": "README.md"
+      },
+      {
+        "type": "file",
+        "value": "CLAUDE.md"
+      },
+      {
+        "type": "file",
+        "value": "contract.md"
+      },
+      {
+        "type": "file",
+        "value": "decisions.md"
+      },
+      {
+        "type": "file",
+        "value": "data.js"
+      },
+      {
+        "type": "file",
+        "value": "project.private.config.json"
+      },
+      {
+        "type": "file",
+        "value": "卡集文案总览.md"
+      },
+      {
+        "type": "file",
+        "value": "卡集核心文案.md"
+      },
+      {
+        "type": "file",
+        "value": ".DS_Store"
+      },
+      {
+        "type": "file",
+        "value": ".gitignore"
+      }
     ],
     "include": []
   },

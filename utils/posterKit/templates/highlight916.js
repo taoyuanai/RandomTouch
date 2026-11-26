@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════ */
 const P = require('../colors.js');
 const H = require('../helpers.js');
-const { buildHighlightData, drawCard } = require('./highlight34.js');
+const { buildHighlightData, drawCard, drawPhotoPoster, drawTopStamp } = require('./highlight34.js');
 
 const W = 360, HGT = 640, M = 24;
 
@@ -37,10 +37,7 @@ function drawHeader(ctx, data) {
   ctx.font = H.sansFont(15, 600);
   ctx.textAlign = 'left';
   ctx.fillText('✦ 今日做点小事', M, 52);
-  ctx.fillStyle = P.ink3;
-  ctx.font = H.sansFont(12, 400);
-  ctx.textAlign = 'right';
-  ctx.fillText(data.date, W - M, 52);
+  drawTopStamp(ctx, data, W, M, false, 43);
   ctx.strokeStyle = P.line;
   ctx.lineWidth = 2;
   ctx.beginPath();
@@ -86,9 +83,15 @@ async function drawHighlight916(ctx, data, kit = {}) {
   const photoImg = data.rec && data.rec.img && loadImage
     ? await safeLoad(data.rec.img) : null;
 
-  drawBg(ctx, !!photoImg);
+  if (photoImg) {
+    drawPhotoPoster(ctx, data, photoImg, qrImg, {
+      W, H: HGT, M, panelH: 160, mediaH: HGT - 160, overlay: false,
+    });
+    return;
+  }
+  drawBg(ctx, false);
   drawHeader(ctx, data);
-  drawCard(ctx, data, photoImg, { x: 45, y: 96, w: 270, h: 378, topH: 204 });
+  drawCard(ctx, data, null, { x: 45, y: 96, w: 270, h: 378, topH: 204 });
   drawFooter(ctx, data, qrImg);
 }
 

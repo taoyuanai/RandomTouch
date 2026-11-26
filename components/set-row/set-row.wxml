@@ -1,0 +1,47 @@
+<import src="/templates/cover.wxml"/>
+
+<view class="v6-set-row" hover-class="hm-press" hover-stay-time="80" bindtap="onTap">
+  <template wx:if="{{mode !== 'cards' || item.cover}}" is="coverArt" data="{{item: item.cover}}" />
+
+  <view class="v6-set-content">
+    <block wx:if="{{mode === 'public'}}">
+      <view class="v6-set-top">
+        <text class="v6-set-cat">{{item.catName}}</text>
+        <text class="v6-set-price">{{item.priceText}}</text>
+      </view>
+      <text class="v6-set-title">{{item.title}}</text>
+      <text class="v6-set-sub">{{item.subText}}</text>
+      <text class="v6-set-meta">{{item.metaText}}</text>
+    </block>
+
+    <block wx:elif="{{mode === 'cards'}}">
+      <view class="v6-set-top">
+        <text class="v6-set-cat">{{item.catName}}</text>
+        <text class="v6-lib-prog">{{item.prog}}</text>
+      </view>
+      <text class="v6-set-title">{{item.title}}</text>
+      <view class="v6-lib-status {{item.statusCls}}">
+        <view class="v6-lib-dot"></view>
+        <text>{{item.status}}</text>
+      </view>
+      <text class="v6-lib-meta">{{item.metaText}}</text>
+    </block>
+
+    <block wx:elif="{{mode === 'craft'}}">
+      <view class="v6-set-top">
+        <text class="v6-set-cat">{{item.badgeText}}</text>
+        <text class="v6-set-price">{{groupName}}</text>
+      </view>
+      <text class="v6-set-title">{{item.title}}</text>
+      <text class="v6-set-sub">{{item.meta}}</text>
+    </block>
+
+    <block wx:else>
+      <view class="v6-set-top">
+        <text class="v6-set-cat">{{item.meta1}}</text>
+        <text class="v6-set-price">{{item.meta2}}</text>
+      </view>
+      <text class="v6-set-title">{{item.title}}</text>
+    </block>
+  </view>
+</view>

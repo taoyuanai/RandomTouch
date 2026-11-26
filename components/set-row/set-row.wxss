@@ -1,0 +1,8 @@
+/* 卡集行在组件内复用全局 V6 令牌；这里仅兜底订阅页行样式。 */
+.v6-lib-prog{font-size:11px;color:var(--v6-ink-3);font-variant-numeric:tabular-nums}
+.v6-lib-status{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;color:var(--v6-ink-3)}
+.v6-lib-dot{width:6px;height:6px;border-radius:50%;background:var(--v6-orange);flex:none}
+.v6-lib-status.quiet .v6-lib-dot{background:var(--v6-ink-4)}
+.v6-lib-status.wait .v6-lib-dot{background:var(--v6-orange)}
+.v6-lib-status.gold .v6-lib-dot{background:var(--v6-orange)}
+.v6-lib-meta{margin-top:4px;max-width:100%;font-size:12px;line-height:18px;color:var(--v6-ink-3)}

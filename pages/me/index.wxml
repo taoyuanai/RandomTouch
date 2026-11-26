@@ -2,10 +2,6 @@
 <!-- ═══════════════════ 我的 ═══════════════════ -->
   <view class="v6-lib-nav" style="padding-top:{{statusBarHeight}}px">
     <view class="v6-lib-nav-inner" style="padding-right:{{menuPad}}px">
-      <view class="v6-lib-head">
-        <text class="v6-kicker">MY SPACE</text>
-        <text class="v6-lib-title">我的</text>
-      </view>
       <view class="v6-icon-btn" hover-class="hm-press" bindtap="openRemind">
         <image class="v6-icon" src="/assets/icons/v6/bell-ink.png" mode="aspectFit" />
       </view>

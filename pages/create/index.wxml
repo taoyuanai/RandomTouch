@@ -1,14 +1,9 @@
 <import src="/templates/cover.wxml"/>
-<import src="/templates/set-row.wxml"/>
 <view class="phone" style="--statusbar:0px;--navtop:0px">
   <view class="v6-lib-nav" style="padding-top:{{statusBarHeight}}px">
     <view class="v6-lib-nav-inner" style="padding-right:{{menuPad}}px">
       <view class="v6-lib-head">
-        <text class="v6-kicker">CREATOR CENTER</text>
         <text class="v6-lib-title">创作中心</text>
-      </view>
-      <view class="v6-icon-btn" hover-class="hm-press" bindtap="newCraft">
-        <image class="v6-icon" src="/assets/icons/v6/plus-ink.png" mode="aspectFit" />
       </view>
     </view>
   </view>
@@ -54,9 +49,9 @@
             <text class="v6-count">{{group.count}}</text>
           </view>
           <view class="v6-set-list">
-            <block wx:for="{{group.rows}}" wx:key="id">
-              <template is="setRowCraft" data="{{item: item, groupName: group.name, kind: group.kind}}" />
-            </block>
+            <set-row wx:for="{{group.rows}}" wx:key="id" item="{{item}}" mode="craft"
+                     group-name="{{group.name}}" data-kind="{{group.kind}}" data-id="{{item.id}}"
+                     bind:rowtap="craftRowTap" />
           </view>
         </view>
 

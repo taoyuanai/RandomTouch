@@ -1,4 +1,6 @@
 {
   "navigationStyle": "custom",
-  "usingComponents": {}
+  "usingComponents": {
+    "v6-topbar": "/components/v6-topbar/v6-topbar"
+  }
 }
